@@ -1,0 +1,189 @@
+<!doctype html>
+<!-- AI Side Quest — 불멍 (13차). 캔버스 파티클로 그린 모닥불. 🔈를 누르면 장작 타는 소리(합성음). -->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>AI Side Quest — 불멍</title>
+<link rel="stylesheet" href="/games/common.css" />
+<style>
+  .card { position: relative; padding: 0; overflow: hidden; background: #0b0706; color: #f5e9dc; }
+  .top { position: absolute; left: 12px; right: 12px; top: 8px; z-index: 2; }
+  .top a, .top button { color: rgba(245,233,220,0.7); }
+  .top button { background: none; border: none; font-size: 13px; cursor: pointer; padding: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hint { position: absolute; bottom: 10px; width: 100%; text-align: center; font-size: 11px; color: rgba(245,233,220,0.45); z-index: 2; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top"><a href="/quest">← 퀘스트</a><span class="title">🔥 불멍</span><span><button id="sound" title="소리">🔈</button> &nbsp;<a href="/__close" title="닫기">✕</a></span></div>
+  <canvas id="cv"></canvas>
+  <div class="hint">클릭하면 장작을 하나 더 넣어요</div>
+</div>
+<script>
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const W = cv.clientWidth, H = cv.clientHeight, DPR = window.devicePixelRatio || 1;
+  cv.width = W * DPR; cv.height = H * DPR;
+  ctx.scale(DPR, DPR);
+  const baseY = H - 70; // 불꽃이 올라오는 높이
+  let fuel = 1; // 클릭하면 잠깐 커진다
+  const flames = [], sparks = [];
+
+  function spawnFlame() {
+    const spread = 34 + 10 * fuel;
+    flames.push({
+      x: W / 2 + (Math.random() - 0.5) * spread * 2 * Math.random(),
+      y: baseY + Math.random() * 6,
+      r: 13 + Math.random() * 18 * fuel,
+      vy: -(1.2 + Math.random() * 1.6) * (0.8 + 0.3 * fuel),
+      vx: (Math.random() - 0.5) * 0.35,
+      life: 1,
+      decay: 0.012 + Math.random() * 0.012,
+    });
+  }
+  function spawnSpark() {
+    sparks.push({
+      x: W / 2 + (Math.random() - 0.5) * 40, y: baseY,
+      vx: (Math.random() - 0.5) * 1.4, vy: -(1.5 + Math.random() * 2.5),
+      life: 1, decay: 0.008 + Math.random() * 0.01,
+    });
+  }
+  function drawLogs() {
+    ctx.save();
+    ctx.translate(W / 2, baseY + 22);
+    for (const [rot, len] of [[-0.35, 120], [0.35, 120], [0.05, 100]]) {
+      ctx.save();
+      ctx.rotate(rot);
+      const g = ctx.createLinearGradient(0, -9, 0, 9);
+      g.addColorStop(0, '#5a3a24'); g.addColorStop(1, '#2b1a10');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.roundRect(-len / 2, -9, len, 18, 9);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,120,40,0.35)';
+      ctx.beginPath();
+      ctx.ellipse(len / 2 - 4, 0, 4, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+  function frame(t) {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(11,7,6,0.35)'; // 살짝 잔상을 남겨 불꽃이 부드럽게 보이게
+    ctx.fillRect(0, 0, W, H);
+
+    // 바닥 불빛 (일렁임)
+    const flicker = 0.85 + Math.sin(t / 130) * 0.06 + Math.random() * 0.06;
+    const glow = ctx.createRadialGradient(W / 2, baseY + 10, 10, W / 2, baseY + 10, 170 * flicker);
+    glow.addColorStop(0, 'rgba(255,140,50,0.35)');
+    glow.addColorStop(1, 'rgba(255,140,50,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+    drawLogs();
+
+    for (let i = 0; i < 4 + fuel * 2; i++) spawnFlame();
+    if (Math.random() < 0.08 * fuel) spawnSpark();
+    fuel += (1 - fuel) * 0.01;
+
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = flames.length - 1; i >= 0; i--) {
+      const f = flames[i];
+      f.x += f.vx + Math.sin((f.y + t / 8) / 18) * 0.25; // 불꽃이 살랑살랑
+      f.y += f.vy;
+      f.life -= f.decay;
+      f.r *= 0.985;
+      if (f.life <= 0 || f.r < 1) { flames.splice(i, 1); continue; }
+      // 뿌리는 하얀 노랑 → 위로 갈수록 주황 → 빨강
+      const hue = 18 + 32 * f.life;
+      const light = 45 + 30 * f.life;
+      const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r);
+      g.addColorStop(0, `hsla(${hue},100%,${light}%,${0.55 * f.life})`);
+      g.addColorStop(1, `hsla(${hue - 10},100%,40%,0)`);
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const s = sparks[i];
+      s.x += s.vx + Math.sin(t / 200 + i) * 0.3;
+      s.y += s.vy;
+      s.vy *= 0.99;
+      s.life -= s.decay;
+      if (s.life <= 0) { sparks.splice(i, 1); continue; }
+      ctx.fillStyle = `rgba(255,${180 + 60 * s.life},90,${s.life})`;
+      ctx.fillRect(s.x, s.y, 1.6, 1.6);
+    }
+    requestAnimationFrame(frame);
+  }
+  ctx.fillStyle = '#0b0706';
+  ctx.fillRect(0, 0, W, H);
+  requestAnimationFrame(frame);
+
+  cv.addEventListener('click', () => {
+    fuel = Math.min(fuel + 0.8, 2.6);
+    for (let i = 0; i < 25; i++) spawnSpark();
+    if (audio) crackleBurst();
+  });
+
+  // 🔈 장작 타는 소리 — 낮게 깔린 브라운 노이즈 + 가끔 "탁" 튀는 소리. 파일 없이 합성.
+  let audio = null, crackleTimer = null;
+  function noiseBuffer(ac, seconds) {
+    const buf = ac.createBuffer(1, ac.sampleRate * seconds, ac.sampleRate);
+    const d = buf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < d.length; i++) {
+      const white = Math.random() * 2 - 1;
+      last = (last + 0.02 * white) / 1.02; // 브라운 노이즈
+      d[i] = last * 3.5;
+    }
+    return buf;
+  }
+  function crackleBurst() {
+    const ac = audio.ac;
+    const n = 1 + Math.floor(Math.random() * 3);
+    for (let k = 0; k < n; k++) {
+      const len = 0.01 + Math.random() * 0.02;
+      const buf = ac.createBuffer(1, ac.sampleRate * len, ac.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+      const src = ac.createBufferSource();
+      const g = ac.createGain();
+      const hp = ac.createBiquadFilter();
+      hp.type = 'highpass'; hp.frequency.value = 1500;
+      g.gain.value = 0.15 + Math.random() * 0.25;
+      src.buffer = buf;
+      src.connect(hp).connect(g).connect(audio.out);
+      src.start(ac.currentTime + k * (0.03 + Math.random() * 0.08));
+    }
+  }
+  document.getElementById('sound').addEventListener('click', (e) => {
+    if (audio) {
+      audio.ac.close();
+      clearInterval(crackleTimer);
+      audio = null;
+      e.target.textContent = '🔈';
+      return;
+    }
+    const ac = new AudioContext();
+    const out = ac.createGain();
+    out.gain.value = 0.6;
+    out.connect(ac.destination);
+    const bed = ac.createBufferSource();
+    bed.buffer = noiseBuffer(ac, 4);
+    bed.loop = true;
+    const lp = ac.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 500;
+    const bedGain = ac.createGain();
+    bedGain.gain.value = 0.35;
+    bed.connect(lp).connect(bedGain).connect(out);
+    bed.start();
+    audio = { ac, out };
+    crackleTimer = setInterval(() => { if (Math.random() < 0.55) crackleBurst(); }, 280);
+    e.target.textContent = '🔊';
+  });
+</script>
+</body>
+</html>

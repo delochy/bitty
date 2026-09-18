@@ -1,0 +1,80 @@
+<!doctype html>
+<!-- AI Side Quest — 넌센스 퀴즈 (11차). 문제 → 정답 보기 → 다음 문제. 문제는 quiz.json에 [문제, 정답] 줄로 추가하면 된다. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>AI Side Quest — 넌센스 퀴즈</title>
+<link rel="stylesheet" href="/games/common.css" />
+<style>
+  .q { min-height: 70px; display: flex; align-items: center; justify-content: center; }
+  .a { font-size: 22px; font-weight: 800; color: var(--accent-text); min-height: 32px; }
+  .row { display: flex; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top"><a href="/quest">← 퀘스트</a><span class="title">🤔 넌센스 퀴즈</span><a href="/__close" title="닫기">✕</a></div>
+  <div class="stage">
+    <div class="small" id="num"></div>
+    <div class="big q" id="q"></div>
+    <div class="a" id="a"></div>
+    <div class="row">
+      <button class="btn" id="reveal">정답 보기</button>
+      <button class="btn ghost" id="next">다음 문제</button>
+    </div>
+  </div>
+</div>
+<script>
+  // 11차: 목록은 /games/{name}.json에서 불러온다. 이미 본 건 이 창에 기억해뒀다가
+  // 전부 볼 때까지 다시 안 보여준다 (다 보면 처음부터 새로 섞음).
+  function makeDeck(items, key) {
+    let seen = [];
+    try { seen = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) {}
+    let left = items.map((_, i) => i).filter((i) => !seen.includes(i));
+    if (!left.length) { seen = []; left = items.map((_, i) => i); }
+    left.sort(() => Math.random() - 0.5);
+    return {
+      total: items.length,
+      seenCount: () => seen.length,
+      next() {
+        if (!left.length) { seen = []; left = items.map((_, i) => i).sort(() => Math.random() - 0.5); }
+        const i = left.shift();
+        seen.push(i);
+        try { localStorage.setItem(key, JSON.stringify(seen)); } catch (e) {}
+        return items[i];
+      },
+    };
+  }
+  const qEl = document.getElementById('q');
+  const aEl = document.getElementById('a');
+  const num = document.getElementById('num');
+  let deck = null;
+  let current = null;
+
+  function show() {
+    current = deck.next();
+    qEl.textContent = current[0];
+    qEl.classList.remove('fade-in');
+    void qEl.offsetWidth;
+    qEl.classList.add('fade-in');
+    aEl.textContent = '';
+    num.textContent = deck.seenCount() + ' / ' + deck.total;
+  }
+  document.getElementById('reveal').addEventListener('click', () => {
+    if (!current) return;
+    aEl.textContent = current[1];
+    aEl.classList.remove('fade-in');
+    void aEl.offsetWidth;
+    aEl.classList.add('fade-in');
+  });
+  document.getElementById('next').addEventListener('click', () => deck && show());
+  fetch('/games/quiz.json')
+    .then((r) => r.json())
+    .then((items) => {
+      deck = makeDeck(items, 'side-quest-quiz-seen');
+      show();
+    })
+    .catch(() => (qEl.textContent = '문제를 못 불러왔어요 😢'));
+</script>
+</body>
+</html>

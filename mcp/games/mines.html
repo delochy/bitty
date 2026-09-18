@@ -1,0 +1,107 @@
+<!doctype html>
+<!-- AI Side Quest — 지뢰찾기 (12차). 8x8, 지뢰 10개. 첫 클릭은 항상 안전. 오른쪽 클릭 또는 🚩 모드로 깃발. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>AI Side Quest — 지뢰찾기</title>
+<link rel="stylesheet" href="/games/common.css" />
+<style>
+  .bar { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); margin: 6px 2px; }
+  .bar button { font-size: 12px; border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 8px; padding: 3px 8px; cursor: pointer; font-family: inherit; }
+  .bar button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .grid { display: grid; grid-template-columns: repeat(8, 30px); gap: 2px; justify-content: center; }
+  .c {
+    width: 30px; height: 30px; border-radius: 5px; background: rgba(127,127,127,0.5); box-shadow: inset 0 -2px 0 rgba(0,0,0,0.18); display: flex;
+    align-items: center; justify-content: center; font-size: 14px; font-weight: 800; cursor: pointer;
+  }
+  .c.open { background: transparent; box-shadow: inset 0 0 0 1px rgba(127,127,127,0.18); cursor: default; }
+  .c.boom { background: #dc2626; }
+  .msg { text-align: center; font-size: 13px; font-weight: 700; margin-top: 8px; height: 18px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top"><a href="/quest">← 퀘스트</a><span class="title">💣 지뢰찾기</span><a href="/__close" title="닫기">✕</a></div>
+  <div class="bar"><span>남은 지뢰 <b id="left">10</b></span><button id="flag">🚩 깃발 모드</button><button id="new">새 게임</button></div>
+  <div class="grid" id="grid"></div>
+  <div class="msg" id="msg"></div>
+</div>
+<script>
+  const N = 8, MINES = 10;
+  const NUM_COLORS = ['', '#3b82f6', '#16a34a', '#dc2626', '#7c3aed', '#b45309', '#0891b2', '#111827', '#6b7280'];
+  const gridEl = document.getElementById('grid');
+  const msg = document.getElementById('msg');
+  let mine, open, flag, started, done, flagMode = false;
+  const cells = [];
+  for (let i = 0; i < N * N; i++) {
+    const c = document.createElement('div');
+    c.className = 'c';
+    c.addEventListener('click', () => (flagMode ? toggleFlag(i) : reveal(i)));
+    c.addEventListener('contextmenu', (e) => { e.preventDefault(); toggleFlag(i); });
+    gridEl.appendChild(c);
+    cells.push(c);
+  }
+  const around = (i) => {
+    const r = Math.floor(i / N), c = i % N, out = [];
+    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+      const rr = r + dr, cc = c + dc;
+      if ((dr || dc) && rr >= 0 && rr < N && cc >= 0 && cc < N) out.push(rr * N + cc);
+    }
+    return out;
+  };
+  const count = (i) => around(i).filter((k) => mine[k]).length;
+  function place(safe) {
+    const banned = new Set([safe, ...around(safe)]);
+    let placed = 0;
+    while (placed < MINES) {
+      const k = Math.floor(Math.random() * N * N);
+      if (!mine[k] && !banned.has(k)) { mine[k] = true; placed++; }
+    }
+  }
+  function reveal(i) {
+    if (done || open[i] || flag[i]) return;
+    if (!started) { place(i); started = true; }
+    if (mine[i]) {
+      done = true;
+      mine.forEach((m, k) => { if (m) { cells[k].textContent = '💣'; cells[k].classList.add('open'); } });
+      cells[i].classList.add('boom');
+      msg.textContent = '💥 펑! 다시 해볼까요?';
+      return;
+    }
+    const stack = [i];
+    while (stack.length) {
+      const k = stack.pop();
+      if (open[k] || flag[k]) continue;
+      open[k] = true;
+      const n = count(k);
+      cells[k].classList.add('open');
+      cells[k].textContent = n || '';
+      cells[k].style.color = NUM_COLORS[n];
+      if (!n) around(k).forEach((x) => !open[x] && stack.push(x));
+    }
+    if (open.filter(Boolean).length === N * N - MINES) {
+      done = true;
+      msg.textContent = '🎉 전부 찾았어요!';
+    }
+  }
+  function toggleFlag(i) {
+    if (done || open[i]) return;
+    flag[i] = !flag[i];
+    cells[i].textContent = flag[i] ? '🚩' : '';
+    document.getElementById('left').textContent = MINES - flag.filter(Boolean).length;
+  }
+  function newGame() {
+    mine = new Array(N * N).fill(false); open = new Array(N * N).fill(false); flag = new Array(N * N).fill(false);
+    started = false; done = false; msg.textContent = '';
+    cells.forEach((c) => { c.className = 'c'; c.textContent = ''; c.style.color = ''; });
+    document.getElementById('left').textContent = MINES;
+  }
+  document.getElementById('flag').addEventListener('click', (e) => {
+    flagMode = !flagMode;
+    e.target.classList.toggle('on', flagMode);
+  });
+  document.getElementById('new').addEventListener('click', newGame);
+  newGame();
+</script>
+</body>
+</html>

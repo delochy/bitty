@@ -1,0 +1,12 @@
+# 개인 기록 (상태·이벤트·선택 로그, 프롬프트 미리보기 포함) — 절대 올리지 않는다
+data/
+
+# 의존성 / 빌드 결과물
+node_modules/
+native-widget/src-tauri/target/
+native-widget/src-tauri/gen/
+
+# 백업·시스템 파일
+*.bak*
+.DS_Store
+._*

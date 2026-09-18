@@ -1,0 +1,86 @@
+<!doctype html>
+<!-- AI Side Quest — 반응속도 테스트 (11차). 빨간 판이 초록으로 바뀌는 순간 클릭. 최고 기록은 이 창에만 저장. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>AI Side Quest — 반응속도</title>
+<link rel="stylesheet" href="/games/common.css" />
+<style>
+  .pad {
+    width: 100%; flex: 1; border-radius: 12px; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 6px; cursor: pointer; color: #fff; text-align: center; margin-top: 8px;
+    background: var(--accent); transition: background 0.1s;
+  }
+  .pad.wait { background: #dc2626; }
+  .pad.go { background: #16a34a; }
+  .pad .big { font-size: 22px; }
+  .pad .small { color: rgba(255,255,255,0.85); }
+  .best { font-size: 11px; color: var(--muted); text-align: center; margin-top: 6px; height: 14px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top"><a href="/quest">← 퀘스트</a><span class="title">⚡ 반응속도</span><a href="/__close" title="닫기">✕</a></div>
+  <div class="pad" id="pad"><div class="big" id="msg">눌러서 시작</div><div class="small" id="sub">초록색이 되면 바로 클릭!</div></div>
+  <div class="best" id="best"></div>
+</div>
+<script>
+  const pad = document.getElementById('pad');
+  const msg = document.getElementById('msg');
+  const sub = document.getElementById('sub');
+  const bestEl = document.getElementById('best');
+  const KEY = 'side-quest-reaction-best';
+  let state = 'idle'; // idle → wait → go → idle
+  let timer = null;
+  let goAt = 0;
+
+  function readBest() {
+    try { return Number(localStorage.getItem(KEY)) || 0; } catch (e) { return 0; }
+  }
+  function writeBest(ms) {
+    try { localStorage.setItem(KEY, String(ms)); } catch (e) {}
+  }
+  function showBest() {
+    const best = readBest();
+    bestEl.textContent = best ? '내 최고 기록 ' + best + 'ms' : '';
+  }
+  function verdict(ms) {
+    if (ms < 200) return '번개 그 자체 ⚡';
+    if (ms < 260) return '프로게이머 재능이 보여요 🎮';
+    if (ms < 330) return '반응 좋은데요? 👍';
+    if (ms < 450) return '무난해요 🙂';
+    return '커피 한 모금 하고 다시? ☕';
+  }
+  function set(cls, big, small) {
+    pad.className = 'pad' + (cls ? ' ' + cls : '');
+    msg.textContent = big;
+    sub.textContent = small;
+  }
+
+  pad.addEventListener('mousedown', () => {
+    if (state === 'idle') {
+      state = 'wait';
+      set('wait', '기다려요…', '초록색이 되면 클릭!');
+      timer = setTimeout(() => {
+        state = 'go';
+        goAt = performance.now();
+        set('go', '지금!', '');
+      }, 1500 + Math.random() * 2500);
+    } else if (state === 'wait') {
+      clearTimeout(timer);
+      state = 'idle';
+      set('', '너무 빨랐어요 😅', '눌러서 다시');
+    } else if (state === 'go') {
+      const ms = Math.round(performance.now() - goAt);
+      state = 'idle';
+      const best = readBest();
+      const record = !best || ms < best;
+      if (record) writeBest(ms);
+      set('', ms + 'ms', (record ? '🏆 신기록! ' : '') + verdict(ms) + ' · 눌러서 다시');
+      showBest();
+    }
+  });
+  showBest();
+</script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!doctype html>
+<!-- AI Side Quest — 장보기 목록 (13차). 기다리는 동안 살 것 적어두기. 목록은 이 창(위젯)에만 저장된다. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>AI Side Quest — 장보기</title>
+<link rel="stylesheet" href="/games/common.css" />
+<style>
+  form { display: flex; gap: 6px; margin: 8px 0 6px; }
+  input {
+    flex: 1; font-size: 13px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line);
+    background: transparent; color: var(--ink); font-family: inherit; -webkit-user-select: text; user-select: text;
+  }
+  input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  form .btn { padding: 8px 12px; }
+  ul { list-style: none; margin: 0; padding: 0; flex: 1; overflow-y: auto; }
+  li { display: flex; align-items: center; gap: 8px; padding: 7px 4px; border-bottom: 1px solid var(--line); font-size: 13px; }
+  li label { flex: 1; display: flex; align-items: center; gap: 8px; cursor: pointer; word-break: keep-all; }
+  li.done label span { text-decoration: line-through; color: var(--muted); }
+  li button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; }
+  .foot { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--muted); padding-top: 6px; }
+  .foot button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 11px; font-family: inherit; }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+  .chips button {
+    border: 1px dashed var(--line); background: transparent; color: var(--muted); border-radius: 999px;
+    padding: 2px 8px; font-size: 11px; cursor: pointer; font-family: inherit;
+  }
+  .empty { text-align: center; color: var(--muted); font-size: 12px; padding: 18px 0; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top"><a href="/quest">← 퀘스트</a><span class="title">🛒 장보기</span><a href="/__close" title="닫기">✕</a></div>
+  <form id="form"><input id="item" placeholder="살 것 적기 (예: 우유)" autocomplete="off" /><button class="btn" type="submit">추가</button></form>
+  <div class="chips" id="chips"></div>
+  <ul id="list"></ul>
+  <div class="foot"><span id="left"></span><button id="clear">산 것 지우기</button></div>
+</div>
+<script>
+  const KEY = 'side-quest-shopping';
+  // 자주 사는 것 — 누르면 바로 추가
+  const QUICK = ['🥛 우유', '🥚 달걀', '🍞 빵', '🍌 바나나', '🧻 휴지', '☕ 커피', '🍜 라면', '💧 생수'];
+  const listEl = document.getElementById('list');
+  const input = document.getElementById('item');
+  let items = [];
+  try { items = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(items)); } catch (e) {} };
+
+  function render() {
+    listEl.innerHTML = '';
+    if (!items.length) {
+      listEl.innerHTML = '<div class="empty">아직 비어 있어요. 떠오르는 거 하나만 적어볼까요?</div>';
+    }
+    items.forEach((it, i) => {
+      const li = document.createElement('li');
+      if (it.done) li.className = 'done';
+      const label = document.createElement('label');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = it.done;
+      cb.style.flex = '0';
+      cb.addEventListener('change', () => { it.done = cb.checked; save(); render(); });
+      const span = document.createElement('span');
+      span.textContent = it.text;
+      label.append(cb, span);
+      const del = document.createElement('button');
+      del.textContent = '✕';
+      del.title = '지우기';
+      del.addEventListener('click', () => { items.splice(i, 1); save(); render(); });
+      li.append(label, del);
+      listEl.appendChild(li);
+    });
+    const left = items.filter((x) => !x.done).length;
+    document.getElementById('left').textContent = items.length ? '살 것 ' + left + '개' : '';
+    const have = new Set(items.map((x) => x.text));
+    const chips = document.getElementById('chips');
+    chips.innerHTML = '';
+    QUICK.filter((q) => !have.has(q)).slice(0, 6).forEach((q) => {
+      const b = document.createElement('button');
+      b.textContent = '+ ' + q;
+      b.addEventListener('click', () => add(q));
+      chips.appendChild(b);
+    });
+  }
+  function add(text) {
+    text = text.trim();
+    if (!text) return;
+    items.push({ text, done: false });
+    save();
+    render();
+  }
+  document.getElementById('form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    add(input.value);
+    input.value = '';
+    input.focus();
+  });
+  document.getElementById('clear').addEventListener('click', () => {
+    items = items.filter((x) => !x.done);
+    save();
+    render();
+  });
+  render();
+</script>
+</body>
+</html>

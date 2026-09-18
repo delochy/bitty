@@ -1,0 +1,22 @@
+{
+  "name": "idle-buddy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI(Claude Code/Codex)가 작업하는 동안 기다리는 사람에게 마스코트가 작은 퀘스트(게임·휴식·할 일)를 추천하는 로컬 도구. 서버·계정 불필요.",
+  "main": "mcp/server.js",
+  "scripts": {
+    "install:all": "sh install.sh",
+    "install:claude": "node setup/install-claude.js",
+    "install:codex": "node setup/install-codex.js",
+    "install:widget": "sh setup/install-widget.sh",
+    "uninstall": "node uninstall.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/delochy/idle-buddy.git"
+  }
+}

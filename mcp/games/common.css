@@ -1,0 +1,46 @@
+/*
+  AI Side Quest — 창 안 미니 퀘스트 공통 스타일 (11차, 2026-09-18)
+
+  마스코트 창(300x360, 투명)에서 여는 /games/* 페이지들이 같이 쓴다.
+  창이 투명이라 내용은 불투명 카드 위에 그린다. sudoku.html은 먼저 만들어져서
+  자기 스타일을 따로 갖고 있다.
+*/
+:root {
+  color-scheme: light dark;
+  --card: #ffffff; --ink: #1f2937; --muted: #6b7280; --line: #d1d5db;
+  --accent: #4f46e5; --accent-text: #4f46e5; --accent-soft: #e0e7ff; --ok: #16a34a; --bad: #dc2626;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --card: #1f2330; --ink: #e5e7eb; --muted: #9ca3af; --line: #3f4555;
+    /* 버튼 바탕은 흰 글씨가 읽히게 진하게, 강조 글자는 어두운 배경에서 보이게 밝게. */
+    --accent: #6366f1; --accent-text: #a5b4fc; --accent-soft: #373f63;
+  }
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; background: transparent; overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+  -webkit-user-select: none; user-select: none;
+}
+.card {
+  margin: 6px; padding: 10px 12px; height: 348px; border-radius: 14px; background: var(--card); color: var(--ink);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18); display: flex; flex-direction: column;
+}
+.top { display: flex; align-items: center; justify-content: space-between; height: 24px; flex-shrink: 0; }
+.top a { font-size: 12px; color: var(--muted); text-decoration: none; }
+.top .title { font-size: 13px; font-weight: 700; }
+.stage {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; gap: 12px; padding: 4px;
+}
+.big { font-size: 17px; font-weight: 700; line-height: 1.45; word-break: keep-all; }
+.small { font-size: 12px; color: var(--muted); line-height: 1.4; word-break: keep-all; }
+.btn {
+  border: none; border-radius: 10px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
+  background: var(--accent); color: #fff; font-family: inherit;
+}
+.btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+.btn:active { transform: scale(0.97); }
+.fade-in { animation: fade-in 0.3s ease-out 1; }
+@keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }

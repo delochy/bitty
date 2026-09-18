@@ -1,0 +1,45 @@
+#!/bin/sh
+# AI Side Quest — 마스코트 위젯(native-widget/) 빌드 + 설치 (macOS)
+#
+# ~/Applications/AI Side Quest Mascot.app 으로 설치하고 바로 실행한다.
+# 빌드 결과물은 ~/Library/Caches 아래에 둔다 — 저장소가 외장 디스크(exFAT 등)에
+# 있으면 macOS가 만드는 ._ 파일 때문에 Tauri 빌드가 깨지는 문제를 피하려고.
+set -e
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+APP_NAME="AI Side Quest Mascot.app"
+DEST="${AI_SIDE_QUEST_APP_DIR:-$HOME/Applications}"
+TARGET="${CARGO_TARGET_DIR:-$HOME/Library/Caches/ai-side-quest-mascot-target}"
+
+if [ "$(uname)" != "Darwin" ]; then
+  echo "마스코트 위젯은 지금 macOS만 지원해요." >&2
+  exit 1
+fi
+
+if ! command -v cargo >/dev/null 2>&1 && [ -f "$HOME/.cargo/env" ]; then
+  . "$HOME/.cargo/env"
+fi
+if ! command -v cargo >/dev/null 2>&1; then
+  echo "Rust가 필요해요. 아래 명령으로 설치한 뒤 터미널을 새로 열고 다시 실행해주세요:" >&2
+  echo "  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh" >&2
+  exit 1
+fi
+
+cd "$ROOT/native-widget"
+echo "▶ 위젯 의존성 설치 (npm)…"
+npm install --no-fund --no-audit --silent
+if [ ! -f src-tauri/icons/icon.icns ]; then
+  echo "▶ 앱 아이콘 생성"
+  npx tauri icon mascot-icon-source.png >/dev/null
+fi
+echo "▶ 위젯 빌드 중… (처음엔 몇 분 걸려요)"
+CARGO_TARGET_DIR="$TARGET" npx tauri build --bundles app
+
+echo "▶ $DEST 에 설치"
+mkdir -p "$DEST"
+pkill -f "$APP_NAME" 2>/dev/null || true
+pkill -f "side-quest-daemon.js" 2>/dev/null || true
+rm -rf "$DEST/$APP_NAME"
+cp -R "$TARGET/release/bundle/macos/$APP_NAME" "$DEST/"
+open "$DEST/$APP_NAME"
+echo "✓ 마스코트 위젯 실행 중 (메뉴바·Dock에는 안 보여요 — 작업이 30초 넘게 걸리면 오른쪽 아래에 떠요)"

@@ -1,0 +1,214 @@
+<!doctype html>
+<!--
+  AI Side Quest — 스도쿠 (9차, 2026-09-18)
+
+  "스도쿠 한 판" 퀘스트를 누르면 마스코트 창(300x360, native-widget) 안에서
+  바로 열리는 게임. mcp/quest-http.js가 /games/sudoku로 서빙한다. 창이
+  투명이라 게임은 불투명 카드 위에 그린다. 외부 의존성 없음.
+
+  퍼즐은 매번 무작위 완성판을 만든 뒤 칸을 지워서 만든다. 해가 하나뿐인지는
+  따지지 않으므로, 정답과 비교하지 않고 "규칙 위반이 없고 다 채웠으면 성공"
+  으로 판정한다.
+-->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Side Quest — 스도쿠</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --card: #ffffff; --ink: #1f2937; --muted: #6b7280; --line: #d1d5db; --bold: #374151;
+    --given: #1f2937; --entry: #4f46e5; --sel: #e0e7ff; --peer: #f3f4f6; --bad: #dc2626; --ok: #16a34a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --card: #1f2330; --ink: #e5e7eb; --muted: #9ca3af; --line: #3f4555; --bold: #9ca3af;
+      --given: #e5e7eb; --entry: #a5b4fc; --sel: #373f63; --peer: #282d3b;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: transparent; overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+    -webkit-user-select: none; user-select: none;
+  }
+  .card {
+    margin: 6px; padding: 8px; border-radius: 14px; background: var(--card); color: var(--ink);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+  }
+  .top { display: flex; align-items: center; justify-content: space-between; height: 24px; margin-bottom: 6px; }
+  .top a, .top button {
+    font-size: 12px; color: var(--muted); text-decoration: none; background: none; border: none;
+    cursor: pointer; padding: 0; font-family: inherit;
+  }
+  .top .title { font-size: 13px; font-weight: 700; }
+  .grid {
+    display: grid; grid-template-columns: repeat(9, 1fr); width: 270px; height: 270px; margin: 0 auto;
+    border: 2px solid var(--bold); border-radius: 4px; overflow: hidden;
+  }
+  .cell {
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+    border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); cursor: pointer;
+  }
+  .cell:nth-child(9n) { border-right: none; }
+  .cell:nth-child(3n):not(:nth-child(9n)) { border-right: 2px solid var(--bold); }
+  .cell.row-end { border-bottom: 2px solid var(--bold); }
+  .cell.last-row { border-bottom: none; }
+  .cell.given { color: var(--given); font-weight: 700; }
+  .cell.entry { color: var(--entry); }
+  .cell.peer { background: var(--peer); }
+  .cell.sel { background: var(--sel); }
+  .cell.bad { color: var(--bad); }
+  .pad { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; width: 270px; margin: 6px auto 0; }
+  .pad button {
+    height: 28px; border-radius: 6px; border: 1px solid var(--line); background: transparent;
+    color: var(--ink); font-size: 14px; cursor: pointer; font-family: inherit; padding: 0;
+  }
+  .pad button:active { background: var(--sel); }
+  .msg {
+    position: fixed; left: 12px; right: 12px; bottom: 12px; display: none; padding: 10px; border-radius: 10px;
+    color: #fff; font-weight: 600; font-size: 13px; text-align: center;
+  }
+  #win { background: var(--ok); }
+  .msg a { color: #fff; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top">
+    <a href="/quest">← 퀘스트</a>
+    <span class="title">🧩 스도쿠</span>
+    <span><button id="new">새 게임</button> &nbsp;<a href="/__close" title="닫기">✕</a></span>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="pad" id="pad"></div>
+</div>
+<div class="msg" id="win">🎉 완성! <a href="#" id="again">한 판 더</a></div>
+
+<script>
+  // 빈칸 수. 기다리는 동안 가볍게 하는 게임이라 쉬운 난이도로 둔다.
+  const HOLES = 40;
+
+  const gridEl = document.getElementById('grid');
+  const padEl = document.getElementById('pad');
+  let board = [];   // 0 = 빈칸
+  let given = [];   // 처음부터 주어진 칸
+  let sel = -1;
+
+  function shuffle(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function canPlace(b, i, n) {
+    const r = Math.floor(i / 9), c = i % 9;
+    const br = r - (r % 3), bc = c - (c % 3);
+    for (let k = 0; k < 9; k++) {
+      if (b[r * 9 + k] === n || b[k * 9 + c] === n) return false;
+      if (b[(br + Math.floor(k / 3)) * 9 + bc + (k % 3)] === n) return false;
+    }
+    return true;
+  }
+
+  function fill(b, i = 0) {
+    if (i === 81) return true;
+    for (const n of shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
+      if (canPlace(b, i, n)) {
+        b[i] = n;
+        if (fill(b, i + 1)) return true;
+      }
+    }
+    b[i] = 0;
+    return false;
+  }
+
+  function newGame() {
+    const solved = new Array(81).fill(0);
+    fill(solved);
+    board = solved.slice();
+    for (const i of shuffle([...Array(81).keys()]).slice(0, HOLES)) board[i] = 0;
+    given = board.map((n) => n !== 0);
+    sel = board.indexOf(0);
+    document.getElementById('win').style.display = 'none';
+    render();
+  }
+
+  function conflicts(i) {
+    const n = board[i];
+    if (!n) return false;
+    board[i] = 0;
+    const ok = canPlace(board, i, n);
+    board[i] = n;
+    return !ok;
+  }
+
+  function isPeer(a, b) {
+    if (a < 0) return false;
+    const ra = Math.floor(a / 9), ca = a % 9, rb = Math.floor(b / 9), cb = b % 9;
+    return ra === rb || ca === cb ||
+      (Math.floor(ra / 3) === Math.floor(rb / 3) && Math.floor(ca / 3) === Math.floor(cb / 3));
+  }
+
+  function render() {
+    gridEl.innerHTML = '';
+    for (let i = 0; i < 81; i++) {
+      const el = document.createElement('div');
+      const r = Math.floor(i / 9);
+      el.className = 'cell';
+      if (r === 2 || r === 5) el.classList.add('row-end');
+      if (r === 8) el.classList.add('last-row');
+      el.classList.add(given[i] ? 'given' : 'entry');
+      if (i === sel) el.classList.add('sel');
+      else if (isPeer(sel, i)) el.classList.add('peer');
+      if (conflicts(i)) el.classList.add('bad');
+      el.textContent = board[i] || '';
+      el.addEventListener('click', () => { sel = i; render(); });
+      gridEl.appendChild(el);
+    }
+  }
+
+  function input(n) {
+    if (sel < 0 || given[sel]) return;
+    board[sel] = n;
+    render();
+    if (board.every((v, i) => v && !conflicts(i))) {
+      document.getElementById('win').style.display = 'block';
+      fetch('/quest/choice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bucket: 'MEDIUM', questId: 'sudoku', completed: true }),
+      }).catch(() => {});
+    }
+  }
+
+  for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]) {
+    const b = document.createElement('button');
+    b.textContent = n || '⌫';
+    b.addEventListener('click', () => input(n));
+    padEl.appendChild(b);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key >= '1' && e.key <= '9') input(Number(e.key));
+    else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') input(0);
+    else if (sel >= 0) {
+      const moves = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -9, ArrowDown: 9 };
+      if (e.key in moves) {
+        const next = sel + moves[e.key];
+        if (next >= 0 && next < 81) { sel = next; render(); }
+        e.preventDefault();
+      }
+    }
+  });
+
+  document.getElementById('new').addEventListener('click', newGame);
+  document.getElementById('again').addEventListener('click', (e) => { e.preventDefault(); newGame(); });
+
+  newGame();
+</script>
+</body>
+</html>

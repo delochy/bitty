@@ -1,0 +1,63 @@
+<!doctype html>
+<!-- AI Side Quest — 개발자 유머 한 줄 (11차). 누를 때마다 다음 드립. 드립은 jokes.json에 한 줄씩 추가하면 된다. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>AI Side Quest — 개발자 유머</title>
+<link rel="stylesheet" href="/games/common.css" />
+<style>
+  .joke { min-height: 120px; display: flex; align-items: center; justify-content: center; padding: 0 6px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top"><a href="/quest">← 퀘스트</a><span class="title">😂 개발자 유머</span><a href="/__close" title="닫기">✕</a></div>
+  <div class="stage">
+    <div class="big joke" id="joke"></div>
+    <button class="btn" id="more">한 줄 더 😂</button>
+    <div class="small" id="count"></div>
+  </div>
+</div>
+<script>
+  // 11차: 목록은 /games/{name}.json에서 불러온다. 이미 본 건 이 창에 기억해뒀다가
+  // 전부 볼 때까지 다시 안 보여준다 (다 보면 처음부터 새로 섞음).
+  function makeDeck(items, key) {
+    let seen = [];
+    try { seen = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) {}
+    let left = items.map((_, i) => i).filter((i) => !seen.includes(i));
+    if (!left.length) { seen = []; left = items.map((_, i) => i); }
+    left.sort(() => Math.random() - 0.5);
+    return {
+      total: items.length,
+      seenCount: () => seen.length,
+      next() {
+        if (!left.length) { seen = []; left = items.map((_, i) => i).sort(() => Math.random() - 0.5); }
+        const i = left.shift();
+        seen.push(i);
+        try { localStorage.setItem(key, JSON.stringify(seen)); } catch (e) {}
+        return items[i];
+      },
+    };
+  }
+  const el = document.getElementById('joke');
+  const count = document.getElementById('count');
+  el.style.whiteSpace = 'pre-line';
+  let deck = null;
+  function show() {
+    el.textContent = deck.next();
+    el.classList.remove('fade-in');
+    void el.offsetWidth;
+    el.classList.add('fade-in');
+    count.textContent = deck.seenCount() + ' / ' + deck.total;
+  }
+  document.getElementById('more').addEventListener('click', () => deck && show());
+  fetch('/games/jokes.json')
+    .then((r) => r.json())
+    .then((items) => {
+      deck = makeDeck(items, 'side-quest-joke-seen');
+      show();
+    })
+    .catch(() => (el.textContent = '유머를 못 불러왔어요 😢'));
+</script>
+</body>
+</html>

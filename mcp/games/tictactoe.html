@@ -1,0 +1,99 @@
+<!doctype html>
+<!-- AI Side Quest — 틱택토 (12차). 나 ❌ vs 마스코트 ⭕. 마스코트는 대체로 잘 두지만 가끔 실수한다. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>AI Side Quest — 틱택토</title>
+<link rel="stylesheet" href="/games/common.css" />
+<style>
+  .bar { display: flex; justify-content: space-around; font-size: 12px; color: var(--muted); margin: 8px 0; }
+  .bar b { color: var(--ink); }
+  .board { display: grid; grid-template-columns: repeat(3, 66px); gap: 6px; justify-content: center; }
+  .sq {
+    width: 66px; height: 66px; border-radius: 10px; background: rgba(127,127,127,0.14); display: flex;
+    align-items: center; justify-content: center; font-size: 34px; cursor: pointer;
+  }
+  .sq.win { background: rgba(22,163,74,0.25); }
+  .msg { text-align: center; font-size: 13px; font-weight: 700; margin-top: 10px; height: 18px; }
+  .under { text-align: center; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top"><a href="/quest">← 퀘스트</a><span class="title">⭕ 틱택토</span><a href="/__close" title="닫기">✕</a></div>
+  <div class="bar"><span>나 <b id="w">0</b></span><span>무승부 <b id="d">0</b></span><span>마스코트 <b id="l">0</b></span></div>
+  <div class="board" id="board"></div>
+  <div class="msg" id="msg">내 차례예요 (❌)</div>
+  <div class="under"><button class="btn ghost" id="again">다시 하기</button></div>
+</div>
+<script>
+  const LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  const MISTAKE = 0.25; // 마스코트가 아무 데나 둘 확률 — 가끔은 이길 수 있게
+  const boardEl = document.getElementById('board');
+  const msg = document.getElementById('msg');
+  const tally = { w: 0, d: 0, l: 0 };
+  let b, over, busy;
+  const sqs = [];
+  for (let i = 0; i < 9; i++) {
+    const s = document.createElement('div');
+    s.className = 'sq';
+    s.addEventListener('click', () => play(i));
+    boardEl.appendChild(s);
+    sqs.push(s);
+  }
+  function winner(bd) {
+    for (const l of LINES) if (bd[l[0]] && bd[l[0]] === bd[l[1]] && bd[l[1]] === bd[l[2]]) return { who: bd[l[0]], line: l };
+    return bd.every(Boolean) ? { who: 'draw' } : null;
+  }
+  function minimax(bd, me) {
+    const w = winner(bd);
+    if (w) return { score: w.who === 'O' ? 1 : w.who === 'X' ? -1 : 0 };
+    let bestMove = null, bestScore = me ? -2 : 2;
+    bd.forEach((v, i) => {
+      if (v) return;
+      bd[i] = me ? 'O' : 'X';
+      const s = minimax(bd, !me).score;
+      bd[i] = null;
+      if (me ? s > bestScore : s < bestScore) { bestScore = s; bestMove = i; }
+    });
+    return { score: bestScore, move: bestMove };
+  }
+  function render() { b.forEach((v, i) => (sqs[i].textContent = v === 'X' ? '❌' : v === 'O' ? '⭕' : '')); }
+  function finish(w) {
+    over = true;
+    if (w.line) w.line.forEach((i) => sqs[i].classList.add('win'));
+    const k = w.who === 'X' ? 'w' : w.who === 'O' ? 'l' : 'd';
+    tally[k]++;
+    document.getElementById(k).textContent = tally[k];
+    msg.textContent = { w: '🎉 이겼어요!', l: '😝 마스코트 승!', d: '🤝 무승부' }[k];
+  }
+  function play(i) {
+    if (over || busy || b[i]) return;
+    b[i] = 'X';
+    render();
+    const w = winner(b);
+    if (w) return finish(w);
+    busy = true;
+    msg.textContent = '마스코트가 생각 중…';
+    setTimeout(() => {
+      const empty = b.map((v, k) => (v ? -1 : k)).filter((k) => k >= 0);
+      const move = Math.random() < MISTAKE ? empty[Math.floor(Math.random() * empty.length)] : minimax(b.slice(), true).move;
+      b[move] = 'O';
+      busy = false;
+      render();
+      const w2 = winner(b);
+      if (w2) finish(w2);
+      else msg.textContent = '내 차례예요 (❌)';
+    }, 400);
+  }
+  function reset() {
+    b = new Array(9).fill(null); over = false; busy = false;
+    sqs.forEach((s) => s.classList.remove('win'));
+    msg.textContent = '내 차례예요 (❌)';
+    render();
+  }
+  document.getElementById('again').addEventListener('click', reset);
+  reset();
+</script>
+</body>
+</html>

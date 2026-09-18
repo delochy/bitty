@@ -1,0 +1,171 @@
+<!doctype html>
+<!-- AI Side Quest — 물멍 (13차). 캔버스로 그린 잔잔한 바다. 클릭하면 물결이 퍼진다. 🔈를 누르면 파도 소리(합성음). -->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>AI Side Quest — 물멍</title>
+<link rel="stylesheet" href="/games/common.css" />
+<style>
+  .card { position: relative; padding: 0; overflow: hidden; background: #0b1a2e; color: #e6f1ff; }
+  .top { position: absolute; left: 12px; right: 12px; top: 8px; z-index: 2; }
+  .top a, .top button { color: rgba(230,241,255,0.75); }
+  .top button { background: none; border: none; font-size: 13px; cursor: pointer; padding: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hint { position: absolute; bottom: 10px; width: 100%; text-align: center; font-size: 11px; color: rgba(230,241,255,0.5); z-index: 2; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top"><a href="/quest">← 퀘스트</a><span class="title">🌊 물멍</span><span><button id="sound" title="소리">🔈</button> &nbsp;<a href="/__close" title="닫기">✕</a></span></div>
+  <canvas id="cv"></canvas>
+  <div class="hint">물을 톡 건드려 보세요</div>
+</div>
+<script>
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const W = cv.clientWidth, H = cv.clientHeight, DPR = window.devicePixelRatio || 1;
+  cv.width = W * DPR; cv.height = H * DPR;
+  ctx.scale(DPR, DPR);
+  const horizon = H * 0.38;
+  const ripples = [];
+  const stars = Array.from({ length: 28 }, () => ({ x: Math.random() * W, y: Math.random() * horizon * 0.8, p: Math.random() * 6 }));
+  // 파도 층: 뒤(멀리)에서 앞(가까이) 순서. 앞으로 올수록 크고 진하고 빠르다.
+  const LAYERS = [
+    { y: 0.0, amp: 3, len: 60, speed: 0.4, color: '#1d4e89' },
+    { y: 0.22, amp: 5, len: 90, speed: 0.55, color: '#1a4378' },
+    { y: 0.45, amp: 7, len: 120, speed: 0.7, color: '#163a68' },
+    { y: 0.7, amp: 9, len: 160, speed: 0.85, color: '#12325a' },
+  ];
+
+  function frame(t) {
+    const s = t / 1000;
+    // 밤하늘과 달
+    const sky = ctx.createLinearGradient(0, 0, 0, horizon);
+    sky.addColorStop(0, '#08111f'); sky.addColorStop(1, '#1b3557');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, horizon + 2);
+    stars.forEach((st) => {
+      ctx.fillStyle = `rgba(255,255,255,${0.35 + 0.35 * Math.sin(s * 1.5 + st.p)})`;
+      ctx.fillRect(st.x, st.y, 1.4, 1.4);
+    });
+    const moonX = W * 0.72, moonY = horizon * 0.42;
+    const mg = ctx.createRadialGradient(moonX, moonY, 2, moonX, moonY, 40);
+    mg.addColorStop(0, 'rgba(255,248,220,0.9)'); mg.addColorStop(0.35, 'rgba(255,248,220,0.35)'); mg.addColorStop(1, 'rgba(255,248,220,0)');
+    ctx.fillStyle = mg;
+    ctx.beginPath(); ctx.arc(moonX, moonY, 40, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff8dc';
+    ctx.beginPath(); ctx.arc(moonX, moonY, 11, 0, Math.PI * 2); ctx.fill();
+
+    // 바다
+    ctx.fillStyle = '#1f5596';
+    ctx.fillRect(0, horizon, W, H - horizon);
+    LAYERS.forEach((L, li) => {
+      const baseY = horizon + (H - horizon) * L.y;
+      ctx.fillStyle = L.color;
+      ctx.beginPath();
+      ctx.moveTo(0, H);
+      for (let x = 0; x <= W; x += 4) {
+        let y = baseY
+          + Math.sin(x / L.len * Math.PI * 2 + s * L.speed * 2 + li) * L.amp
+          + Math.sin(x / (L.len * 0.43) + s * L.speed * 3.1) * L.amp * 0.35;
+        for (const r of ripples) {
+          const d = Math.hypot(x - r.x, baseY - r.y);
+          const wave = d - r.age * 60;
+          if (Math.abs(wave) < 18) y += Math.cos(wave / 18 * Math.PI) * 5 * (1 - r.age / 3);
+        }
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(W, H);
+      ctx.closePath();
+      ctx.fill();
+    });
+
+    // 달빛 물결 반짝임
+    for (let i = 0; i < 26; i++) {
+      const yy = horizon + 6 + i * ((H - horizon - 10) / 26);
+      const wobble = Math.sin(s * 2 + i * 1.7) * (4 + i * 0.6);
+      const w = 6 + i * 0.9 + Math.sin(s * 3 + i) * 3;
+      ctx.fillStyle = `rgba(255,248,220,${0.28 - i * 0.008 + 0.08 * Math.sin(s * 4 + i * 2)})`;
+      ctx.fillRect(moonX - w / 2 + wobble, yy, w, 1.5);
+    }
+
+    // 클릭한 곳 물결 링
+    for (let i = ripples.length - 1; i >= 0; i--) {
+      const r = ripples[i];
+      r.age += 1 / 60;
+      if (r.age > 3) { ripples.splice(i, 1); continue; }
+      ctx.strokeStyle = `rgba(200,225,255,${0.5 * (1 - r.age / 3)})`;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.ellipse(r.x, r.y, r.age * 60, r.age * 18, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  cv.addEventListener('click', (e) => {
+    const rect = cv.getBoundingClientRect();
+    const y = Math.max(e.clientY - rect.top, horizon + 10);
+    ripples.push({ x: e.clientX - rect.left, y, age: 0 });
+    if (audio) plop();
+  });
+
+  // 🔈 파도 소리 — 핑크 노이즈를 느리게 밀려왔다 빠지게(LFO) 해서 합성. 파일 없음.
+  let audio = null;
+  function noiseBuffer(ac, seconds) {
+    const buf = ac.createBuffer(1, ac.sampleRate * seconds, ac.sampleRate);
+    const d = buf.getChannelData(0);
+    let b0 = 0, b1 = 0, b2 = 0;
+    for (let i = 0; i < d.length; i++) {
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99765 * b0 + white * 0.099;
+      b1 = 0.963 * b1 + white * 0.2965;
+      b2 = 0.57 * b2 + white * 1.0526;
+      d[i] = (b0 + b1 + b2 + white * 0.1848) * 0.12;
+    }
+    return buf;
+  }
+  function plop() {
+    const ac = audio.ac;
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.frequency.setValueAtTime(700, ac.currentTime);
+    o.frequency.exponentialRampToValueAtTime(180, ac.currentTime + 0.12);
+    g.gain.setValueAtTime(0.18, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.15);
+    o.connect(g).connect(audio.out);
+    o.start(); o.stop(ac.currentTime + 0.16);
+  }
+  document.getElementById('sound').addEventListener('click', (e) => {
+    if (audio) {
+      audio.ac.close();
+      audio = null;
+      e.target.textContent = '🔈';
+      return;
+    }
+    const ac = new AudioContext();
+    const out = ac.createGain();
+    out.gain.value = 0.7;
+    out.connect(ac.destination);
+    const src = ac.createBufferSource();
+    src.buffer = noiseBuffer(ac, 5);
+    src.loop = true;
+    const lp = ac.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 900;
+    const swell = ac.createGain();
+    swell.gain.value = 0.35;
+    // 약 7초 주기로 파도가 밀려왔다 빠진다
+    const lfo = ac.createOscillator();
+    lfo.frequency.value = 0.14;
+    const lfoDepth = ac.createGain();
+    lfoDepth.gain.value = 0.3;
+    lfo.connect(lfoDepth).connect(swell.gain);
+    src.connect(lp).connect(swell).connect(out);
+    src.start(); lfo.start();
+    audio = { ac, out };
+    e.target.textContent = '🔊';
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!doctype html>
+<!-- AI Side Quest — 스네이크 (12차). 방향키로 움직여 사과를 먹는다. 벽이나 몸에 닿으면 끝. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>AI Side Quest — 스네이크</title>
+<link rel="stylesheet" href="/games/common.css" />
+<style>
+  .bar { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin: 6px 2px; }
+  .bar b { color: var(--ink); }
+  .wrap { position: relative; width: 240px; height: 240px; margin: 0 auto; }
+  canvas { display: block; border-radius: 10px; background: rgba(127,127,127,0.12); }
+  .over {
+    position: absolute; inset: 0; border-radius: 10px; background: rgba(0,0,0,0.5); color: #fff;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; font-weight: 700; font-size: 14px;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top"><a href="/quest">← 퀘스트</a><span class="title">🐍 스네이크</span><a href="/__close" title="닫기">✕</a></div>
+  <div class="bar"><span>점수 <b id="score">0</b></span><span>최고 <b id="best">0</b></span></div>
+  <div class="wrap">
+    <canvas id="cv" width="240" height="240"></canvas>
+    <div class="over" id="over"><span id="overMsg">방향키로 움직여요</span><button class="btn" id="start">시작</button></div>
+  </div>
+  <div class="small" style="text-align:center;margin-top:8px">방향키로 조종</div>
+</div>
+<script>
+  const CELLS = 16, SIZE = 15, TICK = 120;
+  const KEY = 'side-quest-snake-best';
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const over = document.getElementById('over');
+  let snake, dir, queue, food, score, timer = null;
+  function best() { try { return Number(localStorage.getItem(KEY)) || 0; } catch (e) { return 0; } }
+  document.getElementById('best').textContent = best();
+  function placeFood() {
+    do { food = [Math.floor(Math.random() * CELLS), Math.floor(Math.random() * CELLS)]; }
+    while (snake.some(([x, y]) => x === food[0] && y === food[1]));
+  }
+  function draw() {
+    ctx.clearRect(0, 0, 240, 240);
+    ctx.font = '13px sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('🍎', food[0] * SIZE + SIZE / 2, food[1] * SIZE + SIZE / 2 + 1);
+    snake.forEach(([x, y], i) => {
+      ctx.fillStyle = i === 0 ? '#4f46e5' : '#818cf8';
+      ctx.beginPath();
+      ctx.roundRect(x * SIZE + 1, y * SIZE + 1, SIZE - 2, SIZE - 2, 4);
+      ctx.fill();
+    });
+  }
+  function step() {
+    if (queue.length) {
+      const d = queue.shift();
+      if (d[0] !== -dir[0] || d[1] !== -dir[1]) dir = d;
+    }
+    const head = [snake[0][0] + dir[0], snake[0][1] + dir[1]];
+    const hitWall = head[0] < 0 || head[1] < 0 || head[0] >= CELLS || head[1] >= CELLS;
+    const hitSelf = snake.some(([x, y]) => x === head[0] && y === head[1]);
+    if (hitWall || hitSelf) return end();
+    snake.unshift(head);
+    if (head[0] === food[0] && head[1] === food[1]) {
+      score++;
+      document.getElementById('score').textContent = score;
+      placeFood();
+    } else {
+      snake.pop();
+    }
+    draw();
+  }
+  function end() {
+    clearInterval(timer); timer = null;
+    const b = best();
+    if (score > b) { try { localStorage.setItem(KEY, String(score)); } catch (e) {} }
+    document.getElementById('best').textContent = Math.max(b, score);
+    document.getElementById('overMsg').textContent = (score > b ? '🏆 신기록! ' : '') + score + '개 먹었어요';
+    document.getElementById('start').textContent = '다시 하기';
+    over.style.display = 'flex';
+  }
+  function start() {
+    snake = [[7, 8], [6, 8], [5, 8]]; dir = [1, 0]; queue = []; score = 0;
+    document.getElementById('score').textContent = 0;
+    placeFood(); draw();
+    over.style.display = 'none';
+    clearInterval(timer);
+    timer = setInterval(step, TICK);
+  }
+  document.addEventListener('keydown', (e) => {
+    const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+    if (!d) return;
+    e.preventDefault();
+    if (!timer) return start();
+    if (queue.length < 2) queue.push(d);
+  });
+  document.getElementById('start').addEventListener('click', start);
+  snake = [[7, 8], [6, 8], [5, 8]]; food = [11, 8]; draw();
+</script>
+</body>
+</html>

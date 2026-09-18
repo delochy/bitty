@@ -1,0 +1,87 @@
+<!doctype html>
+<!-- AI Side Quest — 두더지 잡기 (12차). 30초 동안 튀어나오는 두더지를 클릭. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>AI Side Quest — 두더지 잡기</title>
+<link rel="stylesheet" href="/games/common.css" />
+<style>
+  .bar { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin: 6px 2px 10px; }
+  .bar b { color: var(--ink); }
+  .field { display: grid; grid-template-columns: repeat(3, 76px); gap: 10px; justify-content: center; }
+  .hole {
+    width: 76px; height: 64px; border-radius: 50% 50% 40% 40%; background: rgba(120,72,40,0.35);
+    display: flex; align-items: flex-end; justify-content: center; overflow: hidden; cursor: pointer;
+  }
+  .mole { font-size: 40px; transform: translateY(60px); transition: transform 0.12s ease-out; pointer-events: none; }
+  .hole.up .mole { transform: translateY(4px); }
+  .hole.hit .mole { transform: translateY(4px) scale(0.8); filter: grayscale(1); }
+  .under { text-align: center; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top"><a href="/quest">← 퀘스트</a><span class="title">🔨 두더지 잡기</span><a href="/__close" title="닫기">✕</a></div>
+  <div class="bar"><span>점수 <b id="score">0</b></span><span>남은 시간 <b id="time">30</b>초</span><span>최고 <b id="best">0</b></span></div>
+  <div class="field" id="field"></div>
+  <div class="under"><button class="btn" id="start">시작</button><div class="small" id="msg" style="margin-top:6px"></div></div>
+</div>
+<script>
+  const KEY = 'side-quest-mole-best';
+  const field = document.getElementById('field');
+  const holes = [];
+  let score = 0, timeLeft = 0, current = -1, playing = false, popTimer = null, clock = null;
+  for (let i = 0; i < 9; i++) {
+    const h = document.createElement('div');
+    h.className = 'hole';
+    h.innerHTML = '<div class="mole">🐹</div>';
+    h.addEventListener('mousedown', () => whack(i));
+    field.appendChild(h);
+    holes.push(h);
+  }
+  function best() { try { return Number(localStorage.getItem(KEY)) || 0; } catch (e) { return 0; } }
+  document.getElementById('best').textContent = best();
+  function pop() {
+    if (!playing) return;
+    if (current >= 0) holes[current].classList.remove('up', 'hit');
+    let next;
+    do { next = Math.floor(Math.random() * 9); } while (next === current);
+    current = next;
+    holes[current].classList.add('up');
+    // 뒤로 갈수록 조금씩 빨라진다.
+    popTimer = setTimeout(pop, 550 + timeLeft * 12 + Math.random() * 200);
+  }
+  function whack(i) {
+    if (!playing || i !== current || !holes[i].classList.contains('up') || holes[i].classList.contains('hit')) return;
+    score++;
+    document.getElementById('score').textContent = score;
+    holes[i].classList.add('hit');
+  }
+  function end() {
+    playing = false;
+    clearTimeout(popTimer); clearInterval(clock);
+    holes.forEach((h) => h.classList.remove('up', 'hit'));
+    const b = best();
+    if (score > b) { try { localStorage.setItem(KEY, String(score)); } catch (e) {} }
+    document.getElementById('best').textContent = Math.max(b, score);
+    document.getElementById('msg').textContent = (score > b ? '🏆 신기록! ' : '') + score + '마리 잡았어요';
+    const btn = document.getElementById('start');
+    btn.textContent = '한 판 더';
+    btn.style.display = '';
+  }
+  document.getElementById('start').addEventListener('click', (e) => {
+    score = 0; timeLeft = 30; playing = true; current = -1;
+    document.getElementById('score').textContent = 0;
+    document.getElementById('time').textContent = 30;
+    document.getElementById('msg').textContent = '';
+    e.target.style.display = 'none';
+    clock = setInterval(() => {
+      timeLeft--;
+      document.getElementById('time').textContent = timeLeft;
+      if (timeLeft <= 0) end();
+    }, 1000);
+    pop();
+  });
+</script>
+</body>
+</html>

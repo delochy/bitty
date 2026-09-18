@@ -1,0 +1,62 @@
+<!doctype html>
+<!-- AI Side Quest — 숨 한 번 고르기 (11차). 원이 커지면 들이쉬고 작아지면 내쉰다, 4초씩 5번. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>AI Side Quest — 숨 고르기</title>
+<link rel="stylesheet" href="/games/common.css" />
+<style>
+  .orb-wrap { width: 170px; height: 170px; display: flex; align-items: center; justify-content: center; }
+  .orb {
+    width: 70px; height: 70px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #c7d2fe, #6366f1);
+    box-shadow: 0 0 30px rgba(99,102,241,0.35); transition: transform 4s ease-in-out;
+  }
+  .orb.in { transform: scale(2.3); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top"><a href="/quest">← 퀘스트</a><span class="title">🫁 숨 고르기</span><a href="/__close" title="닫기">✕</a></div>
+  <div class="stage">
+    <div class="orb-wrap"><div class="orb" id="orb"></div></div>
+    <div class="big" id="cue">준비됐나요?</div>
+    <div class="small" id="round">원이 커지면 들이쉬고, 작아지면 내쉬어요</div>
+    <button class="btn" id="start">시작</button>
+  </div>
+</div>
+<script>
+  const ROUNDS = 5;
+  const PHASE_MS = 4000;
+  const orb = document.getElementById('orb');
+  const cue = document.getElementById('cue');
+  const round = document.getElementById('round');
+  const start = document.getElementById('start');
+  let timer = null;
+
+  function run() {
+    start.style.display = 'none';
+    let phase = 0; // 짝수 = 들이쉬기, 홀수 = 내쉬기
+    const tick = () => {
+      if (phase >= ROUNDS * 2) {
+        orb.classList.remove('in');
+        cue.textContent = '개운해졌죠? 🌿';
+        round.textContent = '';
+        start.textContent = '한 번 더';
+        start.style.display = '';
+        return;
+      }
+      const inhale = phase % 2 === 0;
+      orb.classList.toggle('in', inhale);
+      cue.textContent = inhale ? '들이쉬고…' : '내쉬고…';
+      round.textContent = Math.floor(phase / 2) + 1 + ' / ' + ROUNDS;
+      phase += 1;
+      timer = setTimeout(tick, PHASE_MS);
+    };
+    clearTimeout(timer);
+    tick();
+  }
+  start.addEventListener('click', run);
+</script>
+</body>
+</html>

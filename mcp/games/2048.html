@@ -1,0 +1,126 @@
+<!doctype html>
+<!-- AI Side Quest — 2048 (12차). 방향키나 드래그로 타일을 밀어 같은 숫자를 합친다. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>AI Side Quest — 2048</title>
+<link rel="stylesheet" href="/games/common.css" />
+<style>
+  .bar { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); margin: 6px 2px; }
+  .bar b { color: var(--ink); }
+  .board {
+    position: relative; width: 246px; height: 246px; margin: 0 auto; padding: 6px; border-radius: 10px;
+    background: var(--line); display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; touch-action: none;
+  }
+  .tile {
+    border-radius: 6px; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 20px; background: rgba(127,127,127,0.18); color: #1f2937;
+  }
+  .over {
+    position: absolute; inset: 0; border-radius: 10px; background: rgba(0,0,0,0.55); color: #fff;
+    display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; font-weight: 700;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top"><a href="/quest">← 퀘스트</a><span class="title">🔢 2048</span><a href="/__close" title="닫기">✕</a></div>
+  <div class="bar"><span>점수 <b id="score">0</b></span><span>최고 <b id="best">0</b></span><a href="#" id="new" style="color:var(--muted);text-decoration:none">새 게임</a></div>
+  <div class="board" id="board">
+    <div class="over" id="over"><span id="overMsg">더 이상 못 움직여요</span><button class="btn" id="again">다시 하기</button></div>
+  </div>
+  <div class="small" style="text-align:center;margin-top:8px">방향키 또는 드래그</div>
+</div>
+<script>
+  const COLORS = {
+    2: '#eee4da', 4: '#ede0c8', 8: '#f2b179', 16: '#f59563', 32: '#f67c5f', 64: '#f65e3b',
+    128: '#edcf72', 256: '#edcc61', 512: '#edc850', 1024: '#edc53f', 2048: '#edc22e',
+  };
+  const KEY = 'side-quest-2048-best';
+  const boardEl = document.getElementById('board');
+  const over = document.getElementById('over');
+  let g, score;
+  const tiles = [];
+  for (let i = 0; i < 16; i++) {
+    const t = document.createElement('div');
+    t.className = 'tile';
+    boardEl.insertBefore(t, over);
+    tiles.push(t);
+  }
+  function best() { try { return Number(localStorage.getItem(KEY)) || 0; } catch (e) { return 0; } }
+  function saveBest() { try { if (score > best()) localStorage.setItem(KEY, String(score)); } catch (e) {} }
+  function addTile() {
+    const empty = g.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0);
+    if (!empty.length) return;
+    g[empty[Math.floor(Math.random() * empty.length)]] = Math.random() < 0.9 ? 2 : 4;
+  }
+  function render() {
+    g.forEach((v, i) => {
+      const t = tiles[i];
+      t.textContent = v || '';
+      t.style.background = v ? COLORS[v] || '#3c3a32' : '';
+      t.style.color = v > 4 ? '#fff' : '#1f2937';
+      t.style.fontSize = v >= 1024 ? '15px' : v >= 128 ? '17px' : '20px';
+    });
+    document.getElementById('score').textContent = score;
+    document.getElementById('best').textContent = Math.max(best(), score);
+  }
+  function line(i, dir) {
+    const row = [0, 1, 2, 3].map((k) => i * 4 + k);
+    const col = [0, 1, 2, 3].map((k) => k * 4 + i);
+    return { left: row, right: row.slice().reverse(), up: col, down: col.slice().reverse() }[dir];
+  }
+  function move(dir) {
+    let moved = false;
+    for (let i = 0; i < 4; i++) {
+      const idx = line(i, dir);
+      const vals = idx.map((k) => g[k]).filter(Boolean);
+      const out = [];
+      for (let j = 0; j < vals.length; j++) {
+        if (vals[j] === vals[j + 1]) { out.push(vals[j] * 2); score += vals[j] * 2; j++; }
+        else out.push(vals[j]);
+      }
+      while (out.length < 4) out.push(0);
+      idx.forEach((k, j) => { if (g[k] !== out[j]) moved = true; g[k] = out[j]; });
+    }
+    if (!moved) return;
+    addTile();
+    saveBest();
+    render();
+    if (g.includes(2048) && !won) { won = true; showOver('🎉 2048 달성!'); }
+    else if (!canMove()) showOver('더 이상 못 움직여요');
+  }
+  let won = false;
+  function canMove() {
+    if (g.includes(0)) return true;
+    for (let i = 0; i < 16; i++) {
+      if (i % 4 < 3 && g[i] === g[i + 1]) return true;
+      if (i < 12 && g[i] === g[i + 4]) return true;
+    }
+    return false;
+  }
+  function showOver(msg) { document.getElementById('overMsg').textContent = msg; over.style.display = 'flex'; }
+  function newGame() {
+    g = new Array(16).fill(0); score = 0; won = false;
+    over.style.display = 'none';
+    addTile(); addTile(); render();
+  }
+  document.addEventListener('keydown', (e) => {
+    const d = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' }[e.key];
+    if (d && over.style.display !== 'flex') { e.preventDefault(); move(d); }
+  });
+  let start = null;
+  boardEl.addEventListener('pointerdown', (e) => (start = [e.clientX, e.clientY]));
+  boardEl.addEventListener('pointerup', (e) => {
+    if (!start || over.style.display === 'flex') return;
+    const dx = e.clientX - start[0], dy = e.clientY - start[1];
+    start = null;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
+    move(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up');
+  });
+  document.getElementById('new').addEventListener('click', (e) => { e.preventDefault(); newGame(); });
+  document.getElementById('again').addEventListener('click', newGame);
+  newGame();
+</script>
+</body>
+</html>
