@@ -17,7 +17,7 @@
 <title>AI Side Quest — 스도쿠</title>
 <style>
   :root {
-    color-scheme: light dark;
+    color-scheme: normal; /* 14차: light dark로 두면 WebKit이 창 바탕을 불투명하게 칠해서 투명 창이 네모로 보였다 */
     --card: #ffffff; --ink: #1f2937; --muted: #6b7280; --line: #d1d5db; --bold: #374151;
     --given: #1f2937; --entry: #4f46e5; --sel: #e0e7ff; --peer: #f3f4f6; --bad: #dc2626; --ok: #16a34a;
   }
@@ -86,6 +86,7 @@
 </div>
 <div class="msg" id="win">🎉 완성! <a href="#" id="again">한 판 더</a></div>
 
+<script src="/games/save.js"></script>
 <script>
   // 빈칸 수. 기다리는 동안 가볍게 하는 게임이라 쉬운 난이도로 둔다.
   const HOLES = 40;
@@ -135,7 +136,10 @@
     sel = board.indexOf(0);
     document.getElementById('win').style.display = 'none';
     render();
+    persist();
   }
+  // 14차: 이어하기 — 마스코트 창이 닫혀도 다음에 그대로 이어서.
+  function persist() { IdleSave.save('sudoku', { board, given }, '🧩 스도쿠'); }
 
   function conflicts(i) {
     const n = board[i];
@@ -175,7 +179,9 @@
     if (sel < 0 || given[sel]) return;
     board[sel] = n;
     render();
+    persist();
     if (board.every((v, i) => v && !conflicts(i))) {
+      IdleSave.clear('sudoku');
       document.getElementById('win').style.display = 'block';
       fetch('/quest/choice', {
         method: 'POST',
@@ -208,7 +214,16 @@
   document.getElementById('new').addEventListener('click', newGame);
   document.getElementById('again').addEventListener('click', (e) => { e.preventDefault(); newGame(); });
 
-  newGame();
+  const saved = IdleSave.load('sudoku');
+  if (saved && saved.board) {
+    board = saved.board;
+    given = saved.given;
+    sel = board.indexOf(0);
+    render();
+    IdleSave.save('sudoku', undefined, '🧩 스도쿠');
+  } else {
+    newGame();
+  }
 </script>
 </body>
 </html>

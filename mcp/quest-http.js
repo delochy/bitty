@@ -46,7 +46,7 @@ function pageShell(bodyHtml) {
   /* 14차: 창이 투명이라 뒤 화면에 따라 글자가 묻혔다(특히 라이트 모드). 이제 불투명 카드
      위에 그리고, 라이트/다크 색을 따로 잡는다. */
   :root {
-    color-scheme: light dark;
+    color-scheme: normal; /* 14차: light dark로 두면 WebKit이 창 바탕을 불투명하게 칠해서 투명 창이 네모로 보였다 */
     --card: #ffffff; --ink: #1f2937; --muted: #6b7280; --line: rgba(15,23,42,0.14);
     --soft: #f3f4f6; --soft-2: #e5e7eb; --accent: #6366f1; --focus-bg: #eef2ff;
   }
@@ -66,7 +66,10 @@ function pageShell(bodyHtml) {
        보이니 문제 없음. */
     background: transparent;
   }
-  body {
+  /* 14차: 카드는 body가 아니라 .panel에 그린다 — html 배경이 투명이면 CSS 규칙상 body
+     배경이 화면 전체로 번져서, 둥근 카드 뒤에 네모 틀이 생겼다. */
+  body { margin: 0; }
+  .panel {
     margin: 6px; padding: 12px 12px; min-height: calc(100vh - 12px); border-radius: 16px;
     background: var(--card); color: var(--ink); border: 1px solid var(--line);
     box-shadow: 0 8px 24px rgba(0,0,0,0.18);
@@ -109,6 +112,17 @@ function pageShell(bodyHtml) {
   .bubble {
     /* 14차: 카드 안에 상자를 또 두지 않는다 — 말풍선은 글자만. */
     text-align: center; margin-top: 8px; max-width: 260px; padding: 0 8px;
+  }
+  /* 14차: 어떤 도구가 작업 중인지 (Claude / Codex) */
+  .who { display: flex; justify-content: center; gap: 4px; margin-bottom: 4px; min-height: 0; }
+  .who span { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; color: #fff; }
+  .who .claude { background: #c96442; }
+  .who .codex { background: #111827; }
+  @media (prefers-color-scheme: dark) { .who .codex { background: #e5e7eb; color: #111827; } }
+  /* 14차: 하던 게임·장보기 이어서 하기 */
+  .resume {
+    display: inline-block; margin-top: 6px; padding: 5px 12px; border-radius: 999px; background: #6366f1;
+    color: #fff; font-size: 12px; font-weight: 700; text-decoration: none;
   }
   h1 { font-size: 14px; margin: 0 0 2px; line-height: 1.35; word-break: keep-all; }
   p.sub { color: var(--muted); font-size: 11px; margin: 4px 0 0; line-height: 1.4; word-break: keep-all; }
@@ -175,8 +189,10 @@ function pageShell(bodyHtml) {
 </style>
 </head>
 <body>
+<div class="panel">
   <a class="close" href="/__close" title="닫기">✕</a>
 ${bodyHtml}
+</div>
 <script>
   // 8차 이어서: 네이티브 위젯은 Claude Code CLI 없이 수동으로 켜지기 때문에,
   // data/state.json엔 며칠 전 실측 테스트 때 남은 DONE 세션들이 그대로 남아있을
@@ -197,6 +213,19 @@ ${bodyHtml}
       const anyDone = sessions.some((s) => s.state === 'DONE' || s.state === 'NEEDS_INPUT');
       const finished = anyDone && !anyWorking;
       // 10차: "작업 끝났어요" 배너는 뺐다 — 끝난 건 삐빅 소리와 마스코트 색으로만 알린다.
+      // 14차: 지금 작업 중인 도구(Claude / Codex)를 말풍선 위에 표시.
+      const who = document.getElementById('who');
+      if (who) {
+        const tools = new Set();
+        Object.values(data.sessions || {}).forEach((x) => {
+          if (x.state === 'WORKING' && now - (x.startedAt || x.updatedAt || 0) < 2 * 60 * 60 * 1000) {
+            tools.add(String(x.source || '').startsWith('codex') ? 'codex' : 'claude');
+          }
+        });
+        who.innerHTML = [...tools].sort()
+          .map((t) => '<span class="' + t + '">' + (t === 'codex' ? 'Codex' : 'Claude') + ' 작업 중</span>')
+          .join('');
+      }
       if (mascotEl) {
         mascotEl.classList.remove('state-needs-input', 'state-done');
         if (finished) {
@@ -224,6 +253,35 @@ ${bodyHtml}
     } catch (e) {}
   }
   setInterval(pollLevel, 5000);
+
+  // 14차: 마스코트가 자동으로 뜰 때(?auto=1)는 버튼을 누를 필요 없이 마지막에 하던
+  // 게임·장보기로 바로 간다. 주소에서 auto를 먼저 지워서, 나중에 새로고침하거나
+  // "← 퀘스트"로 돌아왔을 때는 다시 튕기지 않게 한다.
+  (function () {
+    const params = new URLSearchParams(location.search);
+    if (!params.has('auto')) return;
+    history.replaceState(null, '', location.pathname);
+    let last = null;
+    try { last = JSON.parse(localStorage.getItem('idle-last-game') || 'null'); } catch (e) {}
+    if (last && last.path && Date.now() - (last.at || 0) < 7 * 24 * 60 * 60 * 1000) {
+      location.replace(last.path);
+    }
+  })();
+
+  // 14차: 마스코트가 사라질 때 하던 게임·장보기가 있으면 "이어서 하기" 버튼을 보여준다
+  // (각 게임이 /games/save.js로 'idle-last-game'에 적어둔다). 설명 문장 자리를 대신한다.
+  (function () {
+    const subEl = document.querySelector('.bubble p.sub');
+    if (!subEl || !document.getElementById('quests')) return;
+    let last = null;
+    try { last = JSON.parse(localStorage.getItem('idle-last-game') || 'null'); } catch (e) {}
+    if (!last || !last.path || Date.now() - (last.at || 0) > 7 * 24 * 60 * 60 * 1000) return;
+    const a = document.createElement('a');
+    a.className = 'resume';
+    a.href = last.path;
+    a.textContent = '▶ 하던 ' + last.label + ' 이어서 하기';
+    subEl.replaceWith(a);
+  })();
 
   // 12차: 캐러셀이 버튼을 복제·재구성하므로 클릭은 목록 쪽에서 위임받아 처리한다.
   function onQuestClick(btn) {
@@ -444,6 +502,7 @@ function mascotHeader(headerHtml) {
   return `  <div class="mascot-wrap">
     <div class="mascot"></div>
     <div class="bubble">
+      <div class="who" id="who"></div>
 ${headerHtml}
     </div>
   </div>`;
@@ -580,10 +639,10 @@ function start() {
 
       // 11차: 창 안 미니 퀘스트(mcp/games/<이름>.html)와 공통 스타일. 이름은
       // 영문 소문자/숫자/하이픈만 받아서 games 폴더 밖 파일은 못 읽게 한다.
-      const game = req.method === 'GET' && url.pathname.match(/^\/games\/([a-z0-9-]+)(\.css|\.json)?$/);
+      const game = req.method === 'GET' && url.pathname.match(/^\/games\/([a-z0-9-]+)(\.css|\.json|\.js)?$/);
       if (game) {
         const ext = game[2] || '.html';
-        const TYPES = { '.html': 'text/html', '.css': 'text/css', '.json': 'application/json' };
+        const TYPES = { '.html': 'text/html', '.css': 'text/css', '.json': 'application/json', '.js': 'text/javascript' };
         const file = path.join(__dirname, 'games', game[1] + ext);
         if (fs.existsSync(file)) {
           res.writeHead(200, { 'Content-Type': TYPES[ext] + '; charset=utf-8' });

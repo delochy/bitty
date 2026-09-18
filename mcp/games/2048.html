@@ -31,6 +31,7 @@
   </div>
   <div class="small" style="text-align:center;margin-top:8px">방향키 또는 드래그</div>
 </div>
+<script src="/games/save.js"></script>
 <script>
   const COLORS = {
     2: '#eee4da', 4: '#ede0c8', 8: '#f2b179', 16: '#f59563', 32: '#f67c5f', 64: '#f65e3b',
@@ -87,8 +88,9 @@
     addTile();
     saveBest();
     render();
-    if (g.includes(2048) && !won) { won = true; showOver('🎉 2048 달성!'); }
-    else if (!canMove()) showOver('더 이상 못 움직여요');
+    if (g.includes(2048) && !won) { won = true; showOver('🎉 2048 달성!'); IdleSave.clear('2048'); }
+    else if (!canMove()) { showOver('더 이상 못 움직여요'); IdleSave.clear('2048'); }
+    else IdleSave.save('2048', { g, score, won }, '🔢 2048');
   }
   let won = false;
   function canMove() {
@@ -104,6 +106,7 @@
     g = new Array(16).fill(0); score = 0; won = false;
     over.style.display = 'none';
     addTile(); addTile(); render();
+    IdleSave.save('2048', { g, score, won }, '🔢 2048');
   }
   document.addEventListener('keydown', (e) => {
     const d = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' }[e.key];
@@ -120,7 +123,15 @@
   });
   document.getElementById('new').addEventListener('click', (e) => { e.preventDefault(); newGame(); });
   document.getElementById('again').addEventListener('click', newGame);
-  newGame();
+  const saved = IdleSave.load('2048');
+  if (saved && saved.g) {
+    g = saved.g; score = saved.score || 0; won = !!saved.won;
+    over.style.display = 'none';
+    render();
+    IdleSave.save('2048', undefined, '🔢 2048');
+  } else {
+    newGame();
+  }
 </script>
 </body>
 </html>

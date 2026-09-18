@@ -26,6 +26,7 @@
   <div class="msg" id="msg">내 차례예요 (❌)</div>
   <div class="under"><button class="btn ghost" id="again">다시 하기</button></div>
 </div>
+<script src="/games/save.js"></script>
 <script>
   const LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
   const MISTAKE = 0.25; // 마스코트가 아무 데나 둘 확률 — 가끔은 이길 수 있게
@@ -65,6 +66,8 @@
     const k = w.who === 'X' ? 'w' : w.who === 'O' ? 'l' : 'd';
     tally[k]++;
     document.getElementById(k).textContent = tally[k];
+    IdleSave.clear('tictactoe');
+    try { localStorage.setItem('idle-ttt-tally', JSON.stringify(tally)); } catch (e) {}
     msg.textContent = { w: '🎉 이겼어요!', l: '😝 마스코트 승!', d: '🤝 무승부' }[k];
   }
   function play(i) {
@@ -83,7 +86,7 @@
       render();
       const w2 = winner(b);
       if (w2) finish(w2);
-      else msg.textContent = '내 차례예요 (❌)';
+      else { msg.textContent = '내 차례예요 (❌)'; IdleSave.save('tictactoe', { b }, '⭕ 틱택토'); }
     }, 400);
   }
   function reset() {
@@ -93,7 +96,12 @@
     render();
   }
   document.getElementById('again').addEventListener('click', reset);
+  // 14차: 이어하기 — 두던 판과 전적을 기억한다.
+  try { Object.assign(tally, JSON.parse(localStorage.getItem('idle-ttt-tally') || '{}')); } catch (e) {}
+  ['w', 'd', 'l'].forEach((k) => (document.getElementById(k).textContent = tally[k]));
   reset();
+  const saved = IdleSave.load('tictactoe');
+  if (saved && saved.b) { b = saved.b; render(); IdleSave.save('tictactoe', undefined, '⭕ 틱택토'); }
 </script>
 </body>
 </html>

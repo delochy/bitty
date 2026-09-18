@@ -28,28 +28,44 @@
   <div class="grid" id="grid"></div>
   <div class="msg" id="msg"></div>
 </div>
+<script src="/games/save.js"></script>
 <script>
   const EMOJI = ['🐱', '🐶', '🦊', '🐼', '🐸', '🐧', '🦄', '🐙', '🍕', '🍩', '🚀', '🌈', '⚡', '🎧', '🍀', '🎲'];
   const KEY = 'side-quest-memory-best';
   const gridEl = document.getElementById('grid');
   let first = null, lock = false, moves = 0, matched = 0;
   function best() { try { return Number(localStorage.getItem(KEY)) || 0; } catch (e) { return 0; } }
-  function newGame() {
+  function newGame(saved) {
     gridEl.innerHTML = '';
     first = null; lock = false; moves = 0; matched = 0;
     document.getElementById('moves').textContent = 0;
     document.getElementById('best').textContent = best() || '-';
     document.getElementById('msg').textContent = '';
     const picks = EMOJI.slice().sort(() => Math.random() - 0.5).slice(0, 8);
-    const deck = picks.concat(picks).sort(() => Math.random() - 0.5);
-    deck.forEach((em) => {
+    const deck = saved ? saved.deck : picks.concat(picks).sort(() => Math.random() - 0.5);
+    deck.forEach((em, i) => {
       const c = document.createElement('div');
       c.className = 'cardx';
       c.dataset.em = em;
       c.innerHTML = '<div class="face back"></div><div class="face front">' + em + '</div>';
       c.addEventListener('click', () => flip(c));
+      if (saved && saved.done.includes(i)) c.classList.add('done');
       gridEl.appendChild(c);
     });
+    if (saved) {
+      moves = saved.moves; matched = saved.done.length / 2;
+      document.getElementById('moves').textContent = moves;
+    }
+    persist();
+  }
+  // 14차: 이어하기 — 카드 배치와 맞춘 칸, 시도 횟수를 저장.
+  function persist() {
+    const cards = [...gridEl.children];
+    IdleSave.save('memory', {
+      deck: cards.map((c) => c.dataset.em),
+      done: cards.map((c, i) => (c.classList.contains('done') ? i : -1)).filter((i) => i >= 0),
+      moves,
+    }, '🃏 짝 맞추기');
   }
   function flip(c) {
     if (lock || c === first || c.classList.contains('done')) return;
@@ -61,7 +77,9 @@
       first.classList.add('done'); c.classList.add('done');
       first = null;
       matched++;
+      if (matched < 8) persist();
       if (matched === 8) {
+        IdleSave.clear('memory');
         const b = best();
         const record = !b || moves < b;
         if (record) { try { localStorage.setItem(KEY, String(moves)); } catch (e) {} }
@@ -72,11 +90,12 @@
       lock = true;
       const a = first;
       first = null;
-      setTimeout(() => { a.classList.remove('flip'); c.classList.remove('flip'); lock = false; }, 700);
+      setTimeout(() => { a.classList.remove('flip'); c.classList.remove('flip'); lock = false; persist(); }, 700);
     }
   }
   document.getElementById('new').addEventListener('click', (e) => { e.preventDefault(); newGame(); });
-  newGame();
+  const saved = IdleSave.load('memory');
+  newGame(saved && saved.deck ? saved : undefined);
 </script>
 </body>
 </html>

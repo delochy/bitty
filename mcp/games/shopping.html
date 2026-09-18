@@ -36,6 +36,7 @@
   <ul id="list"></ul>
   <div class="foot"><span id="left"></span><button id="clear">산 것 지우기</button></div>
 </div>
+<script src="/games/save.js"></script>
 <script>
   const KEY = 'side-quest-shopping';
   // 자주 사는 것 — 누르면 바로 추가
@@ -44,7 +45,12 @@
   const input = document.getElementById('item');
   let items = [];
   try { items = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) {}
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(items)); } catch (e) {} };
+  const save = () => {
+    try { localStorage.setItem(KEY, JSON.stringify(items)); } catch (e) {}
+    // 14차: 살 게 남아 있으면 다음에 "이어서 하기"로 보여준다.
+    if (items.some((x) => !x.done)) IdleSave.save('shopping', undefined, '🛒 장보기');
+    else IdleSave.clear('shopping');
+  };
 
   function render() {
     listEl.innerHTML = '';

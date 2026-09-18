@@ -6,7 +6,7 @@
   자기 스타일을 따로 갖고 있다.
 */
 :root {
-  color-scheme: light dark;
+  color-scheme: normal; /* 투명 창 바탕이 칠해지지 않게 (quest-http.js 참고) */
   --card: #ffffff; --ink: #1f2937; --muted: #6b7280; --line: #d1d5db;
   --accent: #4f46e5; --accent-text: #4f46e5; --accent-soft: #e0e7ff; --ok: #16a34a; --bad: #dc2626;
 }

@@ -26,6 +26,7 @@
   </div>
   <div class="small" style="text-align:center;margin-top:8px">방향키로 조종</div>
 </div>
+<script src="/games/save.js"></script>
 <script>
   const CELLS = 16, SIZE = 15, TICK = 120;
   const KEY = 'side-quest-snake-best';
@@ -69,9 +70,11 @@
       snake.pop();
     }
     draw();
+    IdleSave.save('snake', { snake, dir, food, score }, '🐍 스네이크');
   }
   function end() {
     clearInterval(timer); timer = null;
+    IdleSave.clear('snake');
     const b = best();
     if (score > b) { try { localStorage.setItem(KEY, String(score)); } catch (e) {} }
     document.getElementById('best').textContent = Math.max(b, score);
@@ -80,9 +83,13 @@
     over.style.display = 'flex';
   }
   function start() {
-    snake = [[7, 8], [6, 8], [5, 8]]; dir = [1, 0]; queue = []; score = 0;
-    document.getElementById('score').textContent = 0;
-    placeFood(); draw();
+    const saved = resume;
+    resume = null;
+    if (saved) { snake = saved.snake; dir = saved.dir; food = saved.food; score = saved.score; queue = []; }
+    else { snake = [[7, 8], [6, 8], [5, 8]]; dir = [1, 0]; queue = []; score = 0; }
+    document.getElementById('score').textContent = score;
+    if (!saved) placeFood();
+    draw();
     over.style.display = 'none';
     clearInterval(timer);
     timer = setInterval(step, TICK);
@@ -95,7 +102,19 @@
     if (queue.length < 2) queue.push(d);
   });
   document.getElementById('start').addEventListener('click', start);
-  snake = [[7, 8], [6, 8], [5, 8]]; food = [11, 8]; draw();
+  // 14차: 이어하기 — 멈춘 자리에서 방향키나 버튼으로 다시 출발.
+  let resume = IdleSave.load('snake');
+  if (resume && resume.snake) {
+    snake = resume.snake; food = resume.food;
+    document.getElementById('score').textContent = resume.score;
+    document.getElementById('overMsg').textContent = '하던 판이 있어요 (' + resume.score + '개)';
+    document.getElementById('start').textContent = '이어서 하기';
+    IdleSave.save('snake', undefined, '🐍 스네이크');
+  } else {
+    resume = null;
+    snake = [[7, 8], [6, 8], [5, 8]]; food = [11, 8];
+  }
+  draw();
 </script>
 </body>
 </html>

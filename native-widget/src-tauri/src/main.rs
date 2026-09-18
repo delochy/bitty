@@ -8,7 +8,7 @@
 // 창 안 내용은 bin/side-quest-daemon.js가 띄우는 로컬 페이지
 // (mcp/quest-http.js, http://127.0.0.1:4318/quest)를 그대로 불러온다.
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::process::Command;
 use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -94,18 +94,18 @@ fn now_ms() -> u64 {
 /// state.json을 읽어서 (자동으로 띄울 turn 키, 진행 중인 turn 키 전부)를
 /// 돌려준다. turn 키는 "sessionId#turnSeq" — 같은 turn에 두 번 뜨지 않게
 /// (사용자가 숨긴 뒤 다시 튀어나오지 않게) 구분하는 데 쓴다.
-fn read_working_turn(now: u64) -> (Option<String>, Vec<String>) {
+fn read_working_turn(now: u64) -> (Option<String>, HashMap<String, &'static str>) {
     let Ok(raw) = std::fs::read_to_string(project_root().join("data").join("state.json")) else {
-        return (None, Vec::new());
+        return (None, HashMap::new());
     };
     let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw) else {
-        return (None, Vec::new());
+        return (None, HashMap::new());
     };
     let Some(sessions) = json.get("sessions").and_then(|s| s.as_object()) else {
-        return (None, Vec::new());
+        return (None, HashMap::new());
     };
 
-    let mut active = Vec::new();
+    let mut active = HashMap::new();
     let mut best: Option<(u64, String)> = None;
     for (id, rec) in sessions {
         if rec.get("state").and_then(|s| s.as_str()) != Some("WORKING") {
@@ -122,7 +122,12 @@ fn read_working_turn(now: u64) -> (Option<String>, Vec<String>) {
         }
         let seq = rec.get("turnSeq").and_then(|v| v.as_u64()).unwrap_or(0);
         let key = format!("{id}#{seq}");
-        active.push(key.clone());
+        // 14차: Claude/Codex 구별 — state.json의 source ("claude", "codex-hook", "codex-notify").
+        let tool = match rec.get("source").and_then(|s| s.as_str()) {
+            Some(src) if src.starts_with("codex") => "Codex",
+            _ => "Claude",
+        };
+        active.insert(key.clone(), tool);
         if age < AUTO_SHOW_DELAY_MS {
             continue;
         }
@@ -134,9 +139,10 @@ fn read_working_turn(now: u64) -> (Option<String>, Vec<String>) {
 }
 
 /// 포커스를 뺏지 않고 띄운다 — 사용자는 Claude 앱에서 계속 타이핑 중일 수
-/// 있다. 새 turn이니 시간예산 첫 화면부터 다시 보여준다.
+/// 있다. 새 turn이니 추천 화면부터 — 하던 게임이 있으면 그 게임으로 바로.
 fn auto_show(window: &tauri::WebviewWindow) {
-    if let Ok(url) = QUEST_URL.parse() {
+    // ?auto=1: 추천 페이지가 마지막에 하던 게임·장보기가 있으면 바로 그리로 이어간다.
+    if let Ok(url) = format!("{QUEST_URL}?auto=1").parse() {
         let _ = window.navigate(url);
     }
     position_bottom_right(window);
@@ -146,8 +152,13 @@ fn auto_show(window: &tauri::WebviewWindow) {
 /// 10차: 긴 작업이 끝나면 "삐빅" 한 번 울린다 (13차: 두 번은 과하다는 피드백). 30초도 안 걸린 짧은 답변엔
 /// 안 울린다 (마스코트가 떠 있는 turn이 끝날 때만). 시스템 알림 설정과 상관없이
 /// 들리도록 알림 사운드 대신 afplay로 직접 재생한다.
-fn beep() {
-    let sound = "/System/Library/Sounds/Tink.aiff";
+fn beep(tool: &str) {
+    // 14차: 어느 쪽이 끝났는지 소리로도 구별 — Claude는 톡(Tink), Codex는 퐁(Pop).
+    let sound = if tool == "Codex" {
+        "/System/Library/Sounds/Pop.aiff"
+    } else {
+        "/System/Library/Sounds/Tink.aiff"
+    };
     let _ = Command::new("/bin/sh")
         .arg("-c")
         .arg(format!("afplay '{sound}'"))
@@ -188,6 +199,23 @@ fn fade_out_and_hide(window: &tauri::WebviewWindow) {
     let _ = window.hide();
 }
 
+/// 14차: 창 아래쪽에 "✅ Codex 작업 끝났어요" 같은 알림을 잠깐 띄운다. 게임 화면이든
+/// 추천 화면이든 어느 페이지에서나 뜨도록 JS로 직접 붙인다.
+fn show_toast(window: &tauri::WebviewWindow, text: &str, tool: &str) {
+    let bg = if tool == "Codex" { "#111827" } else { "#c96442" };
+    let msg = serde_json::to_string(text).unwrap_or_else(|_| "\"\"".into());
+    let _ = window.eval(&format!(
+        "(()=>{{let t=document.getElementById('__idle_toast');\
+         if(!t){{t=document.createElement('div');t.id='__idle_toast';\
+         t.style.cssText='position:fixed;left:14px;right:14px;bottom:14px;padding:10px 12px;border-radius:12px;\
+         color:#fff;font:600 13px -apple-system,sans-serif;text-align:center;z-index:99999;\
+         box-shadow:0 6px 18px rgba(0,0,0,.25);transition:opacity .3s;word-break:keep-all';\
+         document.body.appendChild(t);}}\
+         t.style.background='{bg}';t.textContent={msg};t.style.opacity='1';\
+         clearTimeout(window.__idleToastT);window.__idleToastT=setTimeout(()=>t.style.opacity='0',4000);}})()"
+    ));
+}
+
 fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
     thread::spawn(move || {
         // 이미 한 번 띄운 turn들 — 그 turn 때문에 다시 튀어나오지 않게 (사용자가
@@ -197,7 +225,7 @@ fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
         // 작업이 겹칠 수 있다 — 창은 하나만 두고, 겹친 작업 중 마지막 것이 끝날
         // 때 한 번만 삐빅 울리고 숨긴다 (먼저 끝난 쪽이 창을 닫거나, 닫혔다 다시
         // 뜨지 않게). 작업이 하나뿐이면 예전처럼 그 작업이 끝나면 바로 사라진다.
-        let mut showing: HashSet<String> = HashSet::new();
+        let mut showing: HashMap<String, &'static str> = HashMap::new();
         loop {
             thread::sleep(Duration::from_secs(2));
             let (turn, active) = read_working_turn(now_ms());
@@ -206,10 +234,35 @@ fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
             };
 
             if !showing.is_empty() {
-                showing.retain(|key| active.contains(key));
-                if showing.is_empty() && window.is_visible().unwrap_or(false) {
-                    beep();
-                    fade_out_and_hide(&window);
+                let mut ended: Vec<&'static str> = Vec::new();
+                showing.retain(|key, tool| {
+                    let alive = active.contains_key(key);
+                    if !alive {
+                        ended.push(*tool);
+                    }
+                    alive
+                });
+                if let Some(&tool) = ended.last() {
+                    if window.is_visible().unwrap_or(false) {
+                        if showing.is_empty() {
+                            // 마지막 작업이 끝났다 — 누가 끝났는지 보여주고, 그 도구의
+                            // 소리 한 번, 잠깐 뒤 스르륵.
+                            show_toast(&window, &format!("✅ {tool} 작업 끝났어요"), tool);
+                            beep(tool);
+                            thread::sleep(Duration::from_millis(1600));
+                            fade_out_and_hide(&window);
+                        } else {
+                            // 한쪽만 끝났다 — 창은 두고 알림만 (소리는 마지막에 한 번).
+                            let mut still: Vec<&str> = showing.values().copied().collect();
+                            still.sort();
+                            still.dedup();
+                            show_toast(
+                                &window,
+                                &format!("✅ {tool} 작업 끝났어요 · {}는 아직 작업 중", still.join("·")),
+                                tool,
+                            );
+                        }
+                    }
                 }
             }
             if let Some(turn) = turn {
@@ -223,7 +276,7 @@ fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
                         auto_show(&window);
                     }
                     // 창이 떠 있는 동안 진행 중인 다른 작업도 같이 지켜본다.
-                    showing.extend(active.iter().cloned());
+                    showing.extend(active.iter().map(|(k, v)| (k.clone(), *v)));
                 }
             }
         }
@@ -259,6 +312,11 @@ fn main() {
             .resizable(false)
             .decorations(false)
             .transparent(true)
+            // 14차: 투명 창인데도 네모 틀이 보였다 — 창·웹뷰 바탕을 완전 투명으로
+            // 지정하고, macOS 창 그림자(네모 테두리처럼 보임)도 끈다. 둥근 카드와
+            // 그림자는 페이지 CSS가 그린다.
+            .background_color(tauri::window::Color(0, 0, 0, 0))
+            .shadow(false)
             .always_on_top(true)
             .skip_taskbar(true)
             .visible_on_all_workspaces(true)

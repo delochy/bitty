@@ -26,6 +26,7 @@
   <div class="grid" id="grid"></div>
   <div class="msg" id="msg"></div>
 </div>
+<script src="/games/save.js"></script>
 <script>
   const N = 8, MINES = 10;
   const NUM_COLORS = ['', '#3b82f6', '#16a34a', '#dc2626', '#7c3aed', '#b45309', '#0891b2', '#111827', '#6b7280'];
@@ -66,6 +67,7 @@
       mine.forEach((m, k) => { if (m) { cells[k].textContent = '💣'; cells[k].classList.add('open'); } });
       cells[i].classList.add('boom');
       msg.textContent = '💥 펑! 다시 해볼까요?';
+      IdleSave.clear('mines');
       return;
     }
     const stack = [i];
@@ -82,13 +84,31 @@
     if (open.filter(Boolean).length === N * N - MINES) {
       done = true;
       msg.textContent = '🎉 전부 찾았어요!';
-    }
+      IdleSave.clear('mines');
+    } else persist();
   }
   function toggleFlag(i) {
     if (done || open[i]) return;
     flag[i] = !flag[i];
     cells[i].textContent = flag[i] ? '🚩' : '';
     document.getElementById('left').textContent = MINES - flag.filter(Boolean).length;
+    if (started) persist();
+  }
+  // 14차: 이어하기
+  function persist() { IdleSave.save('mines', { mine, open, flag }, '💣 지뢰찾기'); }
+  function restore(st) {
+    newGame();
+    mine = st.mine; open = st.open; flag = st.flag; started = true;
+    cells.forEach((c, k) => {
+      if (open[k]) {
+        const n = count(k);
+        c.classList.add('open');
+        c.textContent = n || '';
+        c.style.color = NUM_COLORS[n];
+      } else if (flag[k]) c.textContent = '🚩';
+    });
+    document.getElementById('left').textContent = MINES - flag.filter(Boolean).length;
+    IdleSave.save('mines', undefined, '💣 지뢰찾기');
   }
   function newGame() {
     mine = new Array(N * N).fill(false); open = new Array(N * N).fill(false); flag = new Array(N * N).fill(false);
@@ -101,7 +121,9 @@
     e.target.classList.toggle('on', flagMode);
   });
   document.getElementById('new').addEventListener('click', newGame);
-  newGame();
+  const saved = IdleSave.load('mines');
+  if (saved && saved.mine) restore(saved);
+  else newGame();
 </script>
 </body>
 </html>

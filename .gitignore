@@ -10,3 +10,4 @@ native-widget/src-tauri/gen/
 *.bak*
 .DS_Store
 ._*
+docs/promo/
