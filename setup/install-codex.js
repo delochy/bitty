@@ -130,7 +130,7 @@ function installHooks() {
     backup(hooksPath);
     fs.writeFileSync(hooksPath, JSON.stringify(hooksConfig, null, 2) + '\n');
     console.log(`Installed Codex hooks into ${hooksPath}.`);
-    console.log('⚠️  Codex에서 새 훅을 한 번 승인(신뢰)해야 실행돼요 — Codex를 열면 안내가 나오거나, /hooks에서 확인하세요.');
+    console.log('⚠️  Codex는 새 훅을 신뢰해줘야 실행해요 — 터미널에서 `codex`를 한 번 실행해 "Hooks need review" 화면에서 Trust all and continue를 고르세요.');
   } else {
     console.log('Codex hooks already present — nothing changed.');
   }
