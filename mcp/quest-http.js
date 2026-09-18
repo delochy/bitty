@@ -43,7 +43,19 @@ function pageShell(bodyHtml) {
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>AI Side Quest</title>
 <style>
-  :root { color-scheme: light dark; }
+  /* 14차: 창이 투명이라 뒤 화면에 따라 글자가 묻혔다(특히 라이트 모드). 이제 불투명 카드
+     위에 그리고, 라이트/다크 색을 따로 잡는다. */
+  :root {
+    color-scheme: light dark;
+    --card: #ffffff; --ink: #1f2937; --muted: #6b7280; --line: rgba(15,23,42,0.14);
+    --soft: #f3f4f6; --soft-2: #e5e7eb; --accent: #6366f1; --focus-bg: #eef2ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --card: #1c1f26; --ink: #e5e7eb; --muted: #9ca3af; --line: rgba(255,255,255,0.14);
+      --soft: #262a33; --soft-2: #323744; --accent: #818cf8; --focus-bg: rgba(129,140,248,0.16);
+    }
+  }
   * { box-sizing: border-box; }
   html, body {
     font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
@@ -54,14 +66,19 @@ function pageShell(bodyHtml) {
        보이니 문제 없음. */
     background: transparent;
   }
-  body { padding: 12px 16px; animation: appear 0.35s ease-out 1; }
+  body {
+    margin: 6px; padding: 12px 12px; min-height: calc(100vh - 12px); border-radius: 16px;
+    background: var(--card); color: var(--ink); border: 1px solid var(--line);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    animation: appear 0.35s ease-out 1;
+  }
   @keyframes appear { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   /* 10차: 메뉴바 아이콘을 없애서, 창을 닫는 건 이 버튼뿐이다 (native-widget이 /__close 이동을 가로채 창을 숨김). */
   .close {
-    position: fixed; top: 6px; right: 8px; width: 22px; height: 22px; line-height: 22px; text-align: center;
-    border-radius: 50%; font-size: 12px; color: #888; text-decoration: none; background: rgba(127,127,127,0.12);
+    position: fixed; top: 14px; right: 14px; width: 22px; height: 22px; line-height: 22px; text-align: center;
+    border-radius: 50%; font-size: 12px; color: var(--muted); text-decoration: none; background: var(--soft);
   }
-  .close:hover { background: rgba(127,127,127,0.25); }
+  .close:hover { background: var(--soft-2); }
 
   /* --- 마스코트 --- */
   .mascot-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 8px; }
@@ -71,7 +88,7 @@ function pageShell(bodyHtml) {
     /* 10차: 계속 뛰는 애니메이션은 정신없다는 피드백으로 뺐다. 퀘스트를
        고를 때만 한 번 톡 튄다(.hop). */
     position: relative;
-    box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 10px rgba(99,102,241,0.25);
   }
   .mascot.state-done { background: linear-gradient(160deg, #86efac, #16a34a); }
   .mascot.state-needs-input { background: linear-gradient(160deg, #fde68a, #f59e0b); }
@@ -79,7 +96,7 @@ function pageShell(bodyHtml) {
   .mascot { cursor: pointer; }
   /* 쓰다듬으면 눈이 ^^ 모양으로 웃고 볼이 발그레해진다. */
   .mascot.happy::before, .mascot.happy::after { height: 4px; top: 24px; border-radius: 4px 4px 0 0; }
-  .mascot.happy { box-shadow: 0 6px 14px rgba(0,0,0,0.15), inset 10px -8px 0 -6px rgba(244,114,182,0.6), inset -10px -8px 0 -6px rgba(244,114,182,0.6); }
+  .mascot.happy { box-shadow: 0 4px 10px rgba(99,102,241,0.25), inset 10px -8px 0 -6px rgba(244,114,182,0.6), inset -10px -8px 0 -6px rgba(244,114,182,0.6); }
   .mascot::before, .mascot::after {
     content: ""; position: absolute; top: 22px; width: 8px; height: 8px;
     background: #111; border-radius: 50%;
@@ -90,11 +107,11 @@ function pageShell(bodyHtml) {
   @keyframes hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-8px) scale(1.04); } }
 
   .bubble {
-    background: rgba(127,127,127,0.08); border-radius: 12px; padding: 10px 12px;
+    background: var(--soft); border-radius: 12px; padding: 10px 12px;
     text-align: center; margin-top: 6px; max-width: 260px;
   }
   h1 { font-size: 14px; margin: 0 0 2px; line-height: 1.35; }
-  p.sub { color: #888; font-size: 11px; margin: 4px 0 0; line-height: 1.3; }
+  p.sub { color: var(--muted); font-size: 11px; margin: 4px 0 0; line-height: 1.3; }
 
   .budget { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
   .budget a {
@@ -104,14 +121,14 @@ function pageShell(bodyHtml) {
   .budget a:hover { background: rgba(0,0,0,0.06); }
   .quest {
     display: flex; align-items: center; gap: 8px; width: 100%; height: 40px; text-align: left;
-    padding: 0 12px; border-radius: 10px; border: 1px solid rgba(127,127,127,0.35);
-    background: transparent; color: inherit; font-size: 13px; cursor: pointer; font-family: inherit;
+    padding: 0 12px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); font-size: 13px; cursor: pointer; font-family: inherit;
     transition: transform 0.12s, background 0.12s; flex-shrink: 0;
   }
   .quest span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .quest:hover { background: rgba(127,127,127,0.12); }
+  .quest:hover { background: var(--soft); }
   .quest:active { transform: scale(0.97); }
-  .quest .go { margin-left: auto; font-size: 11px; color: #888; flex-shrink: 0; }
+  .quest .go { margin-left: auto; font-size: 11px; color: var(--muted); flex-shrink: 0; }
 
   /* 11차: 자동으로 굴러가는 룰렛형 세로 캐러셀. 창이 뜨면 빠르게 돌다가 감속해 멈추고,
      그 뒤로는 몇 초마다 살짝 튕기듯 한 칸씩 넘어간다. 가운데 칸이 "지금 추천". 끝없이
@@ -121,27 +138,28 @@ function pageShell(bodyHtml) {
   .cats { display: flex; gap: 3px; margin: 0 0 8px; justify-content: center; overflow-x: auto; scrollbar-width: none; }
   .cats::-webkit-scrollbar { display: none; }
   .cats button {
-    flex-shrink: 0; border: 1px solid rgba(127,127,127,0.3); background: transparent; color: inherit;
+    flex-shrink: 0; border: 1px solid var(--line); background: var(--card); color: var(--ink);
     border-radius: 999px; padding: 3px 7px; font-size: 11px; cursor: pointer; font-family: inherit;
   }
   .cats button.on { background: #6366f1; border-color: #6366f1; color: #fff; }
+  .cats button:not(.on):hover { background: var(--soft); }
   #quests {
     flex: 1; height: 132px; overflow: hidden; position: relative;
     -webkit-mask-image: linear-gradient(transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
             mask-image: linear-gradient(transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
   }
   .track { display: flex; flex-direction: column; gap: 6px; will-change: transform; }
-  .track .quest { opacity: 0.45; transform: scale(0.94); transition: opacity 0.25s, transform 0.25s, border-color 0.25s, background 0.25s; }
+  .track .quest { opacity: 0.55; transform: scale(0.94); transition: opacity 0.25s, transform 0.25s, border-color 0.25s, background 0.25s; }
   .track .quest.focus {
-    opacity: 1; transform: scale(1); border-color: #6366f1; background: rgba(99,102,241,0.12); font-weight: 600;
+    opacity: 1; transform: scale(1); border-color: var(--accent); background: var(--focus-bg); font-weight: 600;
   }
   .track .quest.focus:active { transform: scale(0.97); }
   .rail { width: 22px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
   .rail button {
-    width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(127,127,127,0.14);
-    color: inherit; font-size: 9px; cursor: pointer; padding: 0;
+    width: 22px; height: 22px; border-radius: 50%; border: none; background: var(--soft);
+    color: var(--ink); font-size: 9px; cursor: pointer; padding: 0;
   }
-  .rail .count { font-size: 10px; color: #888; writing-mode: horizontal-tb; }
+  .rail .count { font-size: 10px; color: var(--muted); writing-mode: horizontal-tb; }
 
   /* 퀘스트를 고르면 보이는 화면 */
   #picked { display: none; text-align: center; }
@@ -150,7 +168,7 @@ function pageShell(bodyHtml) {
     background: rgba(22,163,74,0.14); border: 1px solid rgba(22,163,74,0.5); font-size: 14px; font-weight: 600;
     animation: pop 0.3s ease-out 1;
   }
-  #picked .again { margin-top: 10px; background: none; border: none; color: #888; font-size: 11px; cursor: pointer; font-family: inherit; }
+  #picked .again { margin-top: 10px; background: none; border: none; color: var(--muted); font-size: 11px; cursor: pointer; font-family: inherit; }
   @keyframes pop { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
   .emoji { font-size: 17px; }
   .back { display: inline-block; margin-top: 4px; font-size: 11px; color: #888; text-decoration: none; }
