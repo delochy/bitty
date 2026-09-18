@@ -193,11 +193,11 @@ fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
         // 이미 한 번 띄운 turn들 — 그 turn 때문에 다시 튀어나오지 않게 (사용자가
         // 닫았거나, 다른 turn이 끝나 숨긴 뒤에도).
         let mut popped: HashSet<String> = HashSet::new();
-        // 11차: 마스코트를 띄운 바로 그 turn. 그 turn이 끝나면(DONE/NEEDS_INPUT/
-        // 다음 turn) 삐빅 울리고 바로 숨긴다 — 게임 중이어도. 예전엔 모든
-        // 세션이 끝나고 1분 뒤에 숨겼는데, 한 작업이 끝나면 바로 사라지게 해달라는
-        // 요청으로 바꿨다.
-        let mut showing: Option<String> = None;
+        // 마스코트를 띄운 뒤로 진행 중인 turn들. 14차: Claude와 Codex를 같이 쓰면
+        // 작업이 겹칠 수 있다 — 창은 하나만 두고, 겹친 작업 중 마지막 것이 끝날
+        // 때 한 번만 삐빅 울리고 숨긴다 (먼저 끝난 쪽이 창을 닫거나, 닫혔다 다시
+        // 뜨지 않게). 작업이 하나뿐이면 예전처럼 그 작업이 끝나면 바로 사라진다.
+        let mut showing: HashSet<String> = HashSet::new();
         loop {
             thread::sleep(Duration::from_secs(2));
             let (turn, active) = read_working_turn(now_ms());
@@ -205,13 +205,11 @@ fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
                 continue;
             };
 
-            if let Some(key) = &showing {
-                if !active.contains(key) {
-                    if window.is_visible().unwrap_or(false) {
-                        beep();
-                        fade_out_and_hide(&window);
-                    }
-                    showing = None;
+            if !showing.is_empty() {
+                showing.retain(|key| active.contains(key));
+                if showing.is_empty() && window.is_visible().unwrap_or(false) {
+                    beep();
+                    fade_out_and_hide(&window);
                 }
             }
             if let Some(turn) = turn {
@@ -224,7 +222,8 @@ fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
                     if !window.is_visible().unwrap_or(false) {
                         auto_show(&window);
                     }
-                    showing = Some(turn);
+                    // 창이 떠 있는 동안 진행 중인 다른 작업도 같이 지켜본다.
+                    showing.extend(active.iter().cloned());
                 }
             }
         }

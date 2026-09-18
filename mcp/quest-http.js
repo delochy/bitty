@@ -107,11 +107,11 @@ function pageShell(bodyHtml) {
   @keyframes hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-8px) scale(1.04); } }
 
   .bubble {
-    background: var(--soft); border-radius: 12px; padding: 10px 12px;
-    text-align: center; margin-top: 6px; max-width: 260px;
+    /* 14차: 카드 안에 상자를 또 두지 않는다 — 말풍선은 글자만. */
+    text-align: center; margin-top: 8px; max-width: 260px; padding: 0 8px;
   }
-  h1 { font-size: 14px; margin: 0 0 2px; line-height: 1.35; }
-  p.sub { color: var(--muted); font-size: 11px; margin: 4px 0 0; line-height: 1.3; }
+  h1 { font-size: 14px; margin: 0 0 2px; line-height: 1.35; word-break: keep-all; }
+  p.sub { color: var(--muted); font-size: 11px; margin: 4px 0 0; line-height: 1.4; word-break: keep-all; }
 
   .budget { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
   .budget a {
@@ -121,8 +121,8 @@ function pageShell(bodyHtml) {
   .budget a:hover { background: rgba(0,0,0,0.06); }
   .quest {
     display: flex; align-items: center; gap: 8px; width: 100%; height: 40px; text-align: left;
-    padding: 0 12px; border-radius: 10px; border: 1px solid var(--line);
-    background: var(--card); color: var(--ink); font-size: 13px; cursor: pointer; font-family: inherit;
+    padding: 0 12px; border-radius: 10px; border: none;
+    background: transparent; color: var(--ink); font-size: 13px; cursor: pointer; font-family: inherit;
     transition: transform 0.12s, background 0.12s; flex-shrink: 0;
   }
   .quest span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -149,9 +149,9 @@ function pageShell(bodyHtml) {
             mask-image: linear-gradient(transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
   }
   .track { display: flex; flex-direction: column; gap: 6px; will-change: transform; }
-  .track .quest { opacity: 0.55; transform: scale(0.94); transition: opacity 0.25s, transform 0.25s, border-color 0.25s, background 0.25s; }
+  .track .quest { opacity: 0.5; transform: scale(0.94); transition: opacity 0.25s, transform 0.25s, border-color 0.25s, background 0.25s; }
   .track .quest.focus {
-    opacity: 1; transform: scale(1); border-color: var(--accent); background: var(--focus-bg); font-weight: 600;
+    opacity: 1; transform: scale(1); background: var(--focus-bg); color: var(--ink); font-weight: 600;
   }
   .track .quest.focus:active { transform: scale(0.97); }
   .rail { width: 22px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
