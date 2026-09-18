@@ -20,6 +20,16 @@ Idle Buddy는 작업이 30초 넘게 걸리면 화면 오른쪽 아래에 작은
 
 > 코드 안의 내부 이름(MCP 서버 `ai-side-quest`, 앱 `AI Side Quest Mascot`)은 처음 프로젝트 이름을 그대로 써요.
 
+## 둘러보기
+
+<table>
+<tr><td><img src="docs/promo/01-recommend-dark.png" width="360" alt="추천 화면"></td><td><img src="docs/promo/02-fire.png" width="360" alt="불멍"></td></tr>
+<tr><td><img src="docs/promo/03-water.png" width="360" alt="물멍"></td><td><img src="docs/promo/04-sudoku.png" width="360" alt="스도쿠"></td></tr>
+<tr><td><img src="docs/promo/05-quiz.png" width="360" alt="넌센스 퀴즈"></td><td><img src="docs/promo/06-joke.png" width="360" alt="개발자 유머"></td></tr>
+<tr><td><img src="docs/promo/07-mole.png" width="360" alt="두더지 잡기"></td><td><img src="docs/promo/08-pet.png" width="360" alt="마스코트 쓰다듬기"></td></tr>
+<tr><td><img src="docs/promo/09-toast.png" width="360" alt="Claude·Codex 알림"></td><td><img src="docs/promo/10-resume.png" width="360" alt="이어하기"></td></tr>
+</table>
+
 ## 어떻게 동작하나요
 
 ```
