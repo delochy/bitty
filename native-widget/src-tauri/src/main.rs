@@ -143,14 +143,14 @@ fn auto_show(window: &tauri::WebviewWindow) {
     let _ = window.show();
 }
 
-/// 10차: 긴 작업이 끝나면 "삐빅" 두 번 울린다. 30초도 안 걸린 짧은 답변엔
+/// 10차: 긴 작업이 끝나면 "삐빅" 한 번 울린다 (13차: 두 번은 과하다는 피드백). 30초도 안 걸린 짧은 답변엔
 /// 안 울린다 (마스코트가 떠 있는 turn이 끝날 때만). 시스템 알림 설정과 상관없이
 /// 들리도록 알림 사운드 대신 afplay로 직접 재생한다.
 fn beep() {
     let sound = "/System/Library/Sounds/Tink.aiff";
     let _ = Command::new("/bin/sh")
         .arg("-c")
-        .arg(format!("afplay '{sound}'; afplay '{sound}'"))
+        .arg(format!("afplay '{sound}'"))
         .spawn();
 }
 
