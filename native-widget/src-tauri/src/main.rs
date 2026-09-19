@@ -74,16 +74,23 @@ fn spawn_local_server() {
     );
 }
 
+/// 주 모니터(메뉴바가 있는 화면)의 오른쪽 아래. 17차: 모니터 위치와 배율을 반영해 논리
+/// 좌표로 계산한다 — 예전엔 원점 (0,0)·물리 픽셀을 가정해서 모니터가 여러 대거나
+/// 레티나일 때 화면 밖으로 가는 일이 있었다.
 fn position_bottom_right(window: &tauri::WebviewWindow) {
-    if let Ok(Some(monitor)) = window.current_monitor() {
-        let screen = monitor.size();
-        let scale = monitor.scale_factor();
-        let margin = (20.0 * scale) as i32;
-        let w = (WIDGET_WIDTH * scale) as i32;
-        let h = (WIDGET_HEIGHT * scale) as i32;
-        let x = screen.width as i32 - w - margin;
-        let y = screen.height as i32 - h - margin;
-        let _ = window.set_position(tauri::PhysicalPosition::new(x, y));
+    let monitor = window
+        .primary_monitor()
+        .ok()
+        .flatten()
+        .or_else(|| window.current_monitor().ok().flatten());
+    if let Some(m) = monitor {
+        let sf = m.scale_factor();
+        let pos: tauri::LogicalPosition<f64> = m.position().to_logical(sf);
+        let size: tauri::LogicalSize<f64> = m.size().to_logical(sf);
+        let margin = 20.0;
+        let x = pos.x + size.width - WIDGET_WIDTH - margin;
+        let y = pos.y + size.height - WIDGET_HEIGHT - margin;
+        let _ = window.set_position(tauri::LogicalPosition::new(x, y));
     }
 }
 
@@ -163,7 +170,9 @@ fn auto_show(window: &tauri::WebviewWindow) {
 
 // 15차: 사용자가 끌어서 옮긴 위치를 기억한다 (data/widget-pos.json). 앱을 다시
 // 켜도 유지되고, 그 위치가 지금 연결된 모니터 밖이면 오른쪽 아래로 돌아간다.
-static SAVED_POS: Mutex<Option<(i32, i32)>> = Mutex::new(None);
+// 17차: 좌표는 논리 좌표(포인트)로만 다룬다 — 예전엔 물리 픽셀로 저장해서 레티나에서
+// 두 배 위치(화면 밖)로 가버리는 버그가 있었다.
+static SAVED_POS: Mutex<Option<(f64, f64)>> = Mutex::new(None);
 
 fn pos_file() -> std::path::PathBuf {
     project_root().join("data").join("widget-pos.json")
@@ -172,28 +181,38 @@ fn pos_file() -> std::path::PathBuf {
 fn load_saved_pos() {
     let pos = std::fs::read_to_string(pos_file())
         .ok()
-        .and_then(|raw| serde_json::from_str::<(i32, i32)>(&raw).ok());
+        .and_then(|raw| serde_json::from_str::<serde_json::Value>(&raw).ok())
+        .and_then(|v| Some((v.get("x")?.as_f64()?, v.get("y")?.as_f64()?)));
     *SAVED_POS.lock().unwrap() = pos;
 }
 
-fn remember_pos(x: i32, y: i32) {
-    let mut saved = SAVED_POS.lock().unwrap();
-    if *saved == Some((x, y)) {
+fn remember_pos(window: &tauri::WebviewWindow, p: tauri::PhysicalPosition<i32>) {
+    // 숨긴 창의 위치 변화는 무시 (사용자가 옮긴 게 아니다)
+    if !window.is_visible().unwrap_or(false) {
         return;
     }
-    *saved = Some((x, y));
-    let _ = std::fs::write(pos_file(), format!("[{x},{y}]"));
+    let scale = window.scale_factor().unwrap_or(1.0);
+    let l: tauri::LogicalPosition<f64> = p.to_logical(scale);
+    let mut saved = SAVED_POS.lock().unwrap();
+    if *saved == Some((l.x, l.y)) {
+        return;
+    }
+    *saved = Some((l.x, l.y));
+    let _ = std::fs::write(pos_file(), format!("{{\"x\":{},\"y\":{}}}", l.x, l.y));
 }
 
 fn place_window(window: &tauri::WebviewWindow) {
     let saved = *SAVED_POS.lock().unwrap();
     if let Some((x, y)) = saved {
-        let on_screen = window.available_monitors().unwrap_or_default().iter().any(|m| {
-            let (p, s) = (m.position(), m.size());
-            x >= p.x && y >= p.y && x < p.x + s.width as i32 - 40 && y < p.y + s.height as i32 - 40
+        // 위젯 전체가 어느 한 모니터 안에 들어올 때만 그 자리를 쓴다.
+        let fits = window.available_monitors().unwrap_or_default().iter().any(|m| {
+            let sf = m.scale_factor();
+            let pos: tauri::LogicalPosition<f64> = m.position().to_logical(sf);
+            let size: tauri::LogicalSize<f64> = m.size().to_logical(sf);
+            x >= pos.x && y >= pos.y && x + WIDGET_WIDTH <= pos.x + size.width && y + WIDGET_HEIGHT <= pos.y + size.height
         });
-        if on_screen {
-            let _ = window.set_position(tauri::PhysicalPosition::new(x, y));
+        if fits {
+            let _ = window.set_position(tauri::LogicalPosition::new(x, y));
             return;
         }
     }
@@ -398,9 +417,10 @@ fn main() {
 
             load_saved_pos();
             if let Some(w) = app.get_webview_window("mascot") {
-                w.on_window_event(|event| {
+                let win = w.clone();
+                w.on_window_event(move |event| {
                     if let tauri::WindowEvent::Moved(p) = event {
-                        remember_pos(p.x, p.y);
+                        remember_pos(&win, *p);
                     }
                 });
             }
