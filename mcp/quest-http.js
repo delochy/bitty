@@ -231,8 +231,11 @@ ${bodyHtml}
         // 15차: 도구별로 몇 개가 돌고 있는지도 — 하나면 "작업 중", 여럿이면 "작업 N개".
         const counts = {};
         Object.values(data.sessions || {}).forEach((x) => {
-          if (x.state === 'WORKING' && now - (x.startedAt || x.updatedAt || 0) < 2 * 60 * 60 * 1000) {
-            const t = String(x.source || '').startsWith('codex') ? 'codex' : 'claude';
+          const codex = String(x.source || '').startsWith('codex');
+          // Codex는 턴 사이 Stop 뒤 잠깐(20초)은 아직 작업 중으로 센다 (위젯 앱과 같은 기준)
+          const between = codex && x.state === 'DONE' && now - (x.updatedAt || 0) < 20 * 1000;
+          if ((x.state === 'WORKING' || between) && now - (x.startedAt || x.updatedAt || 0) < 2 * 60 * 60 * 1000) {
+            const t = codex ? 'codex' : 'claude';
             counts[t] = (counts[t] || 0) + 1;
           }
         });

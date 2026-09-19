@@ -103,6 +103,8 @@ const WIDGET_PORT: &str = "4318";
 const QUEST_URL: &str = "http://127.0.0.1:4318/quest";
 // 즉답으로 끝나는 프롬프트엔 안 뜨게 — lib/sidebar.js의 5차 규칙과 같은 값.
 const AUTO_SHOW_DELAY_MS: u64 = 30_000;
+// Codex의 턴 사이 Stop을 작업 종료로 보지 않고 기다리는 시간.
+const CODEX_GRACE_MS: u64 = 20_000;
 // Stop 훅 없이 죽은 세션이 영원히 WORKING으로 남는 걸 무시하기 위한 상한.
 const STALE_WORKING_MS: u64 = 2 * 60 * 60 * 1000;
 fn now_ms() -> u64 {
@@ -129,7 +131,13 @@ fn read_working_turn(now: u64) -> (Option<String>, HashMap<String, &'static str>
     let mut active = HashMap::new();
     let mut best: Option<(u64, String)> = None;
     for (id, rec) in sessions {
-        if rec.get("state").and_then(|s| s.as_str()) != Some("WORKING") {
+        let state = rec.get("state").and_then(|s| s.as_str()).unwrap_or("");
+        let is_codex = rec.get("source").and_then(|s| s.as_str()).map_or(false, |s| s.starts_with("codex"));
+        // 17차: Codex는 작업 중간에도 턴마다 Stop을 보낸다 — Stop 뒤 잠깐은 아직 진행 중으로 본다
+        // (곧 다시 일을 시작하면 lib/state.js가 같은 작업으로 이어 붙인다).
+        let updated = rec.get("updatedAt").and_then(|v| v.as_u64()).unwrap_or(0);
+        let codex_grace = is_codex && state == "DONE" && now.saturating_sub(updated) < CODEX_GRACE_MS;
+        if state != "WORKING" && !codex_grace {
             continue;
         }
         let started = rec
@@ -149,7 +157,7 @@ fn read_working_turn(now: u64) -> (Option<String>, HashMap<String, &'static str>
             _ => "Claude",
         };
         active.insert(key.clone(), tool);
-        if age < AUTO_SHOW_DELAY_MS {
+        if state != "WORKING" || age < AUTO_SHOW_DELAY_MS {
             continue;
         }
         if best.as_ref().map_or(true, |(s, _)| started > *s) {
