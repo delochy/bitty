@@ -19,10 +19,22 @@ fi
 if ! command -v cargo >/dev/null 2>&1 && [ -f "$HOME/.cargo/env" ]; then
   . "$HOME/.cargo/env"
 fi
-if ! command -v cargo >/dev/null 2>&1; then
-  echo "Rust가 필요해요. 아래 명령으로 설치한 뒤 터미널을 새로 열고 다시 실행해주세요:" >&2
-  echo "  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh" >&2
-  exit 1
+# 17차: Rust가 없으면(또는 --prebuilt) 직접 빌드하지 않고 GitHub Releases의 빌드된 앱을 받는다.
+PREBUILT_URL="https://github.com/delochy/idle-buddy/releases/latest/download/IdleBuddy-Mascot-macOS.zip"
+if [ "$1" = "--prebuilt" ] || ! command -v cargo >/dev/null 2>&1; then
+  echo "▶ 빌드된 마스코트 앱 받는 중 (Rust 없이 설치)…"
+  TMP="$(mktemp -d)"
+  curl -fsSL "$PREBUILT_URL" -o "$TMP/app.zip"
+  ditto -x -k "$TMP/app.zip" "$TMP"
+  mkdir -p "$DEST"
+  pkill -f "$APP_NAME" 2>/dev/null || true
+  pkill -f "side-quest-daemon.js" 2>/dev/null || true
+  rm -rf "$DEST/$APP_NAME"
+  cp -R "$TMP/$APP_NAME" "$DEST/"
+  rm -rf "$TMP"
+  open "$DEST/$APP_NAME"
+  echo "✓ 마스코트 위젯 실행 중 (메뉴바·Dock에는 안 보여요 — 작업이 30초 넘게 걸리면 오른쪽 아래에 떠요)"
+  exit 0
 fi
 
 cd "$ROOT/native-widget"

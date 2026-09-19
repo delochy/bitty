@@ -19,6 +19,10 @@ if [ "$NODE_MAJOR" -lt 18 ]; then
   exit 1
 fi
 
+# 위젯 앱이 저장소 위치를 찾을 수 있게 적어둔다 (미리 빌드한 앱을 받아 쓸 때 필요).
+mkdir -p "$HOME/.config/idle-buddy"
+printf '%s\n' "$ROOT" > "$HOME/.config/idle-buddy/home"
+
 echo "▶ Claude Code 연결"
 node setup/install-claude.js
 

@@ -1,3 +1,5 @@
+**한국어** | [English](README.en.md)
+
 # Idle Buddy 🫧
 
 **AI가 일하는 동안, 옆에서 놀아주는 마스코트.**
@@ -17,6 +19,7 @@ Idle Buddy는 작업이 30초 넘게 걸리면 화면 오른쪽 아래에 작은
 - 📊 **오늘의 기다림 리포트**: 오늘 AI를 기다린 시간, 긴 작업 횟수, 태운 토큰(Claude·Codex), 기다리면서 한 것을 보여주고, 공유용 이미지(1080×1350)로 저장해요.
 - 🔁 **이어하기**: 작업이 끝나 마스코트가 사라져도, 다음에 뜰 때 하던 게임·장보기를 그대로 불러와요.
 - 🖐 **원하는 자리로 옮기기**: 카드의 빈 곳이나 제목 줄을 잡고 끌면 돼요. 옮긴 자리를 기억해요.
+- 🌐 **한국어 / English**: 맥 언어에 맞춰 자동으로 바뀌고, 위젯의 🌐 버튼으로도 바꿀 수 있어요.
 - 🤝 **Claude·Codex 같이 써도 창은 하나**: 누가 작업 중인지 표시하고, 누가 끝났는지 알려줘요. 종료 소리도 서로 달라요.
 
 서버도 계정도 없어요. 전부 내 맥 안에서만 돌아가요.
@@ -48,9 +51,9 @@ Claude Code / Codex ──(훅)──▶ data/state.json ◀──(2초마다 �
 
 ## 필요한 것
 
-- **macOS** (마스코트 위젯은 지금 macOS만 지원)
+- **macOS** (마스코트 위젯은 지금 macOS만 지원, 애플 실리콘·인텔 모두)
 - **Node.js 18+**
-- **Rust**: 마스코트 앱을 내 컴퓨터에서 빌드하는 데 필요해요. 없으면 설치 스크립트가 설치 명령을 알려줘요.
+- **Rust (선택)**: 있으면 마스코트 앱을 직접 빌드하고, 없으면 설치 스크립트가 [Releases](https://github.com/delochy/idle-buddy/releases)에 올려둔 빌드된 앱을 받아요.
 - **Claude Code**나 **Codex** 중 하나 이상
 
 ## 설치
@@ -65,13 +68,19 @@ sh install.sh
 
 1. **Claude Code 연결**: `~/.claude/settings.json`에 훅을 추가하고, MCP 서버를 등록해요.
 2. **Codex 연결** (설치돼 있으면): `~/.codex/hooks.json`에 훅을 추가하고, MCP 서버를 등록해요.
-3. **마스코트 앱**을 빌드해서 `~/Applications/AI Side Quest Mascot.app`에 설치하고 실행해요.
+3. **마스코트 앱**을 빌드(또는 빌드된 앱을 다운로드)해서 `~/Applications/AI Side Quest Mascot.app`에 설치하고 실행해요.
 
 바꾸는 설정 파일은 모두 `.bak-<시간>` 파일로 먼저 백업해요. 설치 후에는 **실행 중인 Claude Code / Codex 세션을 새로 열어야** 적용돼요.
 
 **로그인할 때 자동 실행**: 시스템 설정 → 일반 → 로그인 항목에 `AI Side Quest Mascot`을 추가하세요. 앱은 메뉴바나 Dock에 안 보이는 백그라운드 앱이에요.
 
 **Codex 사용자**: Codex는 새 훅을 처음 한 번 **신뢰**해줘야 실행해요. 신뢰하지 않으면 훅이 조용히 무시돼요. 설치 후 터미널에서 `codex`를 한 번 실행하면 "Hooks need review" 화면이 떠요. 거기서 **Trust all and continue**를 고르세요. Codex 데스크톱 앱만 쓰는 경우에도 이 단계는 터미널에서 한 번 해야 해요.
+
+## 업데이트
+
+```bash
+git pull && sh install.sh
+```
 
 ## 제거
 
@@ -87,14 +96,14 @@ node uninstall.js
 - 타이핑 감지는 **마지막으로 키가 눌린 시각**만 봐요. 무슨 키였는지는 알 수 없어서 입력 모니터링 권한도 필요 없어요.
 - Claude Code 훅은 프롬프트마다 짧은 안내문을 Claude에게 넘겨요. 작업 규모를 알려달라는 부탁과, 시간을 묻거나 "자리 비우세요"라고 말하지 말라는 규칙이에요. 그래서 매번 토큰이 조금 더 들어요.
 - 리포트의 토큰 수는 Claude Code(`~/.claude/projects`)와 Codex(`~/.codex/sessions`)가 원래 남기는 기록에서 **사용량 숫자만** 읽어 계산해요.
-- 네트워크를 쓰는 건 퀘스트를 눌러 외부 링크를 열 때(Threads 등)뿐이에요.
+- 네트워크를 쓰는 건 퀘스트를 눌러 외부 링크를 열 때(Threads 등)와, Rust가 없어서 설치할 때 빌드된 앱을 받을 때뿐이에요.
 
 ## 내 마음대로 바꾸기
 
 | 바꾸고 싶은 것 | 파일 |
 |---|---|
 | 추천 퀘스트 목록 (이름, 이모지, 카테고리, 누르면 열 앱/폴더/URL) | `lib/quests.json` |
-| 개발자 유머 / 넌센스 퀴즈 | `mcp/games/jokes.json`, `mcp/games/quiz.json` |
+| 개발자 유머 / 넌센스 퀴즈 | `mcp/games/jokes.json`, `quiz.json` (한국어) · `jokes-en.json`, `quiz-en.json` (영어) |
 | 창 안 미니 게임 추가 | `mcp/games/<이름>.html`을 만들고 `quests.json`에 `"open": "/games/<이름>"` 한 줄 추가 |
 | 뜨는 시점(30초), 타이핑 대기(4초), 사라지는 속도 | `native-widget/src-tauri/src/main.rs` 상단 상수 → `sh setup/install-widget.sh`로 다시 빌드 |
 

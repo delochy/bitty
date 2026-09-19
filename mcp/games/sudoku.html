@@ -15,6 +15,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>AI Side Quest — 스도쿠</title>
+<script src="/games/i18n.js"></script>
 <style>
   :root {
     color-scheme: normal; /* 14차: light dark로 두면 WebKit이 창 바탕을 불투명하게 칠해서 투명 창이 네모로 보였다 */
@@ -77,14 +78,14 @@
 <body>
 <div class="card" data-tauri-drag-region>
   <div class="top" data-tauri-drag-region>
-    <a href="/quest">← 퀘스트</a>
-    <span class="title" data-tauri-drag-region>🧩 스도쿠</span>
-    <span><button id="new">새 게임</button> &nbsp;<a href="/__close" title="닫기">✕</a></span>
+    <a href="/quest" data-en="← Quests">← 퀘스트</a>
+    <span class="title" data-tauri-drag-region data-en="🧩 Sudoku">🧩 스도쿠</span>
+    <span><button id="new" data-en="New game">새 게임</button> &nbsp;<a href="/__close" title="닫기" data-en-title="Close">✕</a></span>
   </div>
   <div class="grid" id="grid"></div>
   <div class="pad" id="pad"></div>
 </div>
-<div class="msg" id="win">🎉 완성! <a href="#" id="again">한 판 더</a></div>
+<div class="msg" id="win"><span data-en="🎉 Solved!">🎉 완성!</span> <a href="#" id="again" data-en="Play again">한 판 더</a></div>
 
 <script src="/games/save.js"></script>
 <script>

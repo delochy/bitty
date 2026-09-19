@@ -5,6 +5,7 @@
 <meta charset="utf-8" />
 <title>AI Side Quest — 숨 고르기</title>
 <link rel="stylesheet" href="/games/common.css" />
+<script src="/games/i18n.js"></script>
 <style>
   .orb-wrap { width: 170px; height: 170px; display: flex; align-items: center; justify-content: center; }
   .orb {
@@ -17,12 +18,12 @@
 </head>
 <body>
 <div class="card" data-tauri-drag-region>
-  <div class="top" data-tauri-drag-region><a href="/quest">← 퀘스트</a><span class="title" data-tauri-drag-region>🫁 숨 고르기</span><a href="/__close" title="닫기">✕</a></div>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="🫁 Breathe">🫁 숨 고르기</span><a href="/__close" title="닫기" data-en-title="Close">✕</a></div>
   <div class="stage">
     <div class="orb-wrap"><div class="orb" id="orb"></div></div>
-    <div class="big" id="cue">준비됐나요?</div>
-    <div class="small" id="round">원이 커지면 들이쉬고, 작아지면 내쉬어요</div>
-    <button class="btn" id="start">시작</button>
+    <div class="big" id="cue" data-en="Ready?">준비됐나요?</div>
+    <div class="small" id="round" data-en="Breathe in as the circle grows, out as it shrinks">원이 커지면 들이쉬고, 작아지면 내쉬어요</div>
+    <button class="btn" id="start" data-en="Start">시작</button>
   </div>
 </div>
 <script>
@@ -40,15 +41,15 @@
     const tick = () => {
       if (phase >= ROUNDS * 2) {
         orb.classList.remove('in');
-        cue.textContent = '개운해졌죠? 🌿';
+        cue.textContent = T('개운해졌죠? 🌿', 'Feeling fresher? 🌿');
         round.textContent = '';
-        start.textContent = '한 번 더';
+        start.textContent = T('한 번 더', 'Again');
         start.style.display = '';
         return;
       }
       const inhale = phase % 2 === 0;
       orb.classList.toggle('in', inhale);
-      cue.textContent = inhale ? '들이쉬고…' : '내쉬고…';
+      cue.textContent = inhale ? T('들이쉬고…', 'Breathe in…') : T('내쉬고…', 'Breathe out…');
       round.textContent = Math.floor(phase / 2) + 1 + ' / ' + ROUNDS;
       phase += 1;
       timer = setTimeout(tick, PHASE_MS);

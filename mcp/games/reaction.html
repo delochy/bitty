@@ -5,6 +5,7 @@
 <meta charset="utf-8" />
 <title>AI Side Quest — 반응속도</title>
 <link rel="stylesheet" href="/games/common.css" />
+<script src="/games/i18n.js"></script>
 <style>
   .pad {
     width: 100%; flex: 1; border-radius: 12px; display: flex; flex-direction: column; align-items: center;
@@ -20,8 +21,8 @@
 </head>
 <body>
 <div class="card" data-tauri-drag-region>
-  <div class="top" data-tauri-drag-region><a href="/quest">← 퀘스트</a><span class="title" data-tauri-drag-region>⚡ 반응속도</span><a href="/__close" title="닫기">✕</a></div>
-  <div class="pad" id="pad"><div class="big" id="msg">눌러서 시작</div><div class="small" id="sub">초록색이 되면 바로 클릭!</div></div>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="⚡ Reaction Test">⚡ 반응속도</span><a href="/__close" title="닫기" data-en-title="Close">✕</a></div>
+  <div class="pad" id="pad"><div class="big" id="msg" data-en="Click to start">눌러서 시작</div><div class="small" id="sub" data-en="Click the moment it turns green!">초록색이 되면 바로 클릭!</div></div>
   <div class="best" id="best"></div>
 </div>
 <script>
@@ -42,14 +43,14 @@
   }
   function showBest() {
     const best = readBest();
-    bestEl.textContent = best ? '내 최고 기록 ' + best + 'ms' : '';
+    bestEl.textContent = best ? T('내 최고 기록 ', 'My best ') + best + 'ms' : '';
   }
   function verdict(ms) {
-    if (ms < 200) return '번개 그 자체 ⚡';
-    if (ms < 260) return '프로게이머 재능이 보여요 🎮';
-    if (ms < 330) return '반응 좋은데요? 👍';
-    if (ms < 450) return '무난해요 🙂';
-    return '커피 한 모금 하고 다시? ☕';
+    if (ms < 200) return T('번개 그 자체 ⚡', 'Lightning fast ⚡');
+    if (ms < 260) return T('프로게이머 재능이 보여요 🎮', 'Pro gamer reflexes 🎮');
+    if (ms < 330) return T('반응 좋은데요? 👍', 'Nice reflexes 👍');
+    if (ms < 450) return T('무난해요 🙂', 'Not bad 🙂');
+    return T('커피 한 모금 하고 다시? ☕', 'Sip of coffee and retry? ☕');
   }
   function set(cls, big, small) {
     pad.className = 'pad' + (cls ? ' ' + cls : '');
@@ -60,23 +61,23 @@
   pad.addEventListener('mousedown', () => {
     if (state === 'idle') {
       state = 'wait';
-      set('wait', '기다려요…', '초록색이 되면 클릭!');
+      set('wait', T('기다려요…', 'Wait…'), T('초록색이 되면 클릭!', 'Click when it turns green!'));
       timer = setTimeout(() => {
         state = 'go';
         goAt = performance.now();
-        set('go', '지금!', '');
+        set('go', T('지금!', 'Now!'), '');
       }, 1500 + Math.random() * 2500);
     } else if (state === 'wait') {
       clearTimeout(timer);
       state = 'idle';
-      set('', '너무 빨랐어요 😅', '눌러서 다시');
+      set('', T('너무 빨랐어요 😅', 'Too soon 😅'), T('눌러서 다시', 'Click to retry'));
     } else if (state === 'go') {
       const ms = Math.round(performance.now() - goAt);
       state = 'idle';
       const best = readBest();
       const record = !best || ms < best;
       if (record) writeBest(ms);
-      set('', ms + 'ms', (record ? '🏆 신기록! ' : '') + verdict(ms) + ' · 눌러서 다시');
+      set('', ms + 'ms', (record ? T('🏆 신기록! ', '🏆 New best! ') : '') + verdict(ms) + T(' · 눌러서 다시', ' · click to retry'));
       showBest();
     }
   });

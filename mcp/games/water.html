@@ -5,6 +5,7 @@
 <meta charset="utf-8" />
 <title>AI Side Quest — 물멍</title>
 <link rel="stylesheet" href="/games/common.css" />
+<script src="/games/i18n.js"></script>
 <style>
   .card { position: relative; padding: 0; overflow: hidden; background: #0b1a2e; color: #e6f1ff; }
   .top { position: absolute; left: 12px; right: 12px; top: 8px; z-index: 2; }
@@ -16,9 +17,9 @@
 </head>
 <body>
 <div class="card" data-tauri-drag-region>
-  <div class="top" data-tauri-drag-region><a href="/quest">← 퀘스트</a><span class="title" data-tauri-drag-region>🌊 물멍</span><span><button id="sound" title="소리">🔈</button> &nbsp;<a href="/__close" title="닫기">✕</a></span></div>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="🌊 Ocean View">🌊 물멍</span><span><button id="sound" title="소리" data-en-title="Sound">🔈</button> &nbsp;<a href="/__close" title="닫기" data-en-title="Close">✕</a></span></div>
   <canvas id="cv"></canvas>
-  <div class="hint">물을 톡 건드려 보세요</div>
+  <div class="hint" data-en="Tap the water">물을 톡 건드려 보세요</div>
 </div>
 <script>
   const cv = document.getElementById('cv');

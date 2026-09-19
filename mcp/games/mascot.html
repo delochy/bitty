@@ -5,6 +5,7 @@
 <meta charset="utf-8" />
 <title>Idle Buddy — 마스코트 꾸미기</title>
 <link rel="stylesheet" href="/games/common.css" />
+<script src="/games/i18n.js"></script>
 <style>
   .hero { display: flex; align-items: center; gap: 14px; margin: 10px 4px 8px; }
   .mascot {
@@ -38,7 +39,7 @@
 </head>
 <body>
 <div class="card" data-tauri-drag-region>
-  <div class="top" data-tauri-drag-region><a href="/quest">← 퀘스트</a><span class="title" data-tauri-drag-region>🐣 마스코트 꾸미기</span><a href="/__close" title="닫기">✕</a></div>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="🐣 Dress Up">🐣 마스코트 꾸미기</span><a href="/__close" title="닫기" data-en-title="Close">✕</a></div>
   <div class="hero">
     <div class="mascot" id="m"></div>
     <div class="info">
@@ -51,7 +52,7 @@
 </div>
 <script src="/games/mascot-look.js"></script>
 <script>
-  const SLOTS = [['color', '색'], ['hat', '모자'], ['face', '얼굴']];
+  const SLOTS = [['color', T('색', 'Color')], ['hat', T('모자', 'Hat')], ['face', T('얼굴', 'Face')]];
   let info = null;
   function render() {
     const equip = IdleMascot.equip();
@@ -60,8 +61,9 @@
     document.getElementById('bar').style.width = Math.round((info.levelXp / info.levelNeed) * 100) + '%';
     const next = info.items.find((it) => !it.unlocked);
     document.getElementById('how').textContent =
-      '경험치 ' + info.levelXp + ' / ' + info.levelNeed + (next ? ' · Lv.' + next.level + '에 ' + next.label : '') +
-      ' · AI 작업 1분·놀기 1분 = 1, 퀘스트 고르기 = 3';
+      T('경험치 ', 'XP ') + info.levelXp + ' / ' + info.levelNeed +
+      (next ? T(' · Lv.' + next.level + '에 ' + next.label, ' · ' + next.label_en + ' at Lv.' + next.level) : '') +
+      T(' · AI 작업 1분·놀기 1분 = 1, 퀘스트 고르기 = 3', ' · 1 per minute of AI work or play, 3 per quest');
     const box = document.getElementById('slots');
     box.innerHTML = '';
     for (const [slot, name] of SLOTS) {
@@ -73,7 +75,7 @@
       info.items.filter((it) => it.slot === slot).forEach((it) => {
         const b = document.createElement('button');
         b.className = 'item' + (it.unlocked ? '' : ' locked') + (equip[slot] === it.id ? ' on' : '');
-        b.title = it.label + (it.unlocked ? '' : ' (Lv.' + it.level + ')');
+        b.title = T(it.label, it.label_en) + (it.unlocked ? '' : ' (Lv.' + it.level + ')');
         if (slot === 'color') b.innerHTML = '<span class="swatch" style="background:' + it.css + '"></span>';
         else b.textContent = it.emoji;
         if (!it.unlocked) b.insertAdjacentHTML('beforeend', '<small>🔒' + it.level + '</small>');

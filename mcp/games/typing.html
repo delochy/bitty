@@ -5,6 +5,7 @@
 <meta charset="utf-8" />
 <title>AI Side Quest — 타자 연습</title>
 <link rel="stylesheet" href="/games/common.css" />
+<script src="/games/i18n.js"></script>
 <style>
   .target { font-size: 16px; font-weight: 700; line-height: 1.5; min-height: 48px; word-break: keep-all; }
   .target .ok { color: var(--ok); }
@@ -19,16 +20,36 @@
 </head>
 <body>
 <div class="card" data-tauri-drag-region>
-  <div class="top" data-tauri-drag-region><a href="/quest">← 퀘스트</a><span class="title" data-tauri-drag-region>⌨️ 타자 연습</span><a href="/__close" title="닫기">✕</a></div>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="⌨️ Typing">⌨️ 타자 연습</span><a href="/__close" title="닫기" data-en-title="Close">✕</a></div>
   <div class="stage">
     <div class="target" id="target"></div>
-    <input id="input" placeholder="따라 치고 Enter" autocomplete="off" spellcheck="false" />
+    <input id="input" placeholder="따라 치고 Enter" data-en-placeholder="Type it, then Enter" autocomplete="off" spellcheck="false" />
     <div class="result" id="result"></div>
     <div class="small" id="best"></div>
   </div>
 </div>
 <script>
-  const SENTENCES = [
+  const SENTENCES_EN = [
+    'The quick brown fox jumps over the lazy dog',
+    'Small commits prevent big outages',
+    'Never deploy on a Friday afternoon',
+    'It works on my machine',
+    'Code is read more often than it is written',
+    'A journey of a thousand miles begins with a single step',
+    'Rest is part of the work',
+    'While the AI codes, I practice typing',
+    'Tests passed, time for a coffee',
+    'Every bug is a lesson in disguise',
+    'Slow is smooth and smooth is fast',
+    'Naming things is the hardest problem',
+    'Keep calm and clear the cache',
+    'The best error message is the one that never shows up',
+    'If you want to go far, go together',
+    'Back to the main quest after loading',
+    'Premature optimization is the root of much pain',
+    'Make it work, make it right, make it fast',
+  ];
+  const SENTENCES_KO = [
     '천 리 길도 한 걸음부터',
     '가는 말이 고와야 오는 말이 곱다',
     '버그는 잡으라고 있는 것이다',
@@ -54,13 +75,15 @@
     '말 한마디로 천 냥 빚을 갚는다',
     '구슬이 서 말이라도 꿰어야 보배',
   ];
-  const KEY = 'side-quest-typing-best';
+  const SENTENCES = L === 'en' ? SENTENCES_EN : SENTENCES_KO;
+  // 영어는 WPM(분당 단어, 5글자 = 1단어), 한국어는 타수(자모 기준 근사치)
+  const KEY = 'side-quest-typing-best' + (L === 'en' ? '-en' : '');
   const target = document.getElementById('target');
   const input = document.getElementById('input');
   const result = document.getElementById('result');
   let sentence = '', startAt = 0, last = -1;
   function best() { try { return Number(localStorage.getItem(KEY)) || 0; } catch (e) { return 0; } }
-  function showBest() { const b = best(); document.getElementById('best').textContent = b ? '내 최고 ' + b + '타' : ''; }
+  function showBest() { const b = best(); document.getElementById('best').textContent = b ? T('내 최고 ' + b + '타', 'My best ' + b + ' WPM') : ''; }
   function next() {
     let i;
     do { i = Math.floor(Math.random() * SENTENCES.length); } while (i === last);
@@ -78,7 +101,7 @@
     const typed = input.value;
     if (!typed) return;
     const minutes = Math.max((performance.now() - startAt) / 60000, 1 / 600);
-    const speed = Math.round(typed.normalize('NFD').length / minutes);
+    const speed = L === 'en' ? Math.round(typed.length / 5 / minutes) : Math.round(typed.normalize('NFD').length / minutes);
     let right = 0;
     target.innerHTML = '';
     [...sentence].forEach((ch, k) => {
@@ -93,7 +116,7 @@
     const b = best();
     const record = acc >= 90 && speed > b;
     if (record) { try { localStorage.setItem(KEY, String(speed)); } catch (e) {} }
-    result.textContent = (record ? '🏆 ' : '') + speed + '타 · 정확도 ' + acc + '%';
+    result.textContent = (record ? '🏆 ' : '') + T(speed + '타 · 정확도 ' + acc + '%', speed + ' WPM · accuracy ' + acc + '%');
     showBest();
     setTimeout(next, 1400);
   });

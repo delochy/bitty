@@ -21,9 +21,20 @@ const WIDGET_HEIGHT: f64 = 360.0;
 /// ai-side-quest 저장소 루트. 13차(공개 배포): 예전엔 절대 경로를 박아뒀는데,
 /// 이제는 빌드한 위치(src-tauri/../..)를 컴파일 때 기억한다. 저장소를 옮겼으면
 /// 다시 빌드하거나, 실행 시 AI_SIDE_QUEST_HOME 환경변수로 덮어쓸 수 있다.
+/// 17차: 미리 빌드한 앱(GitHub Releases)을 받아 쓰는 경우엔 빌드 위치가 의미 없으니,
+/// install.sh가 ~/.config/idle-buddy/home 에 적어둔 저장소 경로를 먼저 본다.
 fn project_root() -> std::path::PathBuf {
     if let Ok(home) = std::env::var("AI_SIDE_QUEST_HOME") {
         return home.into();
+    }
+    if let Some(home) = std::env::var_os("HOME") {
+        let cfg = std::path::Path::new(&home).join(".config").join("idle-buddy").join("home");
+        if let Ok(p) = std::fs::read_to_string(cfg) {
+            let p = p.trim();
+            if !p.is_empty() && std::path::Path::new(p).join("bin").exists() {
+                return p.into();
+            }
+        }
     }
     std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..")
 }
@@ -244,9 +255,11 @@ fn fade_out_and_hide(window: &tauri::WebviewWindow) {
 
 /// 14차: 창 아래쪽에 "✅ Codex 작업 끝났어요" 같은 알림을 잠깐 띄운다. 게임 화면이든
 /// 추천 화면이든 어느 페이지에서나 뜨도록 JS로 직접 붙인다.
-fn show_toast(window: &tauri::WebviewWindow, text: &str, tool: &str) {
+fn show_toast(window: &tauri::WebviewWindow, ko: &str, en: &str, tool: &str) {
     let bg = if tool == "Codex" { "#111827" } else { "#c96442" };
-    let msg = serde_json::to_string(text).unwrap_or_else(|_| "\"\"".into());
+    // 17차: 페이지 언어(i18n.js의 window.L)에 맞춰 고른다.
+    let ko = serde_json::to_string(ko).unwrap_or_else(|_| "\"\"".into());
+    let en = serde_json::to_string(en).unwrap_or_else(|_| "\"\"".into());
     let _ = window.eval(&format!(
         "(()=>{{let t=document.getElementById('__idle_toast');\
          if(!t){{t=document.createElement('div');t.id='__idle_toast';\
@@ -254,7 +267,7 @@ fn show_toast(window: &tauri::WebviewWindow, text: &str, tool: &str) {
          color:#fff;font:600 13px -apple-system,sans-serif;text-align:center;z-index:99999;\
          box-shadow:0 6px 18px rgba(0,0,0,.25);transition:opacity .3s;word-break:keep-all';\
          document.body.appendChild(t);}}\
-         t.style.background='{bg}';t.textContent={msg};t.style.opacity='1';\
+         t.style.background='{bg}';t.textContent=(window.L==='en'?{en}:{ko});t.style.opacity='1';\
          clearTimeout(window.__idleToastT);window.__idleToastT=setTimeout(()=>t.style.opacity='0',4000);}})()"
     ));
 }
@@ -290,7 +303,12 @@ fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
                         if showing.is_empty() {
                             // 마지막 작업이 끝났다 — 누가 끝났는지 보여주고, 그 도구의
                             // 소리 한 번, 잠깐 뒤 스르륵.
-                            show_toast(&window, &format!("✅ {tool} 작업 끝났어요"), tool);
+                            show_toast(
+                                &window,
+                                &format!("✅ {tool} 작업 끝났어요"),
+                                &format!("✅ {tool} is done"),
+                                tool,
+                            );
                             beep(tool);
                             thread::sleep(Duration::from_millis(1600));
                             fade_out_and_hide(&window);
@@ -302,6 +320,7 @@ fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
                             show_toast(
                                 &window,
                                 &format!("✅ {tool} 작업 끝났어요 · {}는 아직 작업 중", still.join("·")),
+                                &format!("✅ {tool} is done · {} still working", still.join(" & ")),
                                 tool,
                             );
                         }

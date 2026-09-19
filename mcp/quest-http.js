@@ -42,7 +42,8 @@ function pageShell(bodyHtml) {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AI Side Quest</title>
+<title>Idle Buddy</title>
+<script src="/games/i18n.js"></script>
 <style>
   /* 14차: 창이 투명이라 뒤 화면에 따라 글자가 묻혔다(특히 라이트 모드). 이제 불투명 카드
      위에 그리고, 라이트/다크 색을 따로 잡는다. */
@@ -83,6 +84,11 @@ function pageShell(bodyHtml) {
     border-radius: 50%; font-size: 12px; color: var(--muted); text-decoration: none; background: var(--soft);
   }
   .close:hover { background: var(--soft-2); }
+  /* 17차: 한국어 / English 전환 */
+  .lang {
+    position: fixed; top: 14px; left: 14px; width: 22px; height: 22px; border-radius: 50%; border: none;
+    font-size: 12px; background: var(--soft); cursor: pointer; padding: 0;
+  }
 
   /* --- 마스코트 --- */
   .mascot-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 8px; }
@@ -150,7 +156,10 @@ function pageShell(bodyHtml) {
      돌 수 있게 목록을 3벌 그려두고(renderCarousel), 가운데 벌 안에서만 위치를 유지한다. */
   .carousel { display: flex; gap: 6px; align-items: stretch; }
   /* 12차: 카테고리 탭 */
-  .cats { display: flex; gap: 3px; margin: 0 0 8px; justify-content: center; overflow-x: auto; scrollbar-width: none; }
+  .cats { display: flex; gap: 3px; margin: 0 0 8px; overflow-x: auto; scrollbar-width: none; }
+  /* 17차: 넘치지 않으면 가운데, 넘치면(영어) 왼쪽부터 스크롤 — justify-content: center는 양쪽이 잘린다 */
+  .cats > :first-child { margin-left: auto; }
+  .cats > :last-child { margin-right: auto; }
   .cats::-webkit-scrollbar { display: none; }
   .cats button {
     flex-shrink: 0; border: 1px solid var(--line); background: var(--card); color: var(--ink);
@@ -191,7 +200,8 @@ function pageShell(bodyHtml) {
 </head>
 <body>
 <div class="panel" data-tauri-drag-region>
-  <a class="close" href="/__close" title="닫기">✕</a>
+  <a class="close" href="/__close" title="닫기" data-en-title="Close">✕</a>
+  <button class="lang" id="lang" title="Language">🌐</button>
 ${bodyHtml}
 </div>
 <script src="/games/mascot-look.js"></script>
@@ -228,7 +238,7 @@ ${bodyHtml}
         });
         who.innerHTML = Object.keys(counts).sort()
           .map((t) => '<span class="' + t + '">' + (t === 'codex' ? 'Codex' : 'Claude') +
-            (counts[t] > 1 ? ' 작업 ' + counts[t] + '개' : ' 작업 중') + '</span>')
+            (counts[t] > 1 ? T(' 작업 ' + counts[t] + '개', ' ×' + counts[t]) : T(' 작업 중', ' working')) + '</span>')
           .join('');
       }
       if (mascotEl) {
@@ -284,7 +294,10 @@ ${bodyHtml}
     const a = document.createElement('a');
     a.className = 'resume';
     a.href = last.path;
-    a.textContent = '▶ 하던 ' + last.label + ' 이어서 하기';
+    // 17차: 이름은 목록에 있는 (언어에 맞춘) 퀘스트 이름을 쓴다.
+    const q = document.querySelector('.track .quest[data-id="' + last.id + '"]');
+    const name = q ? q.querySelector('.emoji').textContent + ' ' + (L === 'en' ? q.querySelector('[data-en]').getAttribute('data-en') : q.querySelector('[data-en]').textContent) : last.label;
+    a.textContent = T('▶ 하던 ' + name + ' 이어서 하기', '▶ Continue ' + name);
     subEl.replaceWith(a);
   })();
 
@@ -323,7 +336,9 @@ ${bodyHtml}
   // "시작!"으로 바뀌고, 목록 대신 고른 퀘스트 카드가 뜬다.
   const h1 = document.querySelector('.bubble h1');
   const sub = document.querySelector('.bubble p.sub');
-  const original = { h1: h1 && h1.textContent, sub: sub && sub.textContent };
+  // 17차: 영어일 때는 data-en 쪽이 원래 문구다 (i18n.js가 아직 바꿔 끼우기 전일 수 있다).
+  const pick = (el) => el && (L === 'en' && el.dataset.en ? el.dataset.en : el.textContent);
+  const original = { h1: pick(h1), sub: pick(sub) };
   function hop() {
     const m = document.querySelector('.mascot');
     if (!m) return;
@@ -332,7 +347,9 @@ ${bodyHtml}
     m.classList.add('hop');
   }
   // 11차: 마스코트를 누르거나 "쓰다듬기" 퀘스트를 고르면 좋아한다.
-  const PET_LINES = ['헤헤 🥰', '간지러워요!', '기분 좋아요 💕', '더 해줘요~', '힘이 나요! 💪', '냐하하 😆'];
+  const PET_LINES = L === 'en'
+    ? ['Hehe 🥰', 'That tickles!', 'I like that 💕', 'More please~', 'Feeling powered up! 💪', 'Yay 😆']
+    : ['헤헤 🥰', '간지러워요!', '기분 좋아요 💕', '더 해줘요~', '힘이 나요! 💪', '냐하하 😆'];
   let petTimer = null;
   function pet() {
     hop();
@@ -349,8 +366,11 @@ ${bodyHtml}
       }, 1800);
     }
     if (h1) h1.textContent = PET_LINES[Math.floor(Math.random() * PET_LINES.length)];
-    if (sub) sub.textContent = '마스코트가 좋아해요';
+    if (sub) sub.textContent = T('마스코트가 좋아해요', 'Your buddy loves it');
   }
+  const langBtn = document.getElementById('lang');
+  if (langBtn) langBtn.addEventListener('click', () => setLang(L === 'en' ? 'ko' : 'en'));
+
   const mascotBody = document.querySelector('.mascot');
   if (mascotBody) mascotBody.addEventListener('click', pet);
 
@@ -365,10 +385,11 @@ ${bodyHtml}
       try { localStorage.setItem('idle-mascot-level', String(info.level)); } catch (e) {}
       if (prev && info.level > prev && h1) {
         const got = info.items.filter((it) => it.level > prev && it.level <= info.level);
-        h1.textContent = '레벨 업! Lv.' + info.level + ' 🎉';
+        h1.textContent = T('레벨 업! Lv.', 'Level up! Lv.') + info.level + ' 🎉';
         if (sub) sub.textContent = got.length
-          ? ('새 아이템: ' + got.map((it) => (it.emoji || '🎨') + ' ' + it.label).join(', ') + ' · 🐣 마스코트 꾸미기에서 입혀보세요')
-          : '계속 키워주셔서 고마워요';
+          ? (T('새 아이템: ', 'New: ') + got.map((it) => (it.emoji || '🎨') + ' ' + T(it.label, it.label_en)).join(', ') +
+             T(' · 🐣 마스코트 꾸미기에서 입혀보세요', ' · try it on in 🐣 Dress up'))
+          : T('계속 키워주셔서 고마워요', 'Thanks for raising me!');
         hop();
       }
     });
@@ -377,8 +398,8 @@ ${bodyHtml}
   function showPicked(btn) {
     const label = btn.querySelector('span:nth-child(2)').textContent;
     const emoji = btn.querySelector('.emoji').textContent;
-    if (h1) h1.textContent = '좋아요! 퀘스트 시작 🎯';
-    if (sub) sub.textContent = '끝나면 바로 알려드릴게요.';
+    if (h1) h1.textContent = T('좋아요! 퀘스트 시작 🎯', 'Nice! Quest started 🎯');
+    if (sub) sub.textContent = T('끝나면 바로 알려드릴게요.', "I'll let you know when it's done.");
     document.querySelector('#picked .card').textContent = emoji + ' ' + label + ' ✓';
     document.querySelector('.carousel').style.display = 'none';
     document.getElementById('picked').style.display = 'block';
@@ -420,7 +441,7 @@ ${bodyHtml}
       track.style.transform = 'translateY(' + -top * STEP + 'px)';
       const focus = loop ? top + 1 : -1;
       all.forEach((el, i) => el.classList.toggle('focus', i === focus || (!loop && n > 0)));
-      if (count) count.textContent = loop ? ((top + 1) % n) + 1 + '/' + n : n + '개';
+      if (count) count.textContent = loop ? ((top + 1) % n) + 1 + '/' + n : T(n + '개', String(n));
     };
     // 3벌 중 가운데 벌 안으로 되돌린다 — 보이는 모습은 똑같아서 티가 안 난다.
     const normalize = () => {
@@ -542,7 +563,7 @@ function renderQuestList(quests) {
   return quests
     .map(
       (q) => `      <button class="quest" data-bucket="${q.bucket || ''}" data-id="${q.id}" data-cat="${q.cat || ''}"${q.open ? ` data-open="${q.open}"` : ''}${q.launch ? ' data-launch="1"' : ''}${q.pet ? ' data-pet="1"' : ''}>
-        <span class="emoji">${q.emoji}</span><span>${q.label}</span>${q.open || q.launch ? '<span class="go">바로 하기 ›</span>' : ''}
+        <span class="emoji">${q.emoji}</span><span data-en="${q.label_en || q.label}">${q.label}</span>${q.open || q.launch ? '<span class="go" data-en="Go ›">바로 하기 ›</span>' : ''}
       </button>`
     )
     .join('\n');
@@ -551,11 +572,11 @@ function renderQuestList(quests) {
 function renderCarousel(quests, listAttrs) {
   return `
   <div class="cats" id="cats">
-    <button class="on" data-cat="all">전체</button>
-    <button data-cat="game">🎮 게임</button>
-    <button data-cat="fun">😂 웃음</button>
-    <button data-cat="rest">🧘 휴식</button>
-    <button data-cat="todo">📋 할 일</button>
+    <button class="on" data-cat="all" data-en="All">전체</button>
+    <button data-cat="game" data-en="🎮 Play">🎮 게임</button>
+    <button data-cat="fun" data-en="😂 Fun">😂 웃음</button>
+    <button data-cat="rest" data-en="🧘 Chill">🧘 휴식</button>
+    <button data-cat="todo" data-en="📋 To-do">📋 할 일</button>
   </div>
   <div class="carousel">
     <div id="quests" ${listAttrs}>
@@ -564,14 +585,14 @@ ${renderQuestList(quests)}
       </div>
     </div>
     <div class="rail">
-      <button id="up" title="위로">▲</button>
+      <button id="up" title="위로" data-en-title="Up">▲</button>
       <span class="count" id="count"></span>
-      <button id="down" title="아래로">▼</button>
+      <button id="down" title="아래로" data-en-title="Down">▼</button>
     </div>
   </div>
   <div id="picked">
     <div class="card"></div>
-    <button class="again">다른 거 고를래요</button>
+    <button class="again" data-en="Pick something else">다른 거 고를래요</button>
   </div>`;
 }
 
@@ -596,18 +617,20 @@ function renderRecommendationPage() {
     }
   }
   const sub = info ? '기다리는 동안 할 수 있는 일을 추천해봤어요. 끝나면 바로 알려드릴게요.' : '할 수 있는 일을 추천해봤어요.';
+  const subEn = info ? "Here are a few things to do while you wait. I'll ping you when it's done." : 'Here are a few things you could do.';
   return (
-    mascotHeader(`      <h1>${headlineFor(info)}</h1>
-      <p class="sub">${sub}</p>`) +
+    mascotHeader(`      <h1 data-en="${headlineFor(info, 'en')}">${headlineFor(info)}</h1>
+      <p class="sub" data-en="${subEn}">${sub}</p>`) +
     renderCarousel(quests, `data-level="${info ? info.level : ''}" data-escalated="${info && info.escalated ? 1 : 0}"`)
   );
 }
 
 function renderQuestPickedPage(key, quests) {
   const title = key === 'UNTIL_DONE' ? '끝날 때까지 할 퀘스트예요!' : `${key}분짜리 퀘스트예요!`;
+  const titleEn = key === 'UNTIL_DONE' ? 'Quests until it finishes!' : `${key}-minute quests!`;
   return (
-    mascotHeader(`      <h1>${title}</h1>
-      <p class="sub">하나 골라서 해보세요 🎯</p>`) +
+    mascotHeader(`      <h1 data-en="${titleEn}">${title}</h1>
+      <p class="sub" data-en="Pick one and go 🎯">하나 골라서 해보세요 🎯</p>`) +
     renderCarousel(quests, '')
   );
 }

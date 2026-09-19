@@ -5,6 +5,7 @@
 <meta charset="utf-8" />
 <title>AI Side Quest — 지뢰찾기</title>
 <link rel="stylesheet" href="/games/common.css" />
+<script src="/games/i18n.js"></script>
 <style>
   .bar { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); margin: 6px 2px; }
   .bar button { font-size: 12px; border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 8px; padding: 3px 8px; cursor: pointer; font-family: inherit; }
@@ -21,8 +22,8 @@
 </head>
 <body>
 <div class="card" data-tauri-drag-region>
-  <div class="top" data-tauri-drag-region><a href="/quest">← 퀘스트</a><span class="title" data-tauri-drag-region>💣 지뢰찾기</span><a href="/__close" title="닫기">✕</a></div>
-  <div class="bar"><span>남은 지뢰 <b id="left">10</b></span><button id="flag">🚩 깃발 모드</button><button id="new">새 게임</button></div>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="💣 Minesweeper">💣 지뢰찾기</span><a href="/__close" title="닫기" data-en-title="Close">✕</a></div>
+  <div class="bar"><span><span data-en="Mines">남은 지뢰</span> <b id="left">10</b></span><button id="flag" data-en="🚩 Flag mode">🚩 깃발 모드</button><button id="new" data-en="New game">새 게임</button></div>
   <div class="grid" id="grid"></div>
   <div class="msg" id="msg"></div>
 </div>
@@ -66,7 +67,7 @@
       done = true;
       mine.forEach((m, k) => { if (m) { cells[k].textContent = '💣'; cells[k].classList.add('open'); } });
       cells[i].classList.add('boom');
-      msg.textContent = '💥 펑! 다시 해볼까요?';
+      msg.textContent = T('💥 펑! 다시 해볼까요?', '💥 Boom! Try again?');
       IdleSave.clear('mines');
       return;
     }
@@ -83,7 +84,7 @@
     }
     if (open.filter(Boolean).length === N * N - MINES) {
       done = true;
-      msg.textContent = '🎉 전부 찾았어요!';
+      msg.textContent = T('🎉 전부 찾았어요!', '🎉 You found them all!');
       IdleSave.clear('mines');
     } else persist();
   }
