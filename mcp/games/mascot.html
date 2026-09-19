@@ -1,0 +1,96 @@
+<!doctype html>
+<!-- Idle Buddy — 마스코트 꾸미기 (16차). 레벨이 오르면 열리는 색·모자·얼굴 아이템을 골라 입힌다. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>Idle Buddy — 마스코트 꾸미기</title>
+<link rel="stylesheet" href="/games/common.css" />
+<style>
+  .hero { display: flex; align-items: center; gap: 14px; margin: 10px 4px 8px; }
+  .mascot {
+    position: relative; width: 72px; height: 72px; font-size: 72px; border-radius: 40% 40% 45% 45%;
+    box-shadow: 0 4px 12px rgba(99,102,241,0.25); flex-shrink: 0;
+  }
+  .mascot::before, .mascot::after {
+    content: ""; position: absolute; top: 28px; width: 9px; height: 9px; background: #111; border-radius: 50%;
+  }
+  .mascot::before { left: 19px; }
+  .mascot::after { right: 19px; }
+  .info { flex: 1; }
+  .lvl { font-size: 18px; font-weight: 800; }
+  .bar { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; margin: 6px 0 4px; }
+  .bar i { display: block; height: 100%; background: linear-gradient(90deg, #7dd3fc, #6366f1); border-radius: 999px; }
+  .how { font-size: 10px; color: var(--muted); line-height: 1.4; word-break: keep-all; }
+  .slots { overflow-y: auto; flex: 1; }
+  .slot { margin-top: 6px; }
+  .slot h3 { font-size: 11px; color: var(--muted); margin: 0 0 4px; font-weight: 700; }
+  .items { display: flex; flex-wrap: wrap; gap: 5px; }
+  .item {
+    width: 44px; height: 44px; border-radius: 10px; border: 2px solid transparent; background: var(--accent-soft);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;
+    font-size: 20px; padding: 0; position: relative;
+  }
+  .item.on { border-color: #6366f1; }
+  .item.locked { opacity: 0.45; cursor: default; }
+  .item small { position: absolute; bottom: 1px; font-size: 8px; color: var(--muted); font-weight: 700; }
+  .swatch { width: 24px; height: 24px; border-radius: 50%; }
+</style>
+</head>
+<body>
+<div class="card" data-tauri-drag-region>
+  <div class="top" data-tauri-drag-region><a href="/quest">← 퀘스트</a><span class="title" data-tauri-drag-region>🐣 마스코트 꾸미기</span><a href="/__close" title="닫기">✕</a></div>
+  <div class="hero">
+    <div class="mascot" id="m"></div>
+    <div class="info">
+      <div class="lvl" id="lvl">Lv.1</div>
+      <div class="bar"><i id="bar" style="width:0%"></i></div>
+      <div class="how" id="how"></div>
+    </div>
+  </div>
+  <div class="slots" id="slots"></div>
+</div>
+<script src="/games/mascot-look.js"></script>
+<script>
+  const SLOTS = [['color', '색'], ['hat', '모자'], ['face', '얼굴']];
+  let info = null;
+  function render() {
+    const equip = IdleMascot.equip();
+    IdleMascot.apply(document.getElementById('m'), info, equip);
+    document.getElementById('lvl').textContent = 'Lv.' + info.level;
+    document.getElementById('bar').style.width = Math.round((info.levelXp / info.levelNeed) * 100) + '%';
+    const next = info.items.find((it) => !it.unlocked);
+    document.getElementById('how').textContent =
+      '경험치 ' + info.levelXp + ' / ' + info.levelNeed + (next ? ' · Lv.' + next.level + '에 ' + next.label : '') +
+      ' · AI 작업 1분·놀기 1분 = 1, 퀘스트 고르기 = 3';
+    const box = document.getElementById('slots');
+    box.innerHTML = '';
+    for (const [slot, name] of SLOTS) {
+      const sec = document.createElement('div');
+      sec.className = 'slot';
+      sec.innerHTML = '<h3>' + name + '</h3>';
+      const row = document.createElement('div');
+      row.className = 'items';
+      info.items.filter((it) => it.slot === slot).forEach((it) => {
+        const b = document.createElement('button');
+        b.className = 'item' + (it.unlocked ? '' : ' locked') + (equip[slot] === it.id ? ' on' : '');
+        b.title = it.label + (it.unlocked ? '' : ' (Lv.' + it.level + ')');
+        if (slot === 'color') b.innerHTML = '<span class="swatch" style="background:' + it.css + '"></span>';
+        else b.textContent = it.emoji;
+        if (!it.unlocked) b.insertAdjacentHTML('beforeend', '<small>🔒' + it.level + '</small>');
+        b.addEventListener('click', () => {
+          if (!it.unlocked) return;
+          const e = IdleMascot.equip();
+          e[slot] = e[slot] === it.id && slot !== 'color' ? null : it.id; // 모자·얼굴은 다시 누르면 벗기
+          IdleMascot.setEquip(e);
+          render();
+        });
+        row.appendChild(b);
+      });
+      sec.appendChild(row);
+      box.appendChild(sec);
+    }
+  }
+  IdleMascot.load().then((m) => { if (m) { info = m; render(); } });
+</script>
+</body>
+</html>

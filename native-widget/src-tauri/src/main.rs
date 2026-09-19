@@ -229,11 +229,13 @@ fn seconds_since_last_key() -> f64 {
     f64::MAX
 }
 
-/// 페이지를 서서히 투명하게 만든 뒤 창을 숨긴다. 다음에 띄울 땐 auto_show가
+/// 페이지를 서서히 투명하게 만든 뒤 창을 숨긴다. 16차: 숨긴 동안은 게임 시간을 세지
+/// 않도록 window.__idleHidden을 켠다 (games/track.js). 다음에 띄울 땐 auto_show가
 /// 페이지를 새로 불러오니 투명도는 저절로 원래대로 돌아온다.
 fn fade_out_and_hide(window: &tauri::WebviewWindow) {
     let _ = window.eval(&format!(
-        "document.documentElement.style.transition='opacity {FADE_MS}ms ease';\
+        "window.__idleHidden=true;\
+         document.documentElement.style.transition='opacity {FADE_MS}ms ease';\
          document.documentElement.style.opacity='0';"
     ));
     thread::sleep(Duration::from_millis(FADE_MS + 50));

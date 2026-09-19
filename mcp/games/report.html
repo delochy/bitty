@@ -1,0 +1,162 @@
+<!doctype html>
+<!--
+  Idle Buddy — 오늘의 기다림 리포트 (16차).
+  숫자는 /stats(lib/stats.js)가 로컬 기록으로 계산한다. "이미지로 저장"을 누르면 1080x1350
+  카드를 캔버스로 그려 ~/Downloads/idle-buddy-report-날짜.png 로 저장한다 (Threads 공유용).
+-->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>Idle Buddy — 기다림 리포트</title>
+<link rel="stylesheet" href="/games/common.css" />
+<style>
+  .day { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 6px 0 2px; font-size: 12px; color: var(--muted); }
+  .day button { border: none; background: var(--accent-soft); color: var(--ink); border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 10px; }
+  .day button:disabled { opacity: 0.3; cursor: default; }
+  .hero { text-align: center; margin: 4px 0 8px; }
+  .hero .label { font-size: 11px; color: var(--muted); }
+  .hero .big { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+  .rows { flex: 1; overflow-y: auto; font-size: 12px; }
+  .row { display: flex; justify-content: space-between; gap: 8px; padding: 6px 2px; border-bottom: 1px solid var(--line); }
+  .row span:first-child { color: var(--muted); flex-shrink: 0; }
+  .row span:last-child { font-weight: 700; text-align: right; word-break: keep-all; }
+  .save { margin-top: 8px; width: 100%; }
+  .note { font-size: 11px; color: var(--muted); text-align: center; height: 14px; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="card" data-tauri-drag-region>
+  <div class="top" data-tauri-drag-region><a href="/quest">← 퀘스트</a><span class="title" data-tauri-drag-region>📊 기다림 리포트</span><a href="/__close" title="닫기">✕</a></div>
+  <div class="day"><button id="prev">◀</button><span id="dayLabel"></span><button id="next">▶</button></div>
+  <div class="hero"><div class="label">AI를 기다린 시간</div><div class="big" id="wait">-</div></div>
+  <div class="rows" id="rows"></div>
+  <button class="btn save" id="save">📸 이미지로 저장</button>
+  <div class="note" id="note"></div>
+</div>
+<script src="/games/mascot-look.js"></script>
+<script>
+  const pad = (n) => String(n).padStart(2, '0');
+  const keyOf = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const today = keyOf(new Date());
+  let day = today, data = null;
+
+  function dur(ms) {
+    const m = Math.round(ms / 60000);
+    if (m < 1) return Math.round(ms / 1000) + '초';
+    if (m < 60) return m + '분';
+    return Math.floor(m / 60) + '시간' + (m % 60 ? ' ' + (m % 60) + '분' : '');
+  }
+  function tok(n) {
+    if (n >= 1e8) return (n / 1e8).toFixed(1).replace(/\.0$/, '') + '억';
+    if (n >= 1e4) return Math.round(n / 1e4).toLocaleString('ko-KR') + '만';
+    return n.toLocaleString('ko-KR');
+  }
+  function dayLabel(k) {
+    const [y, m, d] = k.split('-').map(Number);
+    const w = '일월화수목금토'[new Date(y, m - 1, d).getDay()];
+    return m + '월 ' + d + '일 (' + w + ')' + (k === today ? ' · 오늘' : '');
+  }
+  // 화면과 이미지가 같이 쓰는 줄 목록
+  function lines(s) {
+    const out = [];
+    out.push(['30초 넘은 작업', s.longTurns + '번' + (s.longTurns ? ' (Claude ' + s.tools.claude + ' · Codex ' + s.tools.codex + ')' : '')]);
+    if (s.longestMs) out.push(['제일 오래 기다린 작업', dur(s.longestMs)]);
+    const t = s.tokens, total = t.claude.total + t.codex.total;
+    if (total) out.push(['태운 토큰', tok(total) + ' (Claude ' + tok(t.claude.total) + ' · Codex ' + tok(t.codex.total) + ')']);
+    const top = s.games.slice(0, 3).map((g) => g.emoji + ' ' + g.label.replace(/ 한 판| 한 줄| 한 문제| 한 번 고르기/, '') + ' ' + dur(g.seconds * 1000));
+    out.push(['기다리면서 한 것', top.length ? top.join(' · ') : '아직 없어요']);
+    out.push(['고른 퀘스트', s.quests + '개']);
+    out.push(['마스코트', 'Lv.' + s.mascot.level]);
+    return out;
+  }
+  async function load() {
+    document.getElementById('dayLabel').textContent = dayLabel(day);
+    document.getElementById('next').disabled = day >= today;
+    document.getElementById('note').textContent = '';
+    data = await (await fetch('/stats?day=' + day)).json();
+    document.getElementById('wait').textContent = data.waitMs ? dur(data.waitMs) : '0분';
+    document.getElementById('rows').innerHTML = lines(data)
+      .map(([k, v]) => '<div class="row"><span>' + k + '</span><span>' + v + '</span></div>')
+      .join('');
+  }
+  function shift(n) {
+    const [y, m, d] = day.split('-').map(Number);
+    day = keyOf(new Date(y, m - 1, d + n));
+    load();
+  }
+  document.getElementById('prev').addEventListener('click', () => shift(-1));
+  document.getElementById('next').addEventListener('click', () => shift(1));
+
+  // 1080x1350 공유 카드
+  function drawCard() {
+    const W = 1080, H = 1350;
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    const bg = g.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#4f46e5'); bg.addColorStop(1, '#7c3aed');
+    g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    const F = '"Apple SD Gothic Neo", -apple-system, sans-serif';
+    g.textAlign = 'center'; g.fillStyle = '#fff';
+    g.font = '600 38px ' + F; g.globalAlpha = 0.85;
+    g.fillText(dayLabel(day).replace(' · 오늘', ''), W / 2, 120);
+    g.globalAlpha = 1; g.font = '800 64px ' + F;
+    g.fillText('오늘의 기다림 리포트', W / 2, 205);
+
+    // 마스코트 (입힌 색·모자·얼굴 그대로)
+    const equip = IdleMascot.equip();
+    const items = {}; data.mascot.items.forEach((it) => (items[it.id] = it));
+    const size = 170, mx = W / 2 - size / 2, my = 265;
+    const col = items[equip.color] && items[equip.color].unlocked ? items[equip.color].css : 'linear-gradient(160deg,#7dd3fc,#6366f1)';
+    const stops = col.match(/#[0-9a-f]{6}/gi) || ['#7dd3fc', '#6366f1'];
+    const mg = g.createLinearGradient(mx, my, mx + size, my + size);
+    mg.addColorStop(0, stops[0]); mg.addColorStop(1, stops[1]);
+    g.fillStyle = mg; g.beginPath(); g.roundRect(mx, my, size, size, 70); g.fill();
+    g.fillStyle = '#111';
+    for (const ex of [mx + 50, mx + size - 50]) { g.beginPath(); g.arc(ex, my + 72, 12, 0, Math.PI * 2); g.fill(); }
+    if (items[equip.face] && items[equip.face].unlocked) { g.font = '84px ' + F; g.fillText(items[equip.face].emoji, W / 2, my + 100); }
+    if (items[equip.hat] && items[equip.hat].unlocked) { g.font = '78px ' + F; g.fillText(items[equip.hat].emoji, W / 2, my + 10); }
+    g.fillStyle = '#111827'; g.beginPath(); g.roundRect(mx + size - 30, my + size - 30, 96, 44, 22); g.fill();
+    g.fillStyle = '#fff'; g.font = '800 26px ' + F; g.fillText('Lv.' + data.mascot.level, mx + size + 18, my + size + 1);
+
+    g.font = '600 36px ' + F; g.globalAlpha = 0.85;
+    g.fillText('AI를 기다린 시간', W / 2, 540);
+    g.globalAlpha = 1; g.font = '800 120px ' + F;
+    g.fillText(data.waitMs ? dur(data.waitMs) : '0분', W / 2, 670);
+
+    // 줄 목록 (마스코트 줄은 위에 그렸으니 뺀다)
+    const rows = lines(data).filter(([k]) => k !== '마스코트');
+    g.fillStyle = 'rgba(255,255,255,0.12)';
+    g.beginPath(); g.roundRect(80, 730, W - 160, 90 * rows.length + 40, 36); g.fill();
+    rows.forEach(([k, v], i) => {
+      const y = 800 + i * 90;
+      g.textAlign = 'left'; g.fillStyle = 'rgba(255,255,255,0.75)'; g.font = '600 32px ' + F;
+      g.fillText(k, 130, y);
+      g.textAlign = 'right'; g.fillStyle = '#fff';
+      // 긴 값은 자르지 않고 글자를 줄여서 다 넣는다.
+      let size = 34;
+      do { g.font = '800 ' + size + 'px ' + F; size -= 1; } while (g.measureText(v).width > 560 && size > 20);
+      g.fillText(v, W - 130, y);
+    });
+    g.textAlign = 'center'; g.fillStyle = 'rgba(255,255,255,0.8)'; g.font = '600 30px ' + F;
+    g.fillText('Idle Buddy  ·  github.com/delochy/idle-buddy', W / 2, H - 60);
+    return c.toDataURL('image/png');
+  }
+  document.getElementById('save').addEventListener('click', async () => {
+    if (!data) return;
+    const note = document.getElementById('note');
+    note.textContent = '저장 중…';
+    try {
+      const r = await (await fetch('/report/save', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ png: drawCard(), day }),
+      })).json();
+      note.textContent = r.ok ? '다운로드 폴더에 저장했어요 · ' + r.file : '저장하지 못했어요';
+    } catch (e) {
+      note.textContent = '저장하지 못했어요';
+    }
+  });
+  load();
+</script>
+</body>
+</html>

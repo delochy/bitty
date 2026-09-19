@@ -11,6 +11,8 @@
     { "id": "reaction", "emoji": "⚡", "label": "반응속도 테스트", "open": "/games/reaction", "cat": "game" },
     { "id": "quiz", "emoji": "🤔", "label": "넌센스 퀴즈 한 문제", "open": "/games/quiz", "cat": "fun" },
     { "id": "joke", "emoji": "😂", "label": "개발자 유머 한 줄", "open": "/games/joke", "cat": "fun" },
+    { "id": "report", "emoji": "📊", "label": "오늘의 기다림 리포트", "open": "/games/report", "cat": "fun" },
+    { "id": "mascot", "emoji": "🐣", "label": "마스코트 꾸미기", "open": "/games/mascot", "cat": "fun" },
     { "id": "pet", "emoji": "🐾", "label": "마스코트 쓰다듬기", "pet": true, "cat": "fun" },
     { "id": "mole", "emoji": "🔨", "label": "두더지 잡기 30초", "open": "/games/mole", "cat": "game" },
     { "id": "tictactoe", "emoji": "⭕", "label": "마스코트랑 틱택토", "open": "/games/tictactoe", "cat": "game" }
@@ -21,6 +23,7 @@
     { "id": "rest", "emoji": "🛋", "label": "그냥 쉬기", "cat": "rest" },
     { "id": "kakao", "emoji": "💛", "label": "밀린 카톡 답장하기", "launch": { "app": "KakaoTalk" }, "cat": "todo" },
     { "id": "shopping", "emoji": "🛒", "label": "장보기 목록 쓰기", "open": "/games/shopping", "cat": "todo" },
+    { "id": "storage", "emoji": "💽", "label": "하드 용량 정리하기", "launch": { "url": "x-apple.systempreferences:com.apple.settings.Storage" }, "cat": "todo" },
     { "id": "downloads", "emoji": "🗑", "label": "다운로드 폴더 파일 5개 지우기", "launch": { "path": "~/Downloads" }, "cat": "todo" },
     { "id": "blocks", "emoji": "🧱", "label": "블록 쌓기", "open": "/games/blocks", "cat": "game" },
     { "id": "2048", "emoji": "🔢", "label": "2048 한 판", "open": "/games/2048", "cat": "game" },

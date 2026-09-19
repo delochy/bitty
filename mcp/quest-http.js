@@ -31,6 +31,7 @@ const { execFile } = require('child_process');
 const state = require('../lib/state');
 const { pickQuests, pickQuestsFromBuckets } = require('../lib/timebudget');
 const { LEVEL_BUCKETS, effectiveLevel, headlineFor } = require('../lib/estimate');
+const stats = require('../lib/stats');
 
 const PORT = process.env.SIDE_QUEST_PORT ? Number(process.env.SIDE_QUEST_PORT) : 4317;
 const HOST = '127.0.0.1';
@@ -86,7 +87,7 @@ function pageShell(bodyHtml) {
   /* --- 마스코트 --- */
   .mascot-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 8px; }
   .mascot {
-    width: 56px; height: 56px; border-radius: 40% 40% 45% 45%;
+    width: 56px; height: 56px; font-size: 56px; /* 16차: 꾸미기 소품 크기 기준(em) */ border-radius: 40% 40% 45% 45%;
     background: linear-gradient(160deg, #7dd3fc, #6366f1);
     /* 10차: 계속 뛰는 애니메이션은 정신없다는 피드백으로 뺐다. 퀘스트를
        고를 때만 한 번 톡 튄다(.hop). */
@@ -193,6 +194,7 @@ function pageShell(bodyHtml) {
   <a class="close" href="/__close" title="닫기">✕</a>
 ${bodyHtml}
 </div>
+<script src="/games/mascot-look.js"></script>
 <script>
   // 8차 이어서: 네이티브 위젯은 Claude Code CLI 없이 수동으로 켜지기 때문에,
   // data/state.json엔 며칠 전 실측 테스트 때 남은 DONE 세션들이 그대로 남아있을
@@ -351,6 +353,26 @@ ${bodyHtml}
   }
   const mascotBody = document.querySelector('.mascot');
   if (mascotBody) mascotBody.addEventListener('click', pet);
+
+  // 16차: 마스코트 키우기 — 입힌 꾸미기와 레벨을 보여주고, 레벨이 올랐으면 축하한다.
+  if (window.IdleMascot && mascotBody) {
+    IdleMascot.load().then((info) => {
+      if (!info) return;
+      IdleMascot.apply(mascotBody, info);
+      IdleMascot.badge(mascotBody, info.level);
+      let prev = 0;
+      try { prev = Number(localStorage.getItem('idle-mascot-level')) || 0; } catch (e) {}
+      try { localStorage.setItem('idle-mascot-level', String(info.level)); } catch (e) {}
+      if (prev && info.level > prev && h1) {
+        const got = info.items.filter((it) => it.level > prev && it.level <= info.level);
+        h1.textContent = '레벨 업! Lv.' + info.level + ' 🎉';
+        if (sub) sub.textContent = got.length
+          ? ('새 아이템: ' + got.map((it) => (it.emoji || '🎨') + ' ' + it.label).join(', ') + ' · 🐣 마스코트 꾸미기에서 입혀보세요')
+          : '계속 키워주셔서 고마워요';
+        hop();
+      }
+    });
+  }
 
   function showPicked(btn) {
     const label = btn.querySelector('span:nth-child(2)').textContent;
@@ -652,6 +674,52 @@ function start() {
           res.end(fs.readFileSync(file));
           return;
         }
+      }
+
+      // 16차: 게임·휴식 페이지에 머문 시간 (games/track.js가 10초마다 보냄)
+      if (req.method === 'POST' && url.pathname === '/activity') {
+        let body = {};
+        try { body = JSON.parse((await readBody(req)) || '{}'); } catch (e) {}
+        const ok = stats.appendActivity(body);
+        res.writeHead(ok ? 200 : 400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok }));
+        return;
+      }
+
+      // 16차: 오늘의 기다림 리포트 숫자 (?day=YYYY-MM-DD)
+      if (req.method === 'GET' && url.pathname === '/stats') {
+        const day = /^\d{4}-\d{2}-\d{2}$/.test(url.searchParams.get('day') || '') ? url.searchParams.get('day') : stats.todayKey();
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(stats.dayStats(day)));
+        return;
+      }
+
+      // 16차: 마스코트 레벨·경험치·꾸미기 목록
+      if (req.method === 'GET' && url.pathname === '/mascot') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(stats.mascot()));
+        return;
+      }
+
+      // 16차: 리포트 카드 이미지를 ~/Downloads에 저장하고 Finder에서 보여준다.
+      if (req.method === 'POST' && url.pathname === '/report/save') {
+        let body = {};
+        try { body = JSON.parse((await readBody(req)) || '{}'); } catch (e) {}
+        const m = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(String(body.png || ''));
+        const day = /^\d{4}-\d{2}-\d{2}$/.test(body.day || '') ? body.day : stats.todayKey();
+        if (!m || m[1].length > 12 * 1024 * 1024) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ ok: false }));
+          return;
+        }
+        const dir = path.join(os.homedir(), 'Downloads');
+        const file = path.join(dir, `idle-buddy-report-${day}.png`);
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(file, Buffer.from(m[1], 'base64'));
+        if (os.platform() === 'darwin') execFile('open', ['-R', file], () => {});
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, file: path.basename(file) }));
+        return;
       }
 
       if (req.method === 'GET' && url.pathname === '/quest/level') {
