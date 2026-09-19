@@ -74,14 +74,16 @@ fn spawn_local_server() {
     );
 }
 
-/// 주 모니터(메뉴바가 있는 화면)의 오른쪽 아래. 17차: 모니터 위치와 배율을 반영해 논리
-/// 좌표로 계산한다 — 예전엔 원점 (0,0)·물리 픽셀을 가정해서 모니터가 여러 대거나
-/// 레티나일 때 화면 밖으로 가는 일이 있었다.
+/// 마우스 커서가 있는 모니터의 오른쪽 아래 (모니터가 여러 대면 지금 보고 있는 화면에 뜨게).
+/// 커서 위치를 모르면 주 모니터. 17차: 모니터 위치와 배율을 반영해 논리 좌표로 계산한다 —
+/// 예전엔 원점 (0,0)·물리 픽셀을 가정해서 화면 밖으로 가는 일이 있었다.
 fn position_bottom_right(window: &tauri::WebviewWindow) {
-    let monitor = window
-        .primary_monitor()
+    let under_cursor = window
+        .cursor_position()
         .ok()
-        .flatten()
+        .and_then(|c| window.monitor_from_point(c.x, c.y).ok().flatten());
+    let monitor = under_cursor
+        .or_else(|| window.primary_monitor().ok().flatten())
         .or_else(|| window.current_monitor().ok().flatten());
     if let Some(m) = monitor {
         let sf = m.scale_factor();
