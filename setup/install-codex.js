@@ -7,7 +7,7 @@
  * 1) Registers the AI Side Quest MCP server via `codex mcp add` (official
  *    CLI path, no config.toml surgery needed for this part).
  * 2) `command` hooks in ~/.codex/hooks.json → setup/codex-hook-relay.js, for
- *    WORKING (UserPromptSubmit) / NEEDS_INPUT (PermissionRequest) / DONE (Stop).
+ *    WORKING (UserPromptSubmit, PreToolUse) / NEEDS_INPUT (PermissionRequest) / DONE (Stop).
  *    13차: 예전엔 mcp_tool 핸들러였는데 실제로 이벤트가 안 들어와서, Claude
  *    쪽과 같은 command 방식으로 바꿨다. Codex는 새 훅을 처음 한 번 사용자가
  *    승인(신뢰)해야 실행할 수 있다.
@@ -122,7 +122,8 @@ function installHooks() {
   }
 
   let changed = false;
-  for (const evt of ['UserPromptSubmit', 'PermissionRequest', 'Stop']) {
+  // PreToolUse: 데스크톱 앱에서 UserPromptSubmit이 빠지는 턴도 작업 중으로 잡기 위해 (lib/state.js 참고)
+  for (const evt of ['UserPromptSubmit', 'PreToolUse', 'PermissionRequest', 'Stop']) {
     if (ensureHookEntry(hooksConfig, evt)) changed = true;
   }
 
