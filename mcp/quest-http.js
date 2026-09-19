@@ -216,14 +216,17 @@ ${bodyHtml}
       // 14차: 지금 작업 중인 도구(Claude / Codex)를 말풍선 위에 표시.
       const who = document.getElementById('who');
       if (who) {
-        const tools = new Set();
+        // 15차: 도구별로 몇 개가 돌고 있는지도 — 하나면 "작업 중", 여럿이면 "작업 N개".
+        const counts = {};
         Object.values(data.sessions || {}).forEach((x) => {
           if (x.state === 'WORKING' && now - (x.startedAt || x.updatedAt || 0) < 2 * 60 * 60 * 1000) {
-            tools.add(String(x.source || '').startsWith('codex') ? 'codex' : 'claude');
+            const t = String(x.source || '').startsWith('codex') ? 'codex' : 'claude';
+            counts[t] = (counts[t] || 0) + 1;
           }
         });
-        who.innerHTML = [...tools].sort()
-          .map((t) => '<span class="' + t + '">' + (t === 'codex' ? 'Codex' : 'Claude') + ' 작업 중</span>')
+        who.innerHTML = Object.keys(counts).sort()
+          .map((t) => '<span class="' + t + '">' + (t === 'codex' ? 'Codex' : 'Claude') +
+            (counts[t] > 1 ? ' 작업 ' + counts[t] + '개' : ' 작업 중') + '</span>')
           .join('');
       }
       if (mascotEl) {

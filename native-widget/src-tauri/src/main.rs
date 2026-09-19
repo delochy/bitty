@@ -153,15 +153,16 @@ fn auto_show(window: &tauri::WebviewWindow) {
 /// 안 울린다 (마스코트가 떠 있는 turn이 끝날 때만). 시스템 알림 설정과 상관없이
 /// 들리도록 알림 사운드 대신 afplay로 직접 재생한다.
 fn beep(tool: &str) {
-    // 14차: 어느 쪽이 끝났는지 소리로도 구별 — Claude는 톡(Tink), Codex는 퐁(Pop).
+    // 14차: 어느 쪽이 끝났는지 소리로도 구별. 15차: Tink/Pop은 너무 짧고 작아서 잘 안
+    // 들린다는 피드백 — 또렷한 Glass(Claude) / Hero(Codex)로 바꾸고 조금 키운다.
     let sound = if tool == "Codex" {
-        "/System/Library/Sounds/Pop.aiff"
+        "/System/Library/Sounds/Hero.aiff"
     } else {
-        "/System/Library/Sounds/Tink.aiff"
+        "/System/Library/Sounds/Glass.aiff"
     };
     let _ = Command::new("/bin/sh")
         .arg("-c")
-        .arg(format!("afplay '{sound}'"))
+        .arg(format!("afplay -v 1.6 '{sound}'"))
         .spawn();
 }
 
