@@ -1,0 +1,234 @@
+<!doctype html>
+<!--
+  Idle Buddy — 블록 쌓기 (15차). 떨어지는 블록을 돌리고 옮겨서 가로줄을 채우면 사라진다.
+  ←→ 이동 · ↑ 회전 · ↓ 빠르게 · 스페이스 한 번에 떨구기. 옆 버튼으로 마우스 조작도 된다.
+  다른 창을 클릭하면(포커스를 잃으면) 자동으로 멈추고, 진행 상황은 save.js로 이어하기 저장.
+-->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>Idle Buddy — 블록 쌓기</title>
+<link rel="stylesheet" href="/games/common.css" />
+<style>
+  .play { display: flex; gap: 10px; justify-content: center; margin-top: 6px; }
+  .wrap { position: relative; }
+  canvas { display: block; border-radius: 8px; background: rgba(127,127,127,0.14); }
+  .side { width: 92px; display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: var(--muted); }
+  .side b { display: block; font-size: 15px; color: var(--ink); }
+  .next { width: 60px; height: 44px; border-radius: 6px; background: rgba(127,127,127,0.12); }
+  .pad { display: grid; grid-template-columns: repeat(3, 28px); gap: 4px; margin-top: 2px; }
+  .pad button {
+    height: 28px; border-radius: 7px; border: 1px solid var(--line); background: transparent; color: var(--ink);
+    font-size: 12px; cursor: pointer; padding: 0; font-family: inherit;
+  }
+  .pad button:active { background: var(--accent-soft); }
+  .pad .wide { grid-column: span 3; }
+  .over {
+    position: absolute; inset: 0; border-radius: 8px; background: rgba(0,0,0,0.55); color: #fff;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    font-weight: 700; font-size: 13px; text-align: center; padding: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="card" data-tauri-drag-region>
+  <div class="top" data-tauri-drag-region><a href="/quest">← 퀘스트</a><span class="title" data-tauri-drag-region>🧱 블록 쌓기</span><a href="/__close" title="닫기">✕</a></div>
+  <div class="play">
+    <div class="wrap">
+      <canvas id="cv" width="140" height="280"></canvas>
+      <div class="over" id="over"><span id="overMsg">줄을 채우면 사라져요</span><button class="btn" id="start">시작</button></div>
+    </div>
+    <div class="side">
+      <div>다음</div>
+      <canvas class="next" id="nx" width="60" height="44"></canvas>
+      <div>점수<b id="score">0</b></div>
+      <div>줄<b id="lines">0</b></div>
+      <div>최고<b id="best">0</b></div>
+      <div class="pad">
+        <button id="bl" title="왼쪽">◀</button><button id="br" title="회전">⟳</button><button id="bR" title="오른쪽">▶</button>
+        <button class="wide" id="bd" title="떨구기">⤓ 떨구기</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/games/save.js"></script>
+<script>
+  const COLS = 10, ROWS = 20, S = 14;
+  const KEY = 'side-quest-blocks-best';
+  const SHAPES = {
+    I: [[1, 1, 1, 1]], O: [[1, 1], [1, 1]], T: [[0, 1, 0], [1, 1, 1]], S: [[0, 1, 1], [1, 1, 0]],
+    Z: [[1, 1, 0], [0, 1, 1]], J: [[1, 0, 0], [1, 1, 1]], L: [[0, 0, 1], [1, 1, 1]],
+  };
+  const COLORS = { I: '#22d3ee', O: '#facc15', T: '#a78bfa', S: '#4ade80', Z: '#f87171', J: '#60a5fa', L: '#fb923c' };
+  const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  const nx = document.getElementById('nx'), nctx = nx.getContext('2d');
+  // 레티나에서 흐리지 않게 실제 픽셀 수로 그린다 (CSS 크기는 그대로).
+  const DPR = window.devicePixelRatio || 1;
+  for (const [c, g] of [[cv, ctx], [nx, nctx]]) {
+    const w = c.width, h = c.height;
+    c.style.width = w + 'px'; c.style.height = h + 'px';
+    c.width = w * DPR; c.height = h * DPR;
+    g.scale(DPR, DPR);
+  }
+  const CW = cv.width / DPR, CH = cv.height / DPR, NW = nx.width / DPR, NH = nx.height / DPR;
+  const over = document.getElementById('over');
+  let board, piece, next, score, lines, timer = null, running = false;
+
+  const best = () => { try { return Number(localStorage.getItem(KEY)) || 0; } catch (e) { return 0; } };
+  const randType = () => 'IOTSZJL'[Math.floor(Math.random() * 7)];
+  const spawn = (type) => {
+    const m = SHAPES[type].map((r) => r.slice());
+    return { type, m, x: Math.floor((COLS - m[0].length) / 2), y: 0 };
+  };
+  const rotate = (m) => m[0].map((_, i) => m.map((r) => r[i]).reverse());
+  function fits(m, x, y) {
+    for (let r = 0; r < m.length; r++)
+      for (let c = 0; c < m[r].length; c++)
+        if (m[r][c]) {
+          const X = x + c, Y = y + r;
+          if (X < 0 || X >= COLS || Y >= ROWS || (Y >= 0 && board[Y][X])) return false;
+        }
+    return true;
+  }
+  function cell(g, x, y, color, size) {
+    g.fillStyle = color;
+    g.beginPath();
+    g.roundRect(x * size + 1, y * size + 1, size - 2, size - 2, 3);
+    g.fill();
+  }
+  function draw() {
+    ctx.clearRect(0, 0, CW, CH);
+    board.forEach((row, y) => row.forEach((t, x) => t && cell(ctx, x, y, COLORS[t], S)));
+    if (piece) {
+      // 떨어질 자리 미리보기
+      let gy = piece.y;
+      while (fits(piece.m, piece.x, gy + 1)) gy++;
+      piece.m.forEach((row, r) => row.forEach((v, c) => v && cell(ctx, piece.x + c, gy + r, 'rgba(127,127,127,0.25)', S)));
+      piece.m.forEach((row, r) => row.forEach((v, c) => v && cell(ctx, piece.x + c, piece.y + r, COLORS[piece.type], S)));
+    }
+    nctx.clearRect(0, 0, NW, NH);
+    if (next) {
+      const m = SHAPES[next], s = 11;
+      const ox = (NW / s - m[0].length) / 2, oy = (NH / s - m.length) / 2;
+      m.forEach((row, r) => row.forEach((v, c) => v && cell(nctx, ox + c, oy + r, COLORS[next], s)));
+    }
+    document.getElementById('score').textContent = score;
+    document.getElementById('lines').textContent = lines;
+    document.getElementById('best').textContent = Math.max(best(), score);
+  }
+  const speed = () => Math.max(110, 700 - Math.floor(lines / 10) * 60);
+  function persist() { IdleSave.save('blocks', { board, piece, next, score, lines }, '🧱 블록 쌓기'); }
+  function lock() {
+    piece.m.forEach((row, r) => row.forEach((v, c) => { if (v && piece.y + r >= 0) board[piece.y + r][piece.x + c] = piece.type; }));
+    const before = board.length;
+    board = board.filter((row) => row.some((v) => !v));
+    const cleared = before - board.length;
+    while (board.length < ROWS) board.unshift(new Array(COLS).fill(null));
+    if (cleared) {
+      lines += cleared;
+      score += [0, 100, 300, 500, 800][cleared];
+      restartTimer();
+    }
+    piece = spawn(next);
+    next = randType();
+    if (!fits(piece.m, piece.x, piece.y)) return gameOver();
+    persist();
+  }
+  function drop() {
+    if (!running) return;
+    if (fits(piece.m, piece.x, piece.y + 1)) piece.y++;
+    else lock();
+    draw();
+  }
+  function move(dx) { if (running && fits(piece.m, piece.x + dx, piece.y)) { piece.x += dx; draw(); } }
+  function turn() {
+    if (!running) return;
+    const m = rotate(piece.m);
+    for (const kick of [0, -1, 1, -2, 2]) {
+      if (fits(m, piece.x + kick, piece.y)) { piece.m = m; piece.x += kick; draw(); return; }
+    }
+  }
+  function hardDrop() {
+    if (!running) return;
+    while (fits(piece.m, piece.x, piece.y + 1)) { piece.y++; score += 2; }
+    lock();
+    draw();
+  }
+  function restartTimer() { clearInterval(timer); timer = running ? setInterval(drop, speed()) : null; }
+  function pause(msg) {
+    if (!running) return;
+    running = false;
+    restartTimer();
+    persist();
+    document.getElementById('overMsg').textContent = msg || '잠깐 멈췄어요';
+    document.getElementById('start').textContent = '계속하기';
+    over.style.display = 'flex';
+  }
+  function play() {
+    running = true;
+    over.style.display = 'none';
+    restartTimer();
+    draw();
+  }
+  function newGame() {
+    board = Array.from({ length: ROWS }, () => new Array(COLS).fill(null));
+    score = 0; lines = 0;
+    piece = spawn(randType()); next = randType();
+    persist();
+    play();
+  }
+  function gameOver() {
+    running = false;
+    restartTimer();
+    IdleSave.clear('blocks');
+    const b = best();
+    if (score > b) { try { localStorage.setItem(KEY, String(score)); } catch (e) {} }
+    document.getElementById('overMsg').textContent = (score > b ? '🏆 신기록! ' : '') + score + '점 · ' + lines + '줄';
+    document.getElementById('start').textContent = '다시 하기';
+    over.style.display = 'flex';
+    draw();
+  }
+
+  document.getElementById('start').addEventListener('click', () => {
+    const label = document.getElementById('start').textContent;
+    if (label === '계속하기' || label === '이어서 하기') play();
+    else newGame();
+  });
+  document.addEventListener('keydown', (e) => {
+    const k = e.key;
+    if (!running) {
+      if (k === ' ' || k === 'Enter') { e.preventDefault(); document.getElementById('start').click(); }
+      return;
+    }
+    if (k === 'ArrowLeft') move(-1);
+    else if (k === 'ArrowRight') move(1);
+    else if (k === 'ArrowUp') turn();
+    else if (k === 'ArrowDown') { drop(); score += 1; }
+    else if (k === ' ') hardDrop();
+    else if (k === 'p' || k === 'Escape') pause();
+    else return;
+    e.preventDefault();
+  });
+  document.getElementById('bl').addEventListener('click', () => move(-1));
+  document.getElementById('bR').addEventListener('click', () => move(1));
+  document.getElementById('br').addEventListener('click', turn);
+  document.getElementById('bd').addEventListener('click', hardDrop);
+  // 다른 창을 누르면(예: Claude에 입력하러 가면) 멈춘다.
+  window.addEventListener('blur', () => pause());
+  document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+
+  const saved = IdleSave.load('blocks');
+  if (saved && saved.board) {
+    ({ board, piece, next, score, lines } = saved);
+    document.getElementById('overMsg').textContent = '하던 판이 있어요 (' + score + '점)';
+    document.getElementById('start').textContent = '이어서 하기';
+    IdleSave.save('blocks', undefined, '🧱 블록 쌓기');
+  } else {
+    board = Array.from({ length: ROWS }, () => new Array(COLS).fill(null));
+    score = 0; lines = 0; piece = null; next = null;
+  }
+  document.getElementById('best').textContent = best();
+  draw();
+</script>
+</body>
+</html>

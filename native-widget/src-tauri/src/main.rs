@@ -10,6 +10,7 @@
 
 use std::collections::{HashMap, HashSet};
 use std::process::Command;
+use std::sync::Mutex;
 use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
@@ -145,8 +146,47 @@ fn auto_show(window: &tauri::WebviewWindow) {
     if let Ok(url) = format!("{QUEST_URL}?auto=1").parse() {
         let _ = window.navigate(url);
     }
-    position_bottom_right(window);
+    place_window(window);
     let _ = window.show();
+}
+
+// 15차: 사용자가 끌어서 옮긴 위치를 기억한다 (data/widget-pos.json). 앱을 다시
+// 켜도 유지되고, 그 위치가 지금 연결된 모니터 밖이면 오른쪽 아래로 돌아간다.
+static SAVED_POS: Mutex<Option<(i32, i32)>> = Mutex::new(None);
+
+fn pos_file() -> std::path::PathBuf {
+    project_root().join("data").join("widget-pos.json")
+}
+
+fn load_saved_pos() {
+    let pos = std::fs::read_to_string(pos_file())
+        .ok()
+        .and_then(|raw| serde_json::from_str::<(i32, i32)>(&raw).ok());
+    *SAVED_POS.lock().unwrap() = pos;
+}
+
+fn remember_pos(x: i32, y: i32) {
+    let mut saved = SAVED_POS.lock().unwrap();
+    if *saved == Some((x, y)) {
+        return;
+    }
+    *saved = Some((x, y));
+    let _ = std::fs::write(pos_file(), format!("[{x},{y}]"));
+}
+
+fn place_window(window: &tauri::WebviewWindow) {
+    let saved = *SAVED_POS.lock().unwrap();
+    if let Some((x, y)) = saved {
+        let on_screen = window.available_monitors().unwrap_or_default().iter().any(|m| {
+            let (p, s) = (m.position(), m.size());
+            x >= p.x && y >= p.y && x < p.x + s.width as i32 - 40 && y < p.y + s.height as i32 - 40
+        });
+        if on_screen {
+            let _ = window.set_position(tauri::PhysicalPosition::new(x, y));
+            return;
+        }
+    }
+    position_bottom_right(window);
 }
 
 /// 10차: 긴 작업이 끝나면 "삐빅" 한 번 울린다 (13차: 두 번은 과하다는 피드백). 30초도 안 걸린 짧은 답변엔
@@ -334,6 +374,15 @@ fn main() {
                 false
             })
             .build()?;
+
+            load_saved_pos();
+            if let Some(w) = app.get_webview_window("mascot") {
+                w.on_window_event(|event| {
+                    if let tauri::WindowEvent::Moved(p) = event {
+                        remember_pos(p.x, p.y);
+                    }
+                });
+            }
 
             spawn_auto_popup_watcher(app.handle().clone());
 

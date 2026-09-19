@@ -8,12 +8,13 @@ Idle Buddy는 작업이 30초 넘게 걸리면 화면 오른쪽 아래에 작은
 
 <p align="center"><img src="docs/widget.png" width="600" alt="Idle Buddy 마스코트 위젯 (라이트·다크 모드): 작업이 길어지고 있어요, 카테고리 탭과 추천 퀘스트 캐러셀"></p>
 
-- 🎮 **창 안에서 바로 하는 게임 9개**: 스도쿠, 2048, 지뢰찾기, 스네이크, 두더지 잡기, 틱택토, 짝 맞추기, 반응속도, 타자 연습…
+- 🎮 **창 안에서 바로 하는 게임 10개**: 블록 쌓기, 스도쿠, 2048, 지뢰찾기, 스네이크, 두더지 잡기, 틱택토, 짝 맞추기, 반응속도, 타자 연습…
 - 😂 **웃음**: 개발자 유머 100여 개, 넌센스 퀴즈 90여 개 (한 번 본 건 다 볼 때까지 안 나와요)
 - 🧘 **휴식**: 불멍 🔥, 물멍 🌊 (소리도 있어요), 숨 고르기, 스트레칭
 - 📋 **할 일**: 장보기 목록, 바탕화면·다운로드 폴더 정리, 밀린 카톡 답장… (누르면 해당 앱이 열려요)
 
 - 🔁 **이어하기**: 작업이 끝나 마스코트가 사라져도, 다음에 뜰 때 하던 게임·장보기를 그대로 불러와요.
+- 🖐 **원하는 자리로 옮기기**: 카드의 빈 곳이나 제목 줄을 잡고 끌면 돼요. 옮긴 자리를 기억해요.
 - 🤝 **Claude·Codex 같이 써도 창은 하나**: 누가 작업 중인지 표시하고, 누가 끝났는지 알려줘요. 종료 소리도 서로 달라요.
 
 서버도 계정도 없어요. 전부 내 맥 안에서만 돌아가요.
@@ -125,7 +126,7 @@ skill/SKILL.md                 (선택) Claude용 스킬 설명
 
 ## English (short)
 
-**Idle Buddy** is a tiny desktop mascot for macOS that pops up when a Claude Code or Codex task runs longer than 30 seconds. While you wait, it suggests something to do: 9 built-in mini games, dev jokes, riddles, a campfire or ocean to zone out to, or a quick chore that opens the right app. When the task finishes, it beeps and fades away. It never pops up while you're typing. Everything runs locally, with no server and no account.
+**Idle Buddy** is a tiny desktop mascot for macOS that pops up when a Claude Code or Codex task runs longer than 30 seconds. While you wait, it suggests something to do: 10 built-in mini games, dev jokes, riddles, a campfire or ocean to zone out to, or a quick chore that opens the right app. When the task finishes, it beeps and fades away. It never pops up while you're typing. Everything runs locally, with no server and no account.
 
 Install with `sh install.sh` (you need macOS, Node 18+, and Rust). Uninstall with `node uninstall.js`. The UI text is in Korean for now.
 

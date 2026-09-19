@@ -22,6 +22,7 @@
     { "id": "kakao", "emoji": "💛", "label": "밀린 카톡 답장하기", "launch": { "app": "KakaoTalk" }, "cat": "todo" },
     { "id": "shopping", "emoji": "🛒", "label": "장보기 목록 쓰기", "open": "/games/shopping", "cat": "todo" },
     { "id": "downloads", "emoji": "🗑", "label": "다운로드 폴더 파일 5개 지우기", "launch": { "path": "~/Downloads" }, "cat": "todo" },
+    { "id": "blocks", "emoji": "🧱", "label": "블록 쌓기", "open": "/games/blocks", "cat": "game" },
     { "id": "2048", "emoji": "🔢", "label": "2048 한 판", "open": "/games/2048", "cat": "game" },
     { "id": "mines", "emoji": "💣", "label": "지뢰찾기", "open": "/games/mines", "cat": "game" },
     { "id": "memory", "emoji": "🃏", "label": "카드 짝 맞추기", "open": "/games/memory", "cat": "game" },

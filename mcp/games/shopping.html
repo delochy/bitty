@@ -29,8 +29,8 @@
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="top"><a href="/quest">← 퀘스트</a><span class="title">🛒 장보기</span><a href="/__close" title="닫기">✕</a></div>
+<div class="card" data-tauri-drag-region>
+  <div class="top" data-tauri-drag-region><a href="/quest">← 퀘스트</a><span class="title" data-tauri-drag-region>🛒 장보기</span><a href="/__close" title="닫기">✕</a></div>
   <form id="form"><input id="item" placeholder="살 것 적기 (예: 우유)" autocomplete="off" /><button class="btn" type="submit">추가</button></form>
   <div class="chips" id="chips"></div>
   <ul id="list"></ul>

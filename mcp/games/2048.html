@@ -23,8 +23,8 @@
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="top"><a href="/quest">← 퀘스트</a><span class="title">🔢 2048</span><a href="/__close" title="닫기">✕</a></div>
+<div class="card" data-tauri-drag-region>
+  <div class="top" data-tauri-drag-region><a href="/quest">← 퀘스트</a><span class="title" data-tauri-drag-region>🔢 2048</span><a href="/__close" title="닫기">✕</a></div>
   <div class="bar"><span>점수 <b id="score">0</b></span><span>최고 <b id="best">0</b></span><a href="#" id="new" style="color:var(--muted);text-decoration:none">새 게임</a></div>
   <div class="board" id="board">
     <div class="over" id="over"><span id="overMsg">더 이상 못 움직여요</span><button class="btn" id="again">다시 하기</button></div>

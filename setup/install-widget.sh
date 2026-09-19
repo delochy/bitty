@@ -32,6 +32,8 @@ if [ ! -f src-tauri/icons/icon.icns ]; then
   echo "▶ 앱 아이콘 생성"
   npx tauri icon mascot-icon-source.png >/dev/null
 fi
+# 외장 디스크(exFAT 등)에서는 macOS가 ._ 메타 파일을 만들어서 Tauri 빌드가 깨진다 — 미리 지운다.
+find src-tauri -name '._*' -not -path '*/target/*' -delete 2>/dev/null || true
 echo "▶ 위젯 빌드 중… (처음엔 몇 분 걸려요)"
 CARGO_TARGET_DIR="$TARGET" npx tauri build --bundles app
 

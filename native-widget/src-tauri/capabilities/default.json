@@ -1,7 +1,8 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "AI Side Quest Mascot의 기본 권한 — 창/트레이 조작은 Rust 쪽에서 직접 하고, 웹뷰(JS)가 별도 Tauri API를 호출하지 않으므로 최소한만 둔다.",
+  "description": "마스코트 창 권한. 창 표시·숨김은 Rust가 직접 하고, 웹뷰(로컬 페이지)는 끌어서 옮기기(data-tauri-drag-region)만 쓴다.",
   "windows": ["mascot"],
-  "permissions": ["core:default"]
+  "remote": { "urls": ["http://127.0.0.1:4318/*"] },
+  "permissions": ["core:default", "core:window:allow-start-dragging"]
 }

@@ -189,7 +189,7 @@ function pageShell(bodyHtml) {
 </style>
 </head>
 <body>
-<div class="panel">
+<div class="panel" data-tauri-drag-region>
   <a class="close" href="/__close" title="닫기">✕</a>
 ${bodyHtml}
 </div>
