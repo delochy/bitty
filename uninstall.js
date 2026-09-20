@@ -102,6 +102,10 @@ if (tryRun('codex', ['mcp', 'remove', SERVER_NAME])) console.log('✓ Codex MCP 
 // 마스코트 위젯
 tryRun('pkill', ['-f', 'AI Side Quest Mascot.app']);
 tryRun('pkill', ['-f', 'side-quest-daemon.js']);
+// 설치할 때 넣은 로그인 항목도 뺀다 (권한이 없으면 조용히 넘어간다).
+if (tryRun('osascript', ['-e', 'tell application "System Events" to if login item "AI Side Quest Mascot" exists then delete login item "AI Side Quest Mascot"'])) {
+  console.log('✓ 로그인 항목에서 제거');
+}
 const appDir = process.env.AI_SIDE_QUEST_APP_DIR || path.join(os.homedir(), 'Applications');
 const app = path.join(appDir, 'AI Side Quest Mascot.app');
 if (fs.existsSync(app)) {

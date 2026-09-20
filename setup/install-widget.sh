@@ -19,6 +19,25 @@ fi
 if ! command -v cargo >/dev/null 2>&1 && [ -f "$HOME/.cargo/env" ]; then
   . "$HOME/.cargo/env"
 fi
+
+# 19차: 재부팅하면 아무도 위젯을 켜주지 않아서 조용히 사라졌다 — 로그인 항목으로 등록한다.
+# 이미 있으면(경로가 바뀌었을 수도 있어서) 지우고 다시 넣는다. hidden:true 라서 로그인할 때
+# 창이 튀어나오지 않는다. System Events 자동화 권한을 거부하면 조용히 건너뛰고 안내만 한다.
+LOGIN_ITEM_NAME="$(basename "$APP_NAME" .app)"
+register_login_item() {
+  if osascript >/dev/null 2>&1 <<OSA
+tell application "System Events"
+  if login item "$LOGIN_ITEM_NAME" exists then delete login item "$LOGIN_ITEM_NAME"
+  make login item at end with properties {path:"$DEST/$APP_NAME", hidden:true}
+end tell
+OSA
+  then
+    echo "✓ 로그인 항목에 등록 — 재부팅해도 알아서 켜져요"
+  else
+    echo "· 로그인 항목 등록은 건너뛰었어요 (자동화 권한 없음)."
+    echo "  시스템 설정 → 일반 → 로그인 항목에서 '$LOGIN_ITEM_NAME'을 직접 추가하면 재부팅 후에도 켜져요."
+  fi
+}
 # 17차: Rust가 없으면(또는 --prebuilt) 직접 빌드하지 않고 GitHub Releases의 빌드된 앱을 받는다.
 PREBUILT_URL="https://github.com/delochy/idle-buddy/releases/latest/download/IdleBuddy-Mascot-macOS.zip"
 if [ "$1" = "--prebuilt" ] || ! command -v cargo >/dev/null 2>&1; then
@@ -34,6 +53,7 @@ if [ "$1" = "--prebuilt" ] || ! command -v cargo >/dev/null 2>&1; then
   rm -rf "$TMP"
   open "$DEST/$APP_NAME"
   echo "✓ 마스코트 위젯 실행 중 (메뉴바·Dock에는 안 보여요 — 작업이 30초 넘게 걸리면 오른쪽 아래에 떠요)"
+  register_login_item
   exit 0
 fi
 
@@ -57,3 +77,4 @@ rm -rf "$DEST/$APP_NAME"
 cp -R "$TARGET/release/bundle/macos/$APP_NAME" "$DEST/"
 open "$DEST/$APP_NAME"
 echo "✓ 마스코트 위젯 실행 중 (메뉴바·Dock에는 안 보여요 — 작업이 30초 넘게 걸리면 오른쪽 아래에 떠요)"
+register_login_item

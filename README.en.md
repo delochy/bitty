@@ -68,7 +68,7 @@ The installer:
 
 Every config file is backed up as `.bak-<timestamp>` before it's changed. **Restart any running Claude Code / Codex sessions** afterwards.
 
-**Launch at login**: add `AI Side Quest Mascot` in System Settings → General → Login Items. It's a background app, so it doesn't appear in the menu bar or Dock.
+**Launch at login**: the installer registers the widget as a login item, so it comes back after a reboot. It's a background app, so it doesn't appear in the menu bar or Dock. (macOS asks for automation permission to do this — if you decline, add `AI Side Quest Mascot` yourself in System Settings → General → Login Items.)
 
 **Codex users**: Codex only runs a new hook after you **trust** it; until then, the hooks are silently skipped. After installing, run `codex` once in a terminal, from a folder you already trust, and pick **Trust all and continue** on the "Hooks need review" screen. You need this step even if you only use the Codex desktop app.
 
@@ -84,7 +84,7 @@ git pull && sh install.sh
 node uninstall.js
 ```
 
-Removes the hooks, the MCP server registration and the widget app. Changed files are backed up first; the repo folder and your `data/` history are left alone.
+Removes the hooks, the MCP server registration, the login item and the widget app. Changed files are backed up first; the repo folder and your `data/` history are left alone.
 
 ## Privacy
 
