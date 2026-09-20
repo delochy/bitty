@@ -9,6 +9,8 @@ When a task runs longer than 30 seconds, Idle Buddy pops a small mascot into the
 
 <p align="center"><img src="docs/widget.png" width="600" alt="Idle Buddy widget in light and dark mode: your AI is still working, category tabs and a quest carousel"></p>
 
+<p align="center"><img src="docs/promo/widget-typing.gif" width="300" alt="Typing one line in the widget and seeing the result"><br><sub>One line of typing practice while you wait</sub></p>
+
 - 🎮 **10 mini games right in the widget**: Block Stack, Sudoku, 2048, Minesweeper, Snake, Whack-a-mole, Tic-tac-toe, Memory Match, Reaction Test, Typing
 - 😂 **Fun**: 69 dev jokes and 50 riddles (no repeats until you've seen them all)
 - 🧘 **Chill**: a campfire 🔥 and an ocean view 🌊 (with optional ambient sound), breathing exercise, stretching
