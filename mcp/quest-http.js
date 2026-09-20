@@ -44,6 +44,7 @@ function pageShell(bodyHtml) {
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Idle Buddy</title>
 <script src="/games/i18n.js"></script>
+<script src="/games/drag.js"></script>
 <style>
   /* 14차: 창이 투명이라 뒤 화면에 따라 글자가 묻혔다(특히 라이트 모드). 이제 불투명 카드
      위에 그리고, 라이트/다크 색을 따로 잡는다. */
