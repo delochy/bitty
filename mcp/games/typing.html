@@ -6,6 +6,7 @@
 <title>AI Side Quest — 타자 연습</title>
 <link rel="stylesheet" href="/games/common.css" />
 <script src="/games/i18n.js"></script>
+<script src="/games/score.js"></script>
 <style>
   .target { font-size: 16px; font-weight: 700; line-height: 1.5; min-height: 48px; word-break: keep-all; }
   .target .ok { color: var(--ok); }
@@ -129,6 +130,7 @@
     if (record) { try { localStorage.setItem(KEY, String(speed)); } catch (e) {} }
     result.textContent = (record ? '🏆 ' : '') + T(speed + '타 · 정확도 ' + acc + '%', speed + ' WPM · accuracy ' + acc + '%');
     addLog(speed, acc);
+    IdleScore.add('typing', speed, 'high');
     showBest();
     setTimeout(next, 1400);
   });

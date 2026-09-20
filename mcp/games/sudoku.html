@@ -16,6 +16,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>AI Side Quest — 스도쿠</title>
 <script src="/games/i18n.js"></script>
+<script src="/games/score.js"></script>
 <style>
   :root {
     color-scheme: normal; /* 14차: light dark로 두면 WebKit이 창 바탕을 불투명하게 칠해서 투명 창이 네모로 보였다 */
@@ -128,7 +129,9 @@
     return false;
   }
 
+  let playStart = Date.now();
   function newGame() {
+    playStart = Date.now();
     const solved = new Array(81).fill(0);
     fill(solved);
     board = solved.slice();
@@ -183,6 +186,7 @@
     persist();
     if (board.every((v, i) => v && !conflicts(i))) {
       IdleSave.clear('sudoku');
+      IdleScore.add('sudoku', Math.round((Date.now() - playStart) / 1000), 'low');
       document.getElementById('win').style.display = 'block';
       fetch('/quest/choice', {
         method: 'POST',

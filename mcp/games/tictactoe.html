@@ -6,6 +6,7 @@
 <title>AI Side Quest — 틱택토</title>
 <link rel="stylesheet" href="/games/common.css" />
 <script src="/games/i18n.js"></script>
+<script src="/games/score.js"></script>
 <style>
   .bar { display: flex; justify-content: space-around; font-size: 12px; color: var(--muted); margin: 8px 0; }
   .bar b { color: var(--ink); }
@@ -67,6 +68,7 @@
     const k = w.who === 'X' ? 'w' : w.who === 'O' ? 'l' : 'd';
     tally[k]++;
     document.getElementById(k).textContent = tally[k];
+    IdleScore.tally('tictactoe', k);
     IdleSave.clear('tictactoe');
     try { localStorage.setItem('idle-ttt-tally', JSON.stringify(tally)); } catch (e) {}
     msg.textContent = { w: T('🎉 이겼어요!', '🎉 You win!'), l: T('😝 마스코트 승!', '😝 Buddy wins!'), d: T('🤝 무승부', '🤝 Draw') }[k];

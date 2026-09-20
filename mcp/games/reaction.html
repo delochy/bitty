@@ -6,6 +6,7 @@
 <title>AI Side Quest — 반응속도</title>
 <link rel="stylesheet" href="/games/common.css" />
 <script src="/games/i18n.js"></script>
+<script src="/games/score.js"></script>
 <style>
   .pad {
     width: 100%; flex: 1; border-radius: 12px; display: flex; flex-direction: column; align-items: center;
@@ -75,6 +76,7 @@
       const ms = Math.round(performance.now() - goAt);
       state = 'idle';
       const best = readBest();
+      IdleScore.add('reaction', ms, 'low');
       const record = !best || ms < best;
       if (record) writeBest(ms);
       set('', ms + 'ms', (record ? T('🏆 신기록! ', '🏆 New best! ') : '') + verdict(ms) + T(' · 눌러서 다시', ' · click to retry'));

@@ -6,6 +6,7 @@
 <title>AI Side Quest — 지뢰찾기</title>
 <link rel="stylesheet" href="/games/common.css" />
 <script src="/games/i18n.js"></script>
+<script src="/games/score.js"></script>
 <style>
   .bar { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); margin: 6px 2px; }
   .bar button { font-size: 12px; border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 8px; padding: 3px 8px; cursor: pointer; font-family: inherit; }
@@ -68,6 +69,7 @@
       mine.forEach((m, k) => { if (m) { cells[k].textContent = '💣'; cells[k].classList.add('open'); } });
       cells[i].classList.add('boom');
       msg.textContent = T('💥 펑! 다시 해볼까요?', '💥 Boom! Try again?');
+      IdleScore.add('mines');
       IdleSave.clear('mines');
       return;
     }
@@ -85,6 +87,7 @@
     if (open.filter(Boolean).length === N * N - MINES) {
       done = true;
       msg.textContent = T('🎉 전부 찾았어요!', '🎉 You found them all!');
+      IdleScore.add('mines', Math.round((Date.now() - playStart) / 1000), 'low');
       IdleSave.clear('mines');
     } else persist();
   }
@@ -111,7 +114,9 @@
     document.getElementById('left').textContent = MINES - flag.filter(Boolean).length;
     IdleSave.save('mines', undefined, '💣 지뢰찾기');
   }
+  let playStart = Date.now();
   function newGame() {
+    playStart = Date.now();
     mine = new Array(N * N).fill(false); open = new Array(N * N).fill(false); flag = new Array(N * N).fill(false);
     started = false; done = false; msg.textContent = '';
     cells.forEach((c) => { c.className = 'c'; c.textContent = ''; c.style.color = ''; });

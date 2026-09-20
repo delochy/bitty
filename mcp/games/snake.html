@@ -6,6 +6,7 @@
 <title>AI Side Quest — 스네이크</title>
 <link rel="stylesheet" href="/games/common.css" />
 <script src="/games/i18n.js"></script>
+<script src="/games/score.js"></script>
 <style>
   .bar { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin: 6px 2px; }
   .bar b { color: var(--ink); }
@@ -76,6 +77,7 @@
   function end() {
     clearInterval(timer); timer = null;
     IdleSave.clear('snake');
+    IdleScore.add('snake', score, 'high');
     const b = best();
     if (score > b) { try { localStorage.setItem(KEY, String(score)); } catch (e) {} }
     document.getElementById('best').textContent = Math.max(b, score);

@@ -6,6 +6,7 @@
 <title>AI Side Quest — 2048</title>
 <link rel="stylesheet" href="/games/common.css" />
 <script src="/games/i18n.js"></script>
+<script src="/games/score.js"></script>
 <style>
   .bar { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); margin: 6px 2px; }
   .bar b { color: var(--ink); }
@@ -89,8 +90,8 @@
     addTile();
     saveBest();
     render();
-    if (g.includes(2048) && !won) { won = true; showOver(T('🎉 2048 달성!', '🎉 You made 2048!')); IdleSave.clear('2048'); }
-    else if (!canMove()) { showOver(T('더 이상 못 움직여요', 'No more moves')); IdleSave.clear('2048'); }
+    if (g.includes(2048) && !won) { won = true; showOver(T('🎉 2048 달성!', '🎉 You made 2048!')); IdleSave.clear('2048'); IdleScore.add('2048', score, 'high'); }
+    else if (!canMove()) { showOver(T('더 이상 못 움직여요', 'No more moves')); IdleSave.clear('2048'); IdleScore.add('2048', score, 'high'); }
     else IdleSave.save('2048', { g, score, won }, '🔢 2048');
   }
   let won = false;

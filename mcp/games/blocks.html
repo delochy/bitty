@@ -10,6 +10,7 @@
 <title>Idle Buddy — 블록 쌓기</title>
 <link rel="stylesheet" href="/games/common.css" />
 <script src="/games/i18n.js"></script>
+<script src="/games/score.js"></script>
 <style>
   .play { display: flex; gap: 10px; justify-content: center; margin-top: 6px; }
   .wrap { position: relative; }
@@ -182,6 +183,7 @@
     running = false;
     restartTimer();
     IdleSave.clear('blocks');
+    IdleScore.add('blocks', score, 'high');
     const b = best();
     if (score > b) { try { localStorage.setItem(KEY, String(score)); } catch (e) {} }
     document.getElementById('overMsg').textContent = (score > b ? T('🏆 신기록! ', '🏆 New best! ') : '') + score + T('점 · ', ' pts · ') + lines + T('줄', ' lines');

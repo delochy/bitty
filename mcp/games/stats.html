@@ -1,0 +1,97 @@
+<!doctype html>
+<!--
+  Idle Buddy — 🏆 게임 기록 (18차).
+  각 게임이 games/score.js 로 남긴 판수·최고·평균 기록(이 창의 localStorage)과,
+  서버가 세는 게임별 논 시간(/games-info)을 합쳐서 보여준다.
+-->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>Idle Buddy — 게임 기록</title>
+<link rel="stylesheet" href="/games/common.css" />
+<script src="/games/i18n.js"></script>
+<style>
+  .list { flex: 1; overflow-y: auto; margin-top: 4px; scrollbar-width: none; }
+  .list::-webkit-scrollbar { display: none; }
+  .row { display: flex; align-items: center; gap: 8px; padding: 7px 2px; border-bottom: 1px solid var(--line); }
+  .row .emoji { font-size: 18px; width: 22px; text-align: center; }
+  .row .name { font-size: 12px; font-weight: 700; flex: 1; word-break: keep-all; }
+  .row .val { font-size: 11px; color: var(--muted); text-align: right; line-height: 1.35; white-space: nowrap; }
+  .row .val b { color: var(--ink); font-size: 12px; }
+  .row.dim { opacity: 0.5; }
+  .head { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
+  .empty { text-align: center; color: var(--muted); font-size: 12px; padding: 20px 8px; word-break: keep-all; }
+</style>
+</head>
+<body>
+<div class="card" data-tauri-drag-region>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="🏆 Game records">🏆 게임 기록</span><a href="/__close" title="닫기" data-en-title="Close">✕</a></div>
+  <div class="head"><span id="sum"></span><span id="time"></span></div>
+  <div class="list" id="list"></div>
+</div>
+<script src="/games/score.js"></script>
+<script>
+  // 기록을 어떻게 보여줄지: 단위와 "최고"의 의미
+  const FMT = {
+    '2048': { unit: T('점', ' pts') },
+    blocks: { unit: T('점', ' pts') },
+    snake: { unit: T('개', '') },
+    mole: { unit: T('마리', '') },
+    typing: { unit: T('타', ' WPM') },
+    reaction: { unit: 'ms', best: T('최고', 'Best') },
+    memory: { unit: T('번', ' moves'), best: T('최소', 'Fewest') },
+    sudoku: { time: true, best: T('최단', 'Fastest') },
+    mines: { time: true, best: T('최단', 'Fastest') },
+  };
+  const dur = (sec) => {
+    if (!sec) return '-';
+    const m = Math.floor(sec / 60), s = Math.round(sec % 60);
+    if (!m) return s + T('초', 's');
+    return m + T('분', 'm') + (s ? ' ' + s + T('초', 's') : '');
+  };
+  const num = (game, v) => (FMT[game] && FMT[game].time ? dur(v) : v + ((FMT[game] && FMT[game].unit) || ''));
+
+  (async () => {
+    const info = await (await fetch('/games-info')).json();
+    const scores = IdleScore.all();
+    const games = info.quests.filter((q) => q.open && !['stats', 'report', 'mascot'].includes(q.id));
+    const rows = games
+      .map((q) => ({ q, r: scores[q.id] || null, sec: info.seconds[q.id] || 0 }))
+      .sort((a, b) => (b.r ? b.r.plays : 0) - (a.r ? a.r.plays : 0) || b.sec - a.sec);
+
+    const totalPlays = rows.reduce((n, x) => n + (x.r ? x.r.plays : 0), 0);
+    const totalSec = rows.reduce((n, x) => n + x.sec, 0);
+    document.getElementById('sum').textContent = T('전체 ' + totalPlays + '판', totalPlays + ' plays');
+    document.getElementById('time').textContent = T('논 시간 ' + dur(totalSec), 'Played ' + dur(totalSec));
+
+    const list = document.getElementById('list');
+    if (!totalPlays && !totalSec) {
+      list.innerHTML = '<div class="empty">' + T('아직 기록이 없어요. 기다리는 동안 한 판 해보세요!', 'No records yet. Play one while you wait!') + '</div>';
+      return;
+    }
+    list.innerHTML = rows
+      .map(({ q, r, sec }) => {
+        const name = L === 'en' ? q.label_en || q.label : q.label;
+        let val;
+        if (r && r.kind === 'tally') {
+          const t = r.tally || {};
+          val = '<b>' + T((t.w || 0) + '승 ' + (t.d || 0) + '무 ' + (t.l || 0) + '패', (t.w || 0) + 'W ' + (t.d || 0) + 'D ' + (t.l || 0) + 'L') + '</b><br>' +
+            r.plays + T('판', ' plays') + (sec ? ' · ' + dur(sec) : '');
+        } else if (r && r.best !== null) {
+          const f = FMT[q.id] || {};
+          const avg = r.count ? Math.round(r.sum / r.count) : null;
+          val = '<b>' + (f.best || T('최고', 'Best')) + ' ' + num(q.id, r.best) + '</b><br>' +
+            r.plays + T('판', ' plays') + (avg !== null ? ' · ' + T('평균 ', 'avg ') + num(q.id, avg) : '') + (sec ? ' · ' + dur(sec) : '');
+        } else if (r) {
+          val = '<b>' + r.plays + T('판', ' plays') + '</b>' + (sec ? '<br>' + dur(sec) : '');
+        } else {
+          val = sec ? dur(sec) : T('아직 안 해봤어요', 'Not played yet');
+        }
+        return '<div class="row' + (r ? '' : ' dim') + '"><span class="emoji">' + q.emoji + '</span>' +
+          '<span class="name">' + name + '</span><span class="val">' + val + '</span></div>';
+      })
+      .join('');
+  })();
+</script>
+</body>
+</html>

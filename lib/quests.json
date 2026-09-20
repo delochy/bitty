@@ -11,6 +11,7 @@
     { "id": "reaction", "emoji": "⚡", "label": "반응속도 테스트", "open": "/games/reaction", "cat": "game", "label_en": "Reaction test" },
     { "id": "quiz", "emoji": "🤔", "label": "넌센스 퀴즈 한 문제", "open": "/games/quiz", "cat": "fun", "label_en": "A riddle" },
     { "id": "joke", "emoji": "😂", "label": "개발자 유머 한 줄", "open": "/games/joke", "cat": "fun", "label_en": "A dev joke" },
+    { "id": "stats", "emoji": "🏆", "label": "게임 기록 보기", "open": "/games/stats", "cat": "fun", "label_en": "Game records" },
     { "id": "report", "emoji": "📊", "label": "오늘의 기다림 리포트", "open": "/games/report", "cat": "fun", "label_en": "Today's wait report" },
     { "id": "mascot", "emoji": "🐣", "label": "마스코트 꾸미기", "open": "/games/mascot", "cat": "fun", "label_en": "Dress up your buddy" },
     { "id": "pet", "emoji": "🐾", "label": "마스코트 쓰다듬기", "pet": true, "cat": "fun", "label_en": "Pet the mascot" },

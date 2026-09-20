@@ -720,6 +720,13 @@ function start() {
         return;
       }
 
+      // 18차: 게임 기록 화면용 — 퀘스트 목록과 게임별 총 논 시간
+      if (req.method === 'GET' && url.pathname === '/games-info') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ quests: Object.values(state.listQuests()).flat(), seconds: stats.gameTotals() }));
+        return;
+      }
+
       // 16차: 마스코트 레벨·경험치·꾸미기 목록
       if (req.method === 'GET' && url.pathname === '/mascot') {
         res.writeHead(200, { 'Content-Type': 'application/json' });

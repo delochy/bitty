@@ -6,6 +6,7 @@
 <title>AI Side Quest — 짝 맞추기</title>
 <link rel="stylesheet" href="/games/common.css" />
 <script src="/games/i18n.js"></script>
+<script src="/games/score.js"></script>
 <style>
   .bar { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); margin: 6px 2px; }
   .bar a { color: var(--muted); text-decoration: none; }
@@ -81,6 +82,7 @@
       if (matched < 8) persist();
       if (matched === 8) {
         IdleSave.clear('memory');
+        IdleScore.add('memory', moves, 'low');
         const b = best();
         const record = !b || moves < b;
         if (record) { try { localStorage.setItem(KEY, String(moves)); } catch (e) {} }
