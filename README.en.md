@@ -2,7 +2,7 @@
 
 # Idle Buddy 🫧
 
-**A little desktop buddy that keeps you company while your AI works.**
+**Idle Buddy — a tiny macOS companion for the time you spend waiting on Claude Code and Codex.**
 
 Ever kicked off a Claude Code or Codex task and then just stared at the spinner?
 When a task runs longer than 30 seconds, Idle Buddy pops a small mascot into the bottom-right corner of your screen and suggests something to do while you wait. When the task finishes, it chimes and fades away.

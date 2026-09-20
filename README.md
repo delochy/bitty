@@ -2,6 +2,8 @@
 
 # Idle Buddy 🫧
 
+**Idle Buddy — a tiny macOS companion for the time you spend waiting on Claude Code and Codex.**
+
 **AI가 일하는 동안, 옆에서 놀아주는 마스코트.**
 
 Claude Code나 Codex에 일을 시켜놓고 멍하니 로딩만 보고 있던 적 있나요?
