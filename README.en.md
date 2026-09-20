@@ -97,7 +97,7 @@ Removes the hooks, the MCP server registration and the widget app. Changed files
 | What | Where |
 |---|---|
 | Quest list (name, emoji, category, app/folder/URL to open) | `lib/quests.json` (`label` for Korean, `label_en` for English) |
-| Jokes / riddles | `mcp/games/jokes.json`, `quiz.json` (Korean) · `jokes-en.json`, `quiz-en.json` (English) |
+| Jokes / riddles / typing lines | `mcp/games/jokes.json`, `quiz.json`, `typing.json` (Korean) · `jokes-en.json`, `quiz-en.json`, `typing-en.json` (English) |
 | Add a mini game | create `mcp/games/<name>.html` and add `"open": "/games/<name>"` to `quests.json` |
 | Popup delay (30s), typing pause (4s), fade speed | constants at the top of `native-widget/src-tauri/src/main.rs`, then rebuild with `sh setup/install-widget.sh` |
 

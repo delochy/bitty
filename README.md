@@ -103,7 +103,7 @@ node uninstall.js
 | 바꾸고 싶은 것 | 파일 |
 |---|---|
 | 추천 퀘스트 목록 (이름, 이모지, 카테고리, 누르면 열 앱/폴더/URL) | `lib/quests.json` |
-| 개발자 유머 / 넌센스 퀴즈 | `mcp/games/jokes.json`, `quiz.json` (한국어) · `jokes-en.json`, `quiz-en.json` (영어) |
+| 개발자 유머 / 넌센스 퀴즈 / 타자 문장 | `mcp/games/jokes.json`, `quiz.json`, `typing.json` (한국어) · `jokes-en.json`, `quiz-en.json`, `typing-en.json` (영어) |
 | 창 안 미니 게임 추가 | `mcp/games/<이름>.html`을 만들고 `quests.json`에 `"open": "/games/<이름>"` 한 줄 추가 |
 | 뜨는 시점(30초), 타이핑 대기(4초), 사라지는 속도 | `native-widget/src-tauri/src/main.rs` 상단 상수 → `sh setup/install-widget.sh`로 다시 빌드 |
 

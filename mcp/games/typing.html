@@ -29,66 +29,37 @@
   </div>
 </div>
 <script>
-  const SENTENCES_EN = [
-    'The quick brown fox jumps over the lazy dog',
-    'Small commits prevent big outages',
-    'Never deploy on a Friday afternoon',
-    'It works on my machine',
-    'Code is read more often than it is written',
-    'A journey of a thousand miles begins with a single step',
-    'Rest is part of the work',
-    'While the AI codes, I practice typing',
-    'Tests passed, time for a coffee',
-    'Every bug is a lesson in disguise',
-    'Slow is smooth and smooth is fast',
-    'Naming things is the hardest problem',
-    'Keep calm and clear the cache',
-    'The best error message is the one that never shows up',
-    'If you want to go far, go together',
-    'Back to the main quest after loading',
-    'Premature optimization is the root of much pain',
-    'Make it work, make it right, make it fast',
-  ];
-  const SENTENCES_KO = [
-    '천 리 길도 한 걸음부터',
-    '가는 말이 고와야 오는 말이 곱다',
-    '버그는 잡으라고 있는 것이다',
-    '오늘 할 일을 내일로 미루지 말자',
-    '커밋은 작게 그리고 자주 하자',
-    '금요일에는 배포하지 않는다',
-    '티끌 모아 태산',
-    '낮말은 새가 듣고 밤말은 쥐가 듣는다',
-    '원숭이도 나무에서 떨어질 때가 있다',
-    '급할수록 돌아가라',
-    '백지장도 맞들면 낫다',
-    '하늘이 무너져도 솟아날 구멍이 있다',
-    'AI가 일하는 동안 나는 타자 연습을 한다',
-    '시작이 반이다',
-    '고생 끝에 낙이 온다',
-    '작은 커밋이 큰 장애를 막는다',
-    '잘 쉬는 것도 실력이다',
-    '코드는 사람이 읽으라고 쓰는 것이다',
-    '테스트가 통과하면 커피 한 잔',
-    '빨리 가려면 혼자 가고 멀리 가려면 함께 가라',
-    '로딩이 끝나면 메인 퀘스트로 돌아가자',
-    '세 살 버릇 여든까지 간다',
-    '말 한마디로 천 냥 빚을 갚는다',
-    '구슬이 서 말이라도 꿰어야 보배',
-  ];
-  const SENTENCES = L === 'en' ? SENTENCES_EN : SENTENCES_KO;
-  // 영어는 WPM(분당 단어, 5글자 = 1단어), 한국어는 타수(자모 기준 근사치)
+  // 17차: 문장은 typing.json / typing-en.json 에 있다 — 줄만 추가하면 늘어난다.
+  //  한 번 친 문장은 전부 돌 때까지 다시 나오지 않는다 (유머·퀴즈와 같은 방식).
+  let deck = null;
   const KEY = 'side-quest-typing-best' + (L === 'en' ? '-en' : '');
   const target = document.getElementById('target');
   const input = document.getElementById('input');
   const result = document.getElementById('result');
-  let sentence = '', startAt = 0, last = -1;
+  let sentence = '', startAt = 0;
   function best() { try { return Number(localStorage.getItem(KEY)) || 0; } catch (e) { return 0; } }
   function showBest() { const b = best(); document.getElementById('best').textContent = b ? T('내 최고 ' + b + '타', 'My best ' + b + ' WPM') : ''; }
+  function makeDeck(items, key) {
+    let seen = [];
+    try { seen = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) {}
+    let left = items.map((_, i) => i).filter((i) => !seen.includes(i));
+    if (!left.length) { seen = []; left = items.map((_, i) => i); }
+    left.sort(() => Math.random() - 0.5);
+    return {
+      total: items.length,
+      seenCount: () => seen.length,
+      next() {
+        if (!left.length) { seen = []; left = items.map((_, i) => i).sort(() => Math.random() - 0.5); }
+        const i = left.shift();
+        seen.push(i);
+        try { localStorage.setItem(key, JSON.stringify(seen)); } catch (e) {}
+        return items[i];
+      },
+    };
+  }
   function next() {
-    let i;
-    do { i = Math.floor(Math.random() * SENTENCES.length); } while (i === last);
-    last = i;
-    sentence = SENTENCES[i];
+    if (!deck) return;
+    sentence = deck.next();
     target.textContent = sentence;
     input.value = '';
     startAt = 0;
@@ -121,7 +92,13 @@
     setTimeout(next, 1400);
   });
   showBest();
-  next();
+  fetch(L === 'en' ? '/games/typing-en.json' : '/games/typing.json')
+    .then((r) => r.json())
+    .then((items) => {
+      deck = makeDeck(items, 'side-quest-typing-seen' + (L === 'en' ? '-en' : ''));
+      next();
+    })
+    .catch(() => (target.textContent = T('문장을 못 불러왔어요 😢', "Couldn't load sentences 😢")));
 </script>
 <script src="/games/track.js"></script>
 </body>
