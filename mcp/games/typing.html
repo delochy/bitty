@@ -101,11 +101,11 @@
     sentence = deck.next();
     target.textContent = sentence;
     input.value = '';
-    // 17차: 첫 글자가 아니라 입력칸에 커서가 들어간 순간부터 잰다.
-    startAt = document.activeElement === input ? performance.now() : 0;
+    // 18차: 첫 글자를 치는 순간부터 잰다 — 문장을 읽고 준비하는 시간이 길이에 따라
+    // 달라져서 짧은 문장이 불리해지는 걸 없애려고 (순수 타자 속도).
+    startAt = 0;
     input.focus();
   }
-  input.addEventListener('focus', () => { if (!startAt) startAt = performance.now(); });
   input.addEventListener('input', () => { if (!startAt) startAt = performance.now(); });
   input.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' || e.isComposing) return;
@@ -126,11 +126,15 @@
     });
     const acc = Math.round((right / Math.max(sentence.length, typed.length)) * 100);
     const b = best();
-    const record = acc >= 90 && speed > b;
+    // 18차: 붙여넣기 등으로 나오는 비현실적인 기록은 저장하지 않는다 (한국어 1500타 / 영어 250 WPM)
+    const sane = speed <= (L === 'en' ? 250 : 1500);
+    const record = sane && acc >= 90 && speed > b;
     if (record) { try { localStorage.setItem(KEY, String(speed)); } catch (e) {} }
     result.textContent = (record ? '🏆 ' : '') + T(speed + '타 · 정확도 ' + acc + '%', speed + ' WPM · accuracy ' + acc + '%');
-    addLog(speed, acc);
-    IdleScore.add('typing', speed, 'high');
+    if (sane) {
+      addLog(speed, acc);
+      IdleScore.add('typing', speed, 'high');
+    }
     showBest();
     setTimeout(next, 1400);
   });
