@@ -16,6 +16,13 @@
   }
   input:focus { outline: 2px solid var(--accent); border-color: transparent; }
   .result { font-size: 14px; font-weight: 700; min-height: 20px; }
+  /* 17차: 타자 통계 */
+  .stats { width: 100%; font-size: 11px; color: var(--muted); }
+  .stats .nums { display: flex; justify-content: space-between; gap: 6px; }
+  .stats .nums b { display: block; font-size: 13px; color: var(--ink); }
+  .spark { display: flex; align-items: flex-end; gap: 3px; height: 34px; margin-top: 6px; }
+  .spark i { flex: 1; background: var(--accent); border-radius: 3px 3px 0 0; min-height: 2px; opacity: 0.75; }
+  .spark i:last-child { opacity: 1; }
 </style>
 </head>
 <body>
@@ -25,7 +32,7 @@
     <div class="target" id="target"></div>
     <input id="input" placeholder="따라 치고 Enter" data-en-placeholder="Type it, then Enter" autocomplete="off" spellcheck="false" />
     <div class="result" id="result"></div>
-    <div class="small" id="best"></div>
+    <div class="stats" id="stats"></div>
   </div>
 </div>
 <script>
@@ -38,7 +45,38 @@
   const result = document.getElementById('result');
   let sentence = '', startAt = 0;
   function best() { try { return Number(localStorage.getItem(KEY)) || 0; } catch (e) { return 0; } }
-  function showBest() { const b = best(); document.getElementById('best').textContent = b ? T('내 최고 ' + b + '타', 'My best ' + b + ' WPM') : ''; }
+  // 최근 기록 (최대 50개): { at, speed, acc }
+  const LOG = 'side-quest-typing-log' + (L === 'en' ? '-en' : '');
+  function readLog() {
+    try { return JSON.parse(localStorage.getItem(LOG) || '[]'); } catch (e) { return []; }
+  }
+  function addLog(speed, acc) {
+    const log = readLog();
+    log.push({ at: Date.now(), speed, acc });
+    try { localStorage.setItem(LOG, JSON.stringify(log.slice(-50))); } catch (e) {}
+  }
+  function showBest() {
+    const log = readLog();
+    const today = new Date().setHours(0, 0, 0, 0);
+    const todays = log.filter((r) => r.at >= today);
+    const unit = T('타', ' WPM');
+    const avg = (xs) => (xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length) : 0);
+    const el = document.getElementById('stats');
+    if (!log.length) {
+      el.innerHTML = '<div style="text-align:center">' + T('한 문장 치면 기록이 쌓여요', 'Type one line to start your stats') + '</div>';
+      return;
+    }
+    const recent = log.slice(-12);
+    const max = Math.max(...recent.map((r) => r.speed), 1);
+    el.innerHTML =
+      '<div class="nums">' +
+      '<div>' + T('오늘', 'Today') + '<b>' + todays.length + T('문장', '') + '</b></div>' +
+      '<div>' + T('평균', 'Avg') + '<b>' + avg(todays.length ? todays.map((r) => r.speed) : log.map((r) => r.speed)) + unit + '</b></div>' +
+      '<div>' + T('정확도', 'Accuracy') + '<b>' + avg((todays.length ? todays : log).map((r) => r.acc)) + '%</b></div>' +
+      '<div>' + T('최고', 'Best') + '<b>' + best() + unit + '</b></div>' +
+      '</div>' +
+      '<div class="spark">' + recent.map((r) => '<i style="height:' + Math.round((r.speed / max) * 100) + '%" title="' + r.speed + unit + ' · ' + r.acc + '%"></i>').join('') + '</div>';
+  }
   function makeDeck(items, key) {
     let seen = [];
     try { seen = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) {}
@@ -62,9 +100,11 @@
     sentence = deck.next();
     target.textContent = sentence;
     input.value = '';
-    startAt = 0;
+    // 17차: 첫 글자가 아니라 입력칸에 커서가 들어간 순간부터 잰다.
+    startAt = document.activeElement === input ? performance.now() : 0;
     input.focus();
   }
+  input.addEventListener('focus', () => { if (!startAt) startAt = performance.now(); });
   input.addEventListener('input', () => { if (!startAt) startAt = performance.now(); });
   input.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' || e.isComposing) return;
@@ -88,6 +128,7 @@
     const record = acc >= 90 && speed > b;
     if (record) { try { localStorage.setItem(KEY, String(speed)); } catch (e) {} }
     result.textContent = (record ? '🏆 ' : '') + T(speed + '타 · 정확도 ' + acc + '%', speed + ' WPM · accuracy ' + acc + '%');
+    addLog(speed, acc);
     showBest();
     setTimeout(next, 1400);
   });
