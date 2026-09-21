@@ -21,13 +21,13 @@
 </head>
 <body>
 <div class="card" data-tauri-drag-region>
-  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="🐍 Snake">🐍 스네이크</span><a href="/__close" title="닫기" data-en-title="Close">✕</a></div>
-  <div class="bar"><span><span data-en="Score">점수</span> <b id="score">0</b></span><span><span data-en="Best">최고</span> <b id="best">0</b></span></div>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-i18n>← 퀘스트</a><span class="title" data-tauri-drag-region data-i18n>🐍 스네이크</span><a href="/__close" title="닫기" data-i18n-title>✕</a></div>
+  <div class="bar"><span><span data-i18n>점수</span> <b id="score">0</b></span><span><span data-i18n>최고</span> <b id="best">0</b></span></div>
   <div class="wrap">
     <canvas id="cv" width="240" height="240"></canvas>
-    <div class="over" id="over"><span id="overMsg" data-en="Move with arrow keys">방향키로 움직여요</span><button class="btn" id="start" data-en="Start">시작</button></div>
+    <div class="over" id="over"><span id="overMsg" data-i18n>방향키로 움직여요</span><button class="btn" id="start" data-i18n>시작</button></div>
   </div>
-  <div class="small" style="text-align:center;margin-top:8px" data-en="Steer with arrow keys">방향키로 조종</div>
+  <div class="small" style="text-align:center;margin-top:8px" data-i18n>방향키로 조종</div>
 </div>
 <script src="/games/save.js"></script>
 <script>
@@ -82,8 +82,8 @@
     const b = best();
     if (score > b) { try { localStorage.setItem(KEY, String(score)); } catch (e) {} }
     document.getElementById('best').textContent = Math.max(b, score);
-    document.getElementById('overMsg').textContent = (score > b ? T('🏆 신기록! ', '🏆 New best! ') : '') + T(score + '개 먹었어요', 'Ate ' + score);
-    document.getElementById('start').textContent = T('다시 하기', 'Play again');
+    document.getElementById('overMsg').textContent = (score > b ? T('🏆 신기록! ') : '') + T('{n}개 먹었어요', { n: score });
+    document.getElementById('start').textContent = T('다시 하기');
     over.style.display = 'flex';
   }
   function start() {
@@ -112,7 +112,7 @@
     snake = resume.snake; food = resume.food;
     document.getElementById('score').textContent = resume.score;
     document.getElementById('overMsg').textContent = T('하던 판이 있어요 (' + resume.score + '개)', 'You have a game in progress (' + resume.score + ')');
-    document.getElementById('start').textContent = T('이어서 하기', 'Continue');
+    document.getElementById('start').textContent = T('이어서 하기');
     IdleSave.save('snake', undefined, '🐍 스네이크');
   } else {
     resume = null;

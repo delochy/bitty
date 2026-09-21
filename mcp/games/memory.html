@@ -26,8 +26,8 @@
 </head>
 <body>
 <div class="card" data-tauri-drag-region>
-  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="🃏 Memory Match">🃏 짝 맞추기</span><a href="/__close" title="닫기" data-en-title="Close">✕</a></div>
-  <div class="bar"><span><span data-en="Moves">시도</span> <b id="moves">0</b></span><span><span data-en="Best">최고</span> <b id="best">-</b></span><a href="#" id="new" data-en="New game">새 게임</a></div>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-i18n>← 퀘스트</a><span class="title" data-tauri-drag-region data-i18n>🃏 짝 맞추기</span><a href="/__close" title="닫기" data-i18n-title>✕</a></div>
+  <div class="bar"><span><span data-i18n>시도</span> <b id="moves">0</b></span><span><span data-i18n>최고</span> <b id="best">-</b></span><a href="#" id="new" data-i18n>새 게임</a></div>
   <div class="grid" id="grid"></div>
   <div class="msg" id="msg"></div>
 </div>
@@ -88,7 +88,7 @@
         const record = !b || moves < b;
         if (record) { try { localStorage.setItem(KEY, String(moves)); } catch (e) {} }
         document.getElementById('best').textContent = record ? moves : b;
-        document.getElementById('msg').textContent = (record ? T('🏆 신기록! ', '🏆 New best! ') : '🎉 ') + T(moves + '번 만에 다 맞췄어요', 'Cleared in ' + moves + ' moves');
+        document.getElementById('msg').textContent = (record ? T('🏆 신기록! ') : '🎉 ') + T('{n}번 만에 다 맞췄어요', { n: moves });
       }
     } else {
       lock = true;

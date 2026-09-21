@@ -13,10 +13,10 @@
 </head>
 <body>
 <div class="card" data-tauri-drag-region>
-  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="😂 Dev Jokes">😂 개발자 유머</span><a href="/__close" title="닫기" data-en-title="Close">✕</a></div>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-i18n>← 퀘스트</a><span class="title" data-tauri-drag-region data-i18n>😂 개발자 유머</span><a href="/__close" title="닫기" data-i18n-title>✕</a></div>
   <div class="stage">
     <div class="big joke" id="joke"></div>
-    <button class="btn" id="more" data-en="Another one 😂">한 줄 더 😂</button>
+    <button class="btn" id="more" data-i18n>한 줄 더 😂</button>
     <div class="small" id="count"></div>
   </div>
 </div>
@@ -53,13 +53,12 @@
     count.textContent = deck.seenCount() + ' / ' + deck.total;
   }
   document.getElementById('more').addEventListener('click', () => deck && show());
-  fetch(L === 'en' ? '/games/jokes-en.json' : '/games/jokes.json')
-    .then((r) => r.json())
+  localizedJSON('jokes')
     .then((items) => {
-      deck = makeDeck(items, 'side-quest-joke-seen' + (L === 'en' ? '-en' : ''));
+      deck = makeDeck(items, langKey('side-quest-joke-seen'));
       show();
     })
-    .catch(() => (el.textContent = T('유머를 못 불러왔어요 😢', "Couldn't load jokes 😢")));
+    .catch(() => (el.textContent = T('유머를 못 불러왔어요 😢')));
 </script>
 <script src="/games/track.js"></script>
 </body>

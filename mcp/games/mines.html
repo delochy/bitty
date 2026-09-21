@@ -24,8 +24,8 @@
 </head>
 <body>
 <div class="card" data-tauri-drag-region>
-  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="💣 Minesweeper">💣 지뢰찾기</span><a href="/__close" title="닫기" data-en-title="Close">✕</a></div>
-  <div class="bar"><span><span data-en="Mines">남은 지뢰</span> <b id="left">10</b></span><button id="flag" data-en="🚩 Flag mode">🚩 깃발 모드</button><button id="new" data-en="New game">새 게임</button></div>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-i18n>← 퀘스트</a><span class="title" data-tauri-drag-region data-i18n>💣 지뢰찾기</span><a href="/__close" title="닫기" data-i18n-title>✕</a></div>
+  <div class="bar"><span><span data-i18n>남은 지뢰</span> <b id="left">10</b></span><button id="flag" data-i18n>🚩 깃발 모드</button><button id="new" data-i18n>새 게임</button></div>
   <div class="grid" id="grid"></div>
   <div class="msg" id="msg"></div>
 </div>
@@ -69,7 +69,7 @@
       done = true;
       mine.forEach((m, k) => { if (m) { cells[k].textContent = '💣'; cells[k].classList.add('open'); } });
       cells[i].classList.add('boom');
-      msg.textContent = T('💥 펑! 다시 해볼까요?', '💥 Boom! Try again?');
+      msg.textContent = T('💥 펑! 다시 해볼까요?');
       IdleScore.add('mines');
       IdleSave.clear('mines');
       return;
@@ -87,7 +87,7 @@
     }
     if (open.filter(Boolean).length === N * N - MINES) {
       done = true;
-      msg.textContent = T('🎉 전부 찾았어요!', '🎉 You found them all!');
+      msg.textContent = T('🎉 전부 찾았어요!');
       IdleScore.add('mines', Math.round((Date.now() - playStart) / 1000), 'low');
       IdleSave.clear('mines');
     } else persist();

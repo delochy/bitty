@@ -27,12 +27,12 @@
 </head>
 <body>
 <div class="card" data-tauri-drag-region>
-  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="🔢 2048">🔢 2048</span><a href="/__close" title="닫기" data-en-title="Close">✕</a></div>
-  <div class="bar"><span><span data-en="Score">점수</span> <b id="score">0</b></span><span><span data-en="Best">최고</span> <b id="best">0</b></span><a href="#" id="new" style="color:var(--muted);text-decoration:none" data-en="New game">새 게임</a></div>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-i18n>← 퀘스트</a><span class="title" data-tauri-drag-region data-i18n>🔢 2048</span><a href="/__close" title="닫기" data-i18n-title>✕</a></div>
+  <div class="bar"><span><span data-i18n>점수</span> <b id="score">0</b></span><span><span data-i18n>최고</span> <b id="best">0</b></span><a href="#" id="new" style="color:var(--muted);text-decoration:none" data-i18n>새 게임</a></div>
   <div class="board" id="board">
-    <div class="over" id="over"><span id="overMsg" data-en="No more moves">더 이상 못 움직여요</span><button class="btn" id="again" data-en="Play again">다시 하기</button></div>
+    <div class="over" id="over"><span id="overMsg" data-i18n>더 이상 못 움직여요</span><button class="btn" id="again" data-i18n>다시 하기</button></div>
   </div>
-  <div class="small" style="text-align:center;margin-top:8px" data-en="Arrow keys or drag">방향키 또는 드래그</div>
+  <div class="small" style="text-align:center;margin-top:8px" data-i18n>방향키 또는 드래그</div>
 </div>
 <script src="/games/save.js"></script>
 <script>
@@ -91,8 +91,8 @@
     addTile();
     saveBest();
     render();
-    if (g.includes(2048) && !won) { won = true; showOver(T('🎉 2048 달성!', '🎉 You made 2048!')); IdleSave.clear('2048'); IdleScore.add('2048', score, 'high'); }
-    else if (!canMove()) { showOver(T('더 이상 못 움직여요', 'No more moves')); IdleSave.clear('2048'); IdleScore.add('2048', score, 'high'); }
+    if (g.includes(2048) && !won) { won = true; showOver(T('🎉 2048 달성!')); IdleSave.clear('2048'); IdleScore.add('2048', score, 'high'); }
+    else if (!canMove()) { showOver(T('더 이상 못 움직여요')); IdleSave.clear('2048'); IdleScore.add('2048', score, 'high'); }
     else IdleSave.save('2048', { g, score, won }, '🔢 2048');
   }
   let won = false;

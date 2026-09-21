@@ -35,21 +35,21 @@
 </head>
 <body>
 <div class="card" data-tauri-drag-region>
-  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="🧱 Block Stack">🧱 블록 쌓기</span><a href="/__close" title="닫기" data-en-title="Close">✕</a></div>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-i18n>← 퀘스트</a><span class="title" data-tauri-drag-region data-i18n>🧱 블록 쌓기</span><a href="/__close" title="닫기" data-i18n-title>✕</a></div>
   <div class="play">
     <div class="wrap">
       <canvas id="cv" width="140" height="280"></canvas>
-      <div class="over" id="over"><span id="overMsg" data-en="Fill a row to clear it">줄을 채우면 사라져요</span><button class="btn" id="start" data-en="Start">시작</button></div>
+      <div class="over" id="over"><span id="overMsg" data-i18n>줄을 채우면 사라져요</span><button class="btn" id="start" data-i18n>시작</button></div>
     </div>
     <div class="side">
-      <div data-en="Next">다음</div>
+      <div data-i18n>다음</div>
       <canvas class="next" id="nx" width="60" height="44"></canvas>
-      <div><span data-en="Score">점수</span><b id="score">0</b></div>
-      <div><span data-en="Lines">줄</span><b id="lines">0</b></div>
-      <div><span data-en="Best">최고</span><b id="best">0</b></div>
+      <div><span data-i18n>점수</span><b id="score">0</b></div>
+      <div><span data-i18n>줄</span><b id="lines">0</b></div>
+      <div><span data-i18n>최고</span><b id="best">0</b></div>
       <div class="pad">
-        <button id="bl" title="왼쪽" data-en-title="Left">◀</button><button id="br" title="회전" data-en-title="Rotate">⟳</button><button id="bR" title="오른쪽" data-en-title="Right">▶</button>
-        <button class="wide" id="bd" title="떨구기" data-en-title="Drop" data-en="⤓ Drop">⤓ 떨구기</button>
+        <button id="bl" title="왼쪽" data-i18n-title>◀</button><button id="br" title="회전" data-i18n-title>⟳</button><button id="bR" title="오른쪽" data-i18n-title>▶</button>
+        <button class="wide" id="bd" title="떨구기" data-i18n-title data-i18n>⤓ 떨구기</button>
       </div>
     </div>
   </div>
@@ -163,8 +163,8 @@
     running = false;
     restartTimer();
     persist();
-    document.getElementById('overMsg').textContent = msg || T('잠깐 멈췄어요', 'Paused');
-    document.getElementById('start').textContent = T('계속하기', 'Resume');
+    document.getElementById('overMsg').textContent = msg || T('잠깐 멈췄어요');
+    document.getElementById('start').textContent = T('계속하기');
     over.style.display = 'flex';
   }
   function play() {
@@ -187,15 +187,15 @@
     IdleScore.add('blocks', score, 'high');
     const b = best();
     if (score > b) { try { localStorage.setItem(KEY, String(score)); } catch (e) {} }
-    document.getElementById('overMsg').textContent = (score > b ? T('🏆 신기록! ', '🏆 New best! ') : '') + score + T('점 · ', ' pts · ') + lines + T('줄', ' lines');
-    document.getElementById('start').textContent = T('다시 하기', 'Play again');
+    document.getElementById('overMsg').textContent = (score > b ? T('🏆 신기록! ') : '') + score + T('점 · ') + lines + T('줄');
+    document.getElementById('start').textContent = T('다시 하기');
     over.style.display = 'flex';
     draw();
   }
 
   document.getElementById('start').addEventListener('click', () => {
     const label = document.getElementById('start').textContent;
-    if (label === T('계속하기', 'Resume') || label === T('이어서 하기', 'Continue')) play();
+    if (label === T('계속하기') || label === T('이어서 하기')) play();
     else newGame();
   });
   document.addEventListener('keydown', (e) => {
@@ -225,7 +225,7 @@
   if (saved && saved.board) {
     ({ board, piece, next, score, lines } = saved);
     document.getElementById('overMsg').textContent = T('하던 판이 있어요 (' + score + '점)', 'You have a game in progress (' + score + ' pts)');
-    document.getElementById('start').textContent = T('이어서 하기', 'Continue');
+    document.getElementById('start').textContent = T('이어서 하기');
     IdleSave.save('blocks', undefined, '🧱 블록 쌓기');
   } else {
     board = Array.from({ length: ROWS }, () => new Array(COLS).fill(null));

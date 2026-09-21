@@ -51,8 +51,36 @@ function systemLang() {
   } catch (e) {
     first = process.env.LANG || '';
   }
-  if (/^ko\b/i.test(first.replace('_', '-'))) sysLang = 'ko';
+  const base = first.replace('_', '-').split('-')[0].toLowerCase();
+  if (base && localeCodes().indexOf(base) >= 0) sysLang = base;
   return sysLang;
+}
+
+// 19차: 번역은 mcp/locales/<언어>.json 한 장씩이고, 한국어 원문이 곧 키다.
+// 언어를 늘리려면 이 폴더에 파일 하나만 더 놓으면 된다 (mcp/games/i18n.js 설명 참고).
+// 화면 코드가 동기적으로 T()를 쓰기 때문에, 사전은 i18n.js 앞에 통째로 붙여 보낸다.
+const LOCALE_DIR = path.join(__dirname, 'locales');
+function localeCodes() {
+  try {
+    return ['ko'].concat(
+      // macOS가 외장 디스크에 만드는 ._ 메타 파일은 건너뛴다 (언어로 오해하면 안 된다)
+      fs.readdirSync(LOCALE_DIR)
+        .filter((f) => f.endsWith('.json') && !f.startsWith('.'))
+        .map((f) => f.slice(0, -5))
+    );
+  } catch (e) {
+    return ['ko'];
+  }
+}
+function localeDicts() {
+  const out = {};
+  for (const code of localeCodes()) {
+    if (code === 'ko') continue; // 한국어는 원문 자체라 사전이 없다
+    try {
+      out[code] = JSON.parse(fs.readFileSync(path.join(LOCALE_DIR, code + '.json'), 'utf8'));
+    } catch (e) {}
+  }
+  return out;
 }
 
 function pageShell(bodyHtml) {
@@ -220,7 +248,7 @@ function pageShell(bodyHtml) {
 </head>
 <body>
 <div class="panel" data-tauri-drag-region>
-  <a class="close" href="/__close" title="닫기" data-en-title="Close">✕</a>
+  <a class="close" href="/__close" title="닫기" data-i18n-title>✕</a>
   <button class="lang" id="lang" title="Language">🌐</button>
 ${bodyHtml}
 </div>
@@ -261,7 +289,7 @@ ${bodyHtml}
         });
         who.innerHTML = Object.keys(counts).sort()
           .map((t) => '<span class="' + t + '">' + (t === 'codex' ? 'Codex' : 'Claude') +
-            (counts[t] > 1 ? T(' 작업 ' + counts[t] + '개', ' ×' + counts[t]) : T(' 작업 중', ' working')) + '</span>')
+            (counts[t] > 1 ? T(' 작업 {n}개', { n: counts[t] }) : T(' 작업 중')) + '</span>')
           .join('');
       }
       if (mascotEl) {
@@ -319,8 +347,12 @@ ${bodyHtml}
     a.href = last.path;
     // 17차: 이름은 목록에 있는 (언어에 맞춘) 퀘스트 이름을 쓴다.
     const q = document.querySelector('.track .quest[data-id="' + last.id + '"]');
-    const name = q ? q.querySelector('.emoji').textContent + ' ' + (L === 'en' ? q.querySelector('[data-en]').getAttribute('data-en') : q.querySelector('[data-en]').textContent) : last.label;
-    a.textContent = T('▶ 하던 ' + name + ' 이어서 하기', '▶ Continue ' + name);
+    // 이 스크립트는 DOMContentLoaded(=applyI18n)보다 먼저 돌 수 있어서, 목록 글자가
+    // 아직 한국어일 수 있다 — 그래서 한 번 더 T()에 통과시킨다 (이미 번역됐으면 그대로).
+    const name = q
+      ? q.querySelector('.emoji').textContent + ' ' + T(q.querySelector('[data-i18n]').textContent.trim())
+      : T(last.label);
+    a.textContent = T('▶ 하던 {name} 이어서 하기', { name: name });
     subEl.replaceWith(a);
   })();
 
@@ -359,9 +391,8 @@ ${bodyHtml}
   // "시작!"으로 바뀌고, 목록 대신 고른 퀘스트 카드가 뜬다.
   const h1 = document.querySelector('.bubble h1');
   const sub = document.querySelector('.bubble p.sub');
-  // 17차: 영어일 때는 data-en 쪽이 원래 문구다 (i18n.js가 아직 바꿔 끼우기 전일 수 있다).
-  const pick = (el) => el && (L === 'en' && el.dataset.en ? el.dataset.en : el.textContent);
-  const original = { h1: pick(h1), sub: pick(sub) };
+  // 19차: i18n.js가 이미 번역해 둔 상태라 화면 글자를 그대로 기억했다가 되돌린다.
+  const original = { h1: h1 && h1.textContent, sub: sub && sub.textContent };
   function hop() {
     const m = document.querySelector('.mascot');
     if (!m) return;
@@ -389,10 +420,10 @@ ${bodyHtml}
       }, 1800);
     }
     if (h1) h1.textContent = PET_LINES[Math.floor(Math.random() * PET_LINES.length)];
-    if (sub) sub.textContent = T('마스코트가 좋아해요', 'Your buddy loves it');
+    if (sub) sub.textContent = T('마스코트가 좋아해요');
   }
   const langBtn = document.getElementById('lang');
-  if (langBtn) langBtn.addEventListener('click', () => setLang(L === 'en' ? 'ko' : 'en'));
+  if (langBtn) langBtn.addEventListener('click', () => setLang()); // 다음 언어로
 
   const mascotBody = document.querySelector('.mascot');
   if (mascotBody) mascotBody.addEventListener('click', pet);
@@ -408,11 +439,11 @@ ${bodyHtml}
       try { localStorage.setItem('idle-mascot-level', String(info.level)); } catch (e) {}
       if (prev && info.level > prev && h1) {
         const got = info.items.filter((it) => it.level > prev && it.level <= info.level);
-        h1.textContent = T('레벨 업! Lv.', 'Level up! Lv.') + info.level + ' 🎉';
+        h1.textContent = T('레벨 업! Lv.') + info.level + ' 🎉';
         if (sub) sub.textContent = got.length
-          ? (T('새 아이템: ', 'New: ') + got.map((it) => (it.emoji || '🎨') + ' ' + T(it.label, it.label_en)).join(', ') +
-             T(' · 🐣 마스코트 꾸미기에서 입혀보세요', ' · try it on in 🐣 Dress up'))
-          : T('계속 키워주셔서 고마워요', 'Thanks for raising me!');
+          ? (T('새 아이템: ') + got.map((it) => (it.emoji || '🎨') + ' ' + T(it.label)).join(', ') +
+             T(' · 🐣 마스코트 꾸미기에서 입혀보세요'))
+          : T('계속 키워주셔서 고마워요');
         hop();
       }
     });
@@ -421,8 +452,8 @@ ${bodyHtml}
   function showPicked(btn) {
     const label = btn.querySelector('span:nth-child(2)').textContent;
     const emoji = btn.querySelector('.emoji').textContent;
-    if (h1) h1.textContent = T('좋아요! 퀘스트 시작 🎯', 'Nice! Quest started 🎯');
-    if (sub) sub.textContent = T('끝나면 바로 알려드릴게요.', "I'll let you know when it's done.");
+    if (h1) h1.textContent = T('좋아요! 퀘스트 시작 🎯');
+    if (sub) sub.textContent = T('끝나면 바로 알려드릴게요.');
     document.querySelector('#picked .card').textContent = emoji + ' ' + label + ' ✓';
     document.querySelector('.carousel').style.display = 'none';
     document.getElementById('picked').style.display = 'block';
@@ -464,7 +495,7 @@ ${bodyHtml}
       track.style.transform = 'translateY(' + -top * STEP + 'px)';
       const focus = loop ? top + 1 : -1;
       all.forEach((el, i) => el.classList.toggle('focus', i === focus || (!loop && n > 0)));
-      if (count) count.textContent = loop ? ((top + 1) % n) + 1 + '/' + n : T(n + '개', String(n));
+      if (count) count.textContent = loop ? ((top + 1) % n) + 1 + '/' + n : T('{n}개', { n: n });
     };
     // 3벌 중 가운데 벌 안으로 되돌린다 — 보이는 모습은 똑같아서 티가 안 난다.
     const normalize = () => {
@@ -586,7 +617,7 @@ function renderQuestList(quests) {
   return quests
     .map(
       (q) => `      <button class="quest" data-bucket="${q.bucket || ''}" data-id="${q.id}" data-cat="${q.cat || ''}"${q.open ? ` data-open="${q.open}"` : ''}${q.launch ? ' data-launch="1"' : ''}${q.pet ? ' data-pet="1"' : ''}>
-        <span class="emoji">${q.emoji}</span><span data-en="${q.label_en || q.label}">${q.label}</span>${q.open || q.launch ? '<span class="go" data-en="Go ›">바로 하기 ›</span>' : ''}
+        <span class="emoji">${q.emoji}</span><span data-i18n>${q.label}</span>${q.open || q.launch ? '<span class="go" data-i18n>바로 하기 ›</span>' : ''}
       </button>`
     )
     .join('\n');
@@ -595,11 +626,11 @@ function renderQuestList(quests) {
 function renderCarousel(quests, listAttrs) {
   return `
   <div class="cats" id="cats">
-    <button class="on" data-cat="all" data-en="All">전체</button>
-    <button data-cat="game" data-en="🎮 Play">🎮 게임</button>
-    <button data-cat="fun" data-en="😂 Fun">😂 웃음</button>
-    <button data-cat="rest" data-en="🧘 Chill">🧘 휴식</button>
-    <button data-cat="todo" data-en="📋 To-do">📋 할 일</button>
+    <button class="on" data-cat="all" data-i18n>전체</button>
+    <button data-cat="game" data-i18n>🎮 게임</button>
+    <button data-cat="fun" data-i18n>😂 웃음</button>
+    <button data-cat="rest" data-i18n>🧘 휴식</button>
+    <button data-cat="todo" data-i18n>📋 할 일</button>
   </div>
   <div class="carousel">
     <div id="quests" ${listAttrs}>
@@ -608,14 +639,14 @@ ${renderQuestList(quests)}
       </div>
     </div>
     <div class="rail">
-      <button id="up" title="위로" data-en-title="Up">▲</button>
+      <button id="up" title="위로" data-i18n-title>▲</button>
       <span class="count" id="count"></span>
-      <button id="down" title="아래로" data-en-title="Down">▼</button>
+      <button id="down" title="아래로" data-i18n-title>▼</button>
     </div>
   </div>
   <div id="picked">
     <div class="card"></div>
-    <button class="again" data-en="Pick something else">다른 거 고를래요</button>
+    <button class="again" data-i18n>다른 거 고를래요</button>
   </div>`;
 }
 
@@ -640,20 +671,18 @@ function renderRecommendationPage() {
     }
   }
   const sub = info ? '기다리는 동안 할 수 있는 일을 추천해봤어요. 끝나면 바로 알려드릴게요.' : '할 수 있는 일을 추천해봤어요.';
-  const subEn = info ? "Here are a few things to do while you wait. I'll ping you when it's done." : 'Here are a few things you could do.';
   return (
-    mascotHeader(`      <h1 data-en="${headlineFor(info, 'en')}">${headlineFor(info)}</h1>
-      <p class="sub" data-en="${subEn}">${sub}</p>`) +
+    mascotHeader(`      <h1 data-i18n>${headlineFor(info)}</h1>
+      <p class="sub" data-i18n>${sub}</p>`) +
     renderCarousel(quests, `data-level="${info ? info.level : ''}" data-escalated="${info && info.escalated ? 1 : 0}"`)
   );
 }
 
 function renderQuestPickedPage(key, quests) {
   const title = key === 'UNTIL_DONE' ? '끝날 때까지 할 퀘스트예요!' : `${key}분짜리 퀘스트예요!`;
-  const titleEn = key === 'UNTIL_DONE' ? 'Quests until it finishes!' : `${key}-minute quests!`;
   return (
-    mascotHeader(`      <h1 data-en="${titleEn}">${title}</h1>
-      <p class="sub" data-en="Pick one and go 🎯">하나 골라서 해보세요 🎯</p>`) +
+    mascotHeader(`      <h1 data-i18n>${title}</h1>
+      <p class="sub" data-i18n>하나 골라서 해보세요 🎯</p>`) +
     renderCarousel(quests, '')
   );
 }
@@ -717,9 +746,12 @@ function start() {
         const file = path.join(__dirname, 'games', game[1] + ext);
         if (fs.existsSync(file)) {
           let body = fs.readFileSync(file);
-          // i18n.js 맨 앞에 맥 시스템 언어를 붙여둔다 (위 systemLang() 설명 참고).
+          // i18n.js 맨 앞에 맥 시스템 언어와 번역 사전을 붙여둔다 (위 설명 참고).
           if (game[1] === 'i18n' && ext === '.js') {
-            body = Buffer.concat([Buffer.from(`window.__idleSysLang=${JSON.stringify(systemLang())};\n`), body]);
+            const head =
+              `window.__idleSysLang=${JSON.stringify(systemLang())};\n` +
+              `window.__idleDicts=${JSON.stringify(localeDicts())};\n`;
+            body = Buffer.concat([Buffer.from(head), body]);
           }
           res.writeHead(200, { 'Content-Type': TYPES[ext] + '; charset=utf-8' });
           res.end(body);

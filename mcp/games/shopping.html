@@ -32,11 +32,11 @@
 </head>
 <body>
 <div class="card" data-tauri-drag-region>
-  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="🛒 Shopping List">🛒 장보기</span><a href="/__close" title="닫기" data-en-title="Close">✕</a></div>
-  <form id="form"><input id="item" placeholder="살 것 적기 (예: 우유)" data-en-placeholder="Add an item (e.g. milk)" autocomplete="off" /><button class="btn" type="submit" data-en="Add">추가</button></form>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-i18n>← 퀘스트</a><span class="title" data-tauri-drag-region data-i18n>🛒 장보기</span><a href="/__close" title="닫기" data-i18n-title>✕</a></div>
+  <form id="form"><input id="item" placeholder="살 것 적기 (예: 우유)" data-i18n-placeholder autocomplete="off" /><button class="btn" type="submit" data-i18n>추가</button></form>
   <div class="chips" id="chips"></div>
   <ul id="list"></ul>
-  <div class="foot"><span id="left"></span><button id="clear" data-en="Clear bought">산 것 지우기</button></div>
+  <div class="foot"><span id="left"></span><button id="clear" data-i18n>산 것 지우기</button></div>
 </div>
 <script src="/games/save.js"></script>
 <script>
@@ -59,7 +59,7 @@
   function render() {
     listEl.innerHTML = '';
     if (!items.length) {
-      listEl.innerHTML = '<div class="empty">' + T('아직 비어 있어요. 떠오르는 거 하나만 적어볼까요?', 'Nothing yet. Jot down one thing you need?') + '</div>';
+      listEl.innerHTML = '<div class="empty">' + T('아직 비어 있어요. 떠오르는 거 하나만 적어볼까요?') + '</div>';
     }
     items.forEach((it, i) => {
       const li = document.createElement('li');
@@ -75,13 +75,13 @@
       label.append(cb, span);
       const del = document.createElement('button');
       del.textContent = '✕';
-      del.title = T('지우기', 'Delete');
+      del.title = T('지우기');
       del.addEventListener('click', () => { items.splice(i, 1); save(); render(); });
       li.append(label, del);
       listEl.appendChild(li);
     });
     const left = items.filter((x) => !x.done).length;
-    document.getElementById('left').textContent = items.length ? T('살 것 ' + left + '개', left + ' to buy') : '';
+    document.getElementById('left').textContent = items.length ? T('살 것 {n}개', { n: left }) : '';
     const have = new Set(items.map((x) => x.text));
     const chips = document.getElementById('chips');
     chips.innerHTML = '';

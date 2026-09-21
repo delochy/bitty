@@ -24,10 +24,10 @@
 </head>
 <body>
 <div class="card" data-tauri-drag-region>
-  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="🔨 Whack-a-mole">🔨 두더지 잡기</span><a href="/__close" title="닫기" data-en-title="Close">✕</a></div>
-  <div class="bar"><span><span data-en="Score">점수</span> <b id="score">0</b></span><span><span data-en="Time">남은 시간</span> <b id="time">30</b><span data-en="s">초</span></span><span><span data-en="Best">최고</span> <b id="best">0</b></span></div>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-i18n>← 퀘스트</a><span class="title" data-tauri-drag-region data-i18n>🔨 두더지 잡기</span><a href="/__close" title="닫기" data-i18n-title>✕</a></div>
+  <div class="bar"><span><span data-i18n>점수</span> <b id="score">0</b></span><span><span data-i18n>남은 시간</span> <b id="time">30</b><span data-i18n>초</span></span><span><span data-i18n>최고</span> <b id="best">0</b></span></div>
   <div class="field" id="field"></div>
-  <div class="under"><button class="btn" id="start" data-en="Start">시작</button><div class="small" id="msg" style="margin-top:6px"></div></div>
+  <div class="under"><button class="btn" id="start" data-i18n>시작</button><div class="small" id="msg" style="margin-top:6px"></div></div>
 </div>
 <script>
   const KEY = 'side-quest-mole-best';
@@ -68,9 +68,9 @@
     const b = best();
     if (score > b) { try { localStorage.setItem(KEY, String(score)); } catch (e) {} }
     document.getElementById('best').textContent = Math.max(b, score);
-    document.getElementById('msg').textContent = (score > b ? T('🏆 신기록! ', '🏆 New best! ') : '') + T(score + '마리 잡았어요', 'You got ' + score);
+    document.getElementById('msg').textContent = (score > b ? T('🏆 신기록! ') : '') + T('{n}마리 잡았어요', { n: score });
     const btn = document.getElementById('start');
-    btn.textContent = T('한 판 더', 'Play again');
+    btn.textContent = T('한 판 더');
     btn.style.display = '';
   }
   document.getElementById('start').addEventListener('click', (e) => {

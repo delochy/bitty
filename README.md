@@ -108,6 +108,7 @@ node uninstall.js
 |---|---|
 | 추천 퀘스트 목록 (이름, 이모지, 카테고리, 누르면 열 앱/폴더/URL) | `lib/quests.json` |
 | 개발자 유머 / 넌센스 퀴즈 / 타자 문장 | `mcp/games/jokes.json`, `quiz.json`, `typing.json` (한국어) · `jokes-en.json`, `quiz-en.json`, `typing-en.json` (영어) |
+| 화면 문구 번역 | `mcp/locales/<언어>.json` (아래 "다른 언어 넣기" 참고) |
 | 창 안 미니 게임 추가 | `mcp/games/<이름>.html`을 만들고 `quests.json`에 `"open": "/games/<이름>"` 한 줄 추가 |
 | 뜨는 시점(30초), 타이핑 대기(4초), 사라지는 속도 | `native-widget/src-tauri/src/main.rs` 상단 상수 → `sh setup/install-widget.sh`로 다시 빌드 |
 
@@ -120,6 +121,20 @@ node uninstall.js
 - `launch`에는 `{ "path": "~/Downloads" }`, `{ "url": "https://..." }`, `{ "app": "Music" }` 중 하나를 써요.
 - `cat`은 카테고리예요. `game`(게임), `fun`(웃음), `rest`(휴식), `todo`(할 일) 중 하나를 써요.
 
+### 다른 언어 넣기
+
+한국어 문장이 그대로 번역 키예요. 화면 코드는 건드릴 필요 없이, `mcp/locales/`에 파일 하나만 더 놓으면 돼요.
+
+```bash
+cp mcp/locales/en.json mcp/locales/ja.json   # 값만 일본어로 고치면 끝
+node setup/check-i18n.js ja                  # 빠뜨린 문구 확인
+```
+
+- 맥 시스템 언어가 그 언어면 자동으로 골라져요. 위젯 왼쪽 위 🌐 버튼으로도 돌려볼 수 있어요.
+- 번역이 없는 문구는 한국어가 그대로 나와요 — 빠뜨려도 화면이 깨지지 않아요.
+- 유머·퀴즈·타자 지문은 말장난이라 번역이 안 돼요. `jokes-ja.json`처럼 그 언어 파일을 따로 두면 쓰고, 없으면 영어 것을 대신 써요.
+- 값이 끼는 문장은 `{이름}` 자리를 그대로 옮기면 돼요. 예: `"{n}마리 잡았어요": "You got {n}"`
+
 ## 구성
 
 ```
@@ -129,6 +144,7 @@ lib/                           상태 저장(state.js), 작업 규모 → 추천
 mcp/server.js                  MCP 서버 (Claude/Codex가 쓰는 sidequest_* 도구)
 mcp/quest-http.js              마스코트 창에 뜨는 로컬 페이지 (추천 캐러셀·카테고리)
 mcp/games/                     창 안 미니 게임·불멍·물멍·장보기
+mcp/locales/                   화면 문구 번역 (한국어 원문이 키)
 bin/side-quest-daemon.js       위젯이 띄우는 로컬 페이지 서버
 native-widget/                 마스코트 앱 (Tauri, 투명·테두리 없는 창)
 skill/SKILL.md                 (선택) Claude용 스킬 설명

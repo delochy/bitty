@@ -29,26 +29,26 @@
 </head>
 <body>
 <div class="card" data-tauri-drag-region>
-  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="⌨️ Typing">⌨️ 타자 연습</span><a href="/__close" title="닫기" data-en-title="Close">✕</a></div>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-i18n>← 퀘스트</a><span class="title" data-tauri-drag-region data-i18n>⌨️ 타자 연습</span><a href="/__close" title="닫기" data-i18n-title>✕</a></div>
   <div class="stage">
     <div class="target" id="target"></div>
-    <input id="input" placeholder="따라 치고 Enter" data-en-placeholder="Type it, then Enter" autocomplete="off" spellcheck="false" />
+    <input id="input" placeholder="따라 치고 Enter" data-i18n-placeholder autocomplete="off" spellcheck="false" />
     <div class="result" id="result"></div>
     <div class="stats" id="stats"></div>
   </div>
 </div>
 <script>
-  // 17차: 문장은 typing.json / typing-en.json 에 있다 — 줄만 추가하면 늘어난다.
+  // 19차: 문장은 typing.json(한국어) / typing-<언어>.json 에 있다 — 줄만 추가하면 늘어난다.
   //  한 번 친 문장은 전부 돌 때까지 다시 나오지 않는다 (유머·퀴즈와 같은 방식).
   let deck = null;
-  const KEY = 'side-quest-typing-best' + (L === 'en' ? '-en' : '');
+  const KEY = langKey('side-quest-typing-best');
   const target = document.getElementById('target');
   const input = document.getElementById('input');
   const result = document.getElementById('result');
   let sentence = '', startAt = 0;
   function best() { try { return Number(localStorage.getItem(KEY)) || 0; } catch (e) { return 0; } }
   // 최근 기록 (최대 50개): { at, speed, acc }
-  const LOG = 'side-quest-typing-log' + (L === 'en' ? '-en' : '');
+  const LOG = langKey('side-quest-typing-log');
   function readLog() {
     try { return JSON.parse(localStorage.getItem(LOG) || '[]'); } catch (e) { return []; }
   }
@@ -61,21 +61,21 @@
     const log = readLog();
     const today = new Date().setHours(0, 0, 0, 0);
     const todays = log.filter((r) => r.at >= today);
-    const unit = T('타', ' WPM');
+    const unit = T('타');
     const avg = (xs) => (xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length) : 0);
     const el = document.getElementById('stats');
     if (!log.length) {
-      el.innerHTML = '<div style="text-align:center">' + T('한 문장 치면 기록이 쌓여요', 'Type one line to start your stats') + '</div>';
+      el.innerHTML = '<div style="text-align:center">' + T('한 문장 치면 기록이 쌓여요') + '</div>';
       return;
     }
     const recent = log.slice(-12);
     const max = Math.max(...recent.map((r) => r.speed), 1);
     el.innerHTML =
       '<div class="nums">' +
-      '<div>' + T('오늘', 'Today') + '<b>' + todays.length + T('문장', '') + '</b></div>' +
-      '<div>' + T('평균', 'Avg') + '<b>' + avg(todays.length ? todays.map((r) => r.speed) : log.map((r) => r.speed)) + unit + '</b></div>' +
-      '<div>' + T('정확도', 'Accuracy') + '<b>' + avg((todays.length ? todays : log).map((r) => r.acc)) + '%</b></div>' +
-      '<div>' + T('최고', 'Best') + '<b>' + best() + unit + '</b></div>' +
+      '<div>' + T('오늘') + '<b>' + todays.length + T('문장') + '</b></div>' +
+      '<div>' + T('평균') + '<b>' + avg(todays.length ? todays.map((r) => r.speed) : log.map((r) => r.speed)) + unit + '</b></div>' +
+      '<div>' + T('정확도') + '<b>' + avg((todays.length ? todays : log).map((r) => r.acc)) + '%</b></div>' +
+      '<div>' + T('최고') + '<b>' + best() + unit + '</b></div>' +
       '</div>' +
       '<div class="spark">' + recent.map((r) => '<i style="height:' + Math.round((r.speed / max) * 100) + '%" title="' + r.speed + unit + ' · ' + r.acc + '%"></i>').join('') + '</div>';
   }
@@ -131,7 +131,7 @@
     const sane = speed <= (L === 'en' ? 250 : 1500);
     const record = sane && acc >= 90 && speed > b;
     if (record) { try { localStorage.setItem(KEY, String(speed)); } catch (e) {} }
-    result.textContent = (record ? '🏆 ' : '') + T(speed + '타 · 정확도 ' + acc + '%', speed + ' WPM · accuracy ' + acc + '%');
+    result.textContent = (record ? '🏆 ' : '') + T('{speed}타 · 정확도 {acc}%', { speed: speed, acc: acc });
     if (sane) {
       addLog(speed, acc);
       IdleScore.add('typing', speed, 'high');
@@ -140,13 +140,12 @@
     setTimeout(next, 1400);
   });
   showBest();
-  fetch(L === 'en' ? '/games/typing-en.json' : '/games/typing.json')
-    .then((r) => r.json())
+  localizedJSON('typing')
     .then((items) => {
-      deck = makeDeck(items, 'side-quest-typing-seen' + (L === 'en' ? '-en' : ''));
+      deck = makeDeck(items, langKey('side-quest-typing-seen'));
       next();
     })
-    .catch(() => (target.textContent = T('문장을 못 불러왔어요 😢', "Couldn't load sentences 😢")));
+    .catch(() => (target.textContent = T('문장을 못 불러왔어요 😢')));
 </script>
 <script src="/games/track.js"></script>
 </body>

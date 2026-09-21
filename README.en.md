@@ -98,10 +98,25 @@ Removes the hooks, the MCP server registration, the login item and the widget ap
 
 | What | Where |
 |---|---|
-| Quest list (name, emoji, category, app/folder/URL to open) | `lib/quests.json` (`label` for Korean, `label_en` for English) |
+| Quest list (name, emoji, category, app/folder/URL to open) | `lib/quests.json` |
 | Jokes / riddles / typing lines | `mcp/games/jokes.json`, `quiz.json`, `typing.json` (Korean) · `jokes-en.json`, `quiz-en.json`, `typing-en.json` (English) |
+| UI text translations | `mcp/locales/<lang>.json` (see "Adding a language" below) |
 | Add a mini game | create `mcp/games/<name>.html` and add `"open": "/games/<name>"` to `quests.json` |
 | Popup delay (30s), typing pause (4s), fade speed | constants at the top of `native-widget/src-tauri/src/main.rs`, then rebuild with `sh setup/install-widget.sh` |
+
+### Adding a language
+
+The Korean source text is the translation key, so the UI code never changes — drop one more file into `mcp/locales/`.
+
+```bash
+cp mcp/locales/en.json mcp/locales/ja.json   # translate the values
+node setup/check-i18n.js ja                  # list anything you missed
+```
+
+- It is picked automatically when your Mac is set to that language. The 🌐 button in the widget cycles through them.
+- Anything left untranslated falls back to the Korean source, so a partial file still works.
+- Jokes, riddles and typing lines are wordplay and do not translate. Add `jokes-ja.json` and friends to write your own; without them the English ones are used.
+- Keep the `{name}` slots where values are inserted, e.g. `"{n}마리 잡았어요": "You got {n}"`.
 
 ## Known limitations
 

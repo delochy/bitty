@@ -23,11 +23,11 @@
 </head>
 <body>
 <div class="card" data-tauri-drag-region>
-  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="⭕ Tic-tac-toe">⭕ 틱택토</span><a href="/__close" title="닫기" data-en-title="Close">✕</a></div>
-  <div class="bar"><span><span data-en="Me">나</span> <b id="w">0</b></span><span><span data-en="Draw">무승부</span> <b id="d">0</b></span><span><span data-en="Buddy">마스코트</span> <b id="l">0</b></span></div>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-i18n>← 퀘스트</a><span class="title" data-tauri-drag-region data-i18n>⭕ 틱택토</span><a href="/__close" title="닫기" data-i18n-title>✕</a></div>
+  <div class="bar"><span><span data-i18n>나</span> <b id="w">0</b></span><span><span data-i18n>무승부</span> <b id="d">0</b></span><span><span data-i18n>마스코트</span> <b id="l">0</b></span></div>
   <div class="board" id="board"></div>
-  <div class="msg" id="msg" data-en="Your turn (❌)">내 차례예요 (❌)</div>
-  <div class="under"><button class="btn ghost" id="again" data-en="Play again">다시 하기</button></div>
+  <div class="msg" id="msg" data-i18n>내 차례예요 (❌)</div>
+  <div class="under"><button class="btn ghost" id="again" data-i18n>다시 하기</button></div>
 </div>
 <script src="/games/save.js"></script>
 <script>
@@ -72,7 +72,7 @@
     IdleScore.tally('tictactoe', k);
     IdleSave.clear('tictactoe');
     try { localStorage.setItem('idle-ttt-tally', JSON.stringify(tally)); } catch (e) {}
-    msg.textContent = { w: T('🎉 이겼어요!', '🎉 You win!'), l: T('😝 마스코트 승!', '😝 Buddy wins!'), d: T('🤝 무승부', '🤝 Draw') }[k];
+    msg.textContent = { w: T('🎉 이겼어요!'), l: T('😝 마스코트 승!'), d: T('🤝 무승부') }[k];
   }
   function play(i) {
     if (over || busy || b[i]) return;
@@ -81,7 +81,7 @@
     const w = winner(b);
     if (w) return finish(w);
     busy = true;
-    msg.textContent = T('마스코트가 생각 중…', 'Buddy is thinking…');
+    msg.textContent = T('마스코트가 생각 중…');
     setTimeout(() => {
       const empty = b.map((v, k) => (v ? -1 : k)).filter((k) => k >= 0);
       const move = Math.random() < MISTAKE ? empty[Math.floor(Math.random() * empty.length)] : minimax(b.slice(), true).move;
@@ -90,13 +90,13 @@
       render();
       const w2 = winner(b);
       if (w2) finish(w2);
-      else { msg.textContent = T('내 차례예요 (❌)', 'Your turn (❌)'); IdleSave.save('tictactoe', { b }, '⭕ 틱택토'); }
+      else { msg.textContent = T('내 차례예요 (❌)'); IdleSave.save('tictactoe', { b }, '⭕ 틱택토'); }
     }, 400);
   }
   function reset() {
     b = new Array(9).fill(null); over = false; busy = false;
     sqs.forEach((s) => s.classList.remove('win'));
-    msg.textContent = T('내 차례예요 (❌)', 'Your turn (❌)');
+    msg.textContent = T('내 차례예요 (❌)');
     render();
   }
   document.getElementById('again').addEventListener('click', reset);

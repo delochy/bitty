@@ -1,40 +1,241 @@
 {
   "SHORT": [
-    { "id": "water", "emoji": "💧", "label": "물 마시기", "cat": "rest", "label_en": "Drink some water" },
-    { "id": "stretch", "emoji": "🧘", "label": "스트레칭", "cat": "rest", "label_en": "Stretch" },
-    { "id": "desktop", "emoji": "🗂", "label": "바탕화면 파일 3개 정리", "launch": { "path": "~/Desktop" }, "cat": "todo", "label_en": "Tidy 3 files on your Desktop" },
-    { "id": "coffee", "emoji": "☕", "label": "커피 마시기", "cat": "rest", "label_en": "Grab a coffee" },
-    { "id": "window", "emoji": "🪟", "label": "창밖 보기", "cat": "rest", "label_en": "Look out the window" },
-    { "id": "fire", "emoji": "🔥", "label": "불멍", "open": "/games/fire", "cat": "rest", "label_en": "Campfire" },
-    { "id": "sea", "emoji": "🌊", "label": "물멍", "open": "/games/water", "cat": "rest", "label_en": "Ocean view" },
-    { "id": "breathe", "emoji": "🫁", "label": "숨 한 번 고르기", "open": "/games/breathe", "cat": "rest", "label_en": "Take a breath" },
-    { "id": "reaction", "emoji": "⚡", "label": "반응속도 테스트", "open": "/games/reaction", "cat": "game", "label_en": "Reaction test" },
-    { "id": "quiz", "emoji": "🤔", "label": "넌센스 퀴즈 한 문제", "open": "/games/quiz", "cat": "fun", "label_en": "A riddle" },
-    { "id": "joke", "emoji": "😂", "label": "개발자 유머 한 줄", "open": "/games/joke", "cat": "fun", "label_en": "A dev joke" },
-    { "id": "stats", "emoji": "🏆", "label": "게임 기록 보기", "open": "/games/stats", "cat": "fun", "label_en": "Game records" },
-    { "id": "report", "emoji": "📊", "label": "오늘의 기다림 리포트", "open": "/games/report", "cat": "fun", "label_en": "Today's wait report" },
-    { "id": "mascot", "emoji": "🐣", "label": "마스코트 꾸미기", "open": "/games/mascot", "cat": "fun", "label_en": "Dress up your buddy" },
-    { "id": "pet", "emoji": "🐾", "label": "마스코트 쓰다듬기", "pet": true, "cat": "fun", "label_en": "Pet the mascot" },
-    { "id": "mole", "emoji": "🔨", "label": "두더지 잡기 30초", "open": "/games/mole", "cat": "game", "label_en": "Whack-a-mole (30s)" },
-    { "id": "tictactoe", "emoji": "⭕", "label": "마스코트랑 틱택토", "open": "/games/tictactoe", "cat": "game", "label_en": "Tic-tac-toe with me" }
+    {
+      "id": "water",
+      "emoji": "💧",
+      "label": "물 마시기",
+      "cat": "rest"
+    },
+    {
+      "id": "stretch",
+      "emoji": "🧘",
+      "label": "스트레칭",
+      "cat": "rest"
+    },
+    {
+      "id": "desktop",
+      "emoji": "🗂",
+      "label": "바탕화면 파일 3개 정리",
+      "launch": {
+        "path": "~/Desktop"
+      },
+      "cat": "todo"
+    },
+    {
+      "id": "coffee",
+      "emoji": "☕",
+      "label": "커피 마시기",
+      "cat": "rest"
+    },
+    {
+      "id": "window",
+      "emoji": "🪟",
+      "label": "창밖 보기",
+      "cat": "rest"
+    },
+    {
+      "id": "fire",
+      "emoji": "🔥",
+      "label": "불멍",
+      "open": "/games/fire",
+      "cat": "rest"
+    },
+    {
+      "id": "sea",
+      "emoji": "🌊",
+      "label": "물멍",
+      "open": "/games/water",
+      "cat": "rest"
+    },
+    {
+      "id": "breathe",
+      "emoji": "🫁",
+      "label": "숨 한 번 고르기",
+      "open": "/games/breathe",
+      "cat": "rest"
+    },
+    {
+      "id": "reaction",
+      "emoji": "⚡",
+      "label": "반응속도 테스트",
+      "open": "/games/reaction",
+      "cat": "game"
+    },
+    {
+      "id": "quiz",
+      "emoji": "🤔",
+      "label": "넌센스 퀴즈 한 문제",
+      "open": "/games/quiz",
+      "cat": "fun"
+    },
+    {
+      "id": "joke",
+      "emoji": "😂",
+      "label": "개발자 유머 한 줄",
+      "open": "/games/joke",
+      "cat": "fun"
+    },
+    {
+      "id": "stats",
+      "emoji": "🏆",
+      "label": "게임 기록 보기",
+      "open": "/games/stats",
+      "cat": "fun"
+    },
+    {
+      "id": "report",
+      "emoji": "📊",
+      "label": "오늘의 기다림 리포트",
+      "open": "/games/report",
+      "cat": "fun"
+    },
+    {
+      "id": "mascot",
+      "emoji": "🐣",
+      "label": "마스코트 꾸미기",
+      "open": "/games/mascot",
+      "cat": "fun"
+    },
+    {
+      "id": "pet",
+      "emoji": "🐾",
+      "label": "마스코트 쓰다듬기",
+      "pet": true,
+      "cat": "fun"
+    },
+    {
+      "id": "mole",
+      "emoji": "🔨",
+      "label": "두더지 잡기 30초",
+      "open": "/games/mole",
+      "cat": "game"
+    },
+    {
+      "id": "tictactoe",
+      "emoji": "⭕",
+      "label": "마스코트랑 틱택토",
+      "open": "/games/tictactoe",
+      "cat": "game"
+    }
   ],
   "MEDIUM": [
-    { "id": "sudoku", "emoji": "🧩", "label": "스도쿠 한 판", "open": "/games/sudoku", "cat": "game", "label_en": "A game of Sudoku" },
-    { "id": "threads", "emoji": "💬", "label": "Threads 댓글 확인", "launch": { "url": "https://www.threads.com" }, "cat": "todo", "label_en": "Check Threads replies" },
-    { "id": "rest", "emoji": "🛋", "label": "그냥 쉬기", "cat": "rest", "label_en": "Just relax" },
-    { "id": "kakao", "emoji": "💛", "label": "밀린 카톡 답장하기", "launch": { "app": "KakaoTalk" }, "cat": "todo", "label_en": "Reply to KakaoTalk" },
-    { "id": "shopping", "emoji": "🛒", "label": "장보기 목록 쓰기", "open": "/games/shopping", "cat": "todo", "label_en": "Write a shopping list" },
-    { "id": "storage", "emoji": "💽", "label": "하드 용량 정리하기", "launch": { "url": "x-apple.systempreferences:com.apple.settings.Storage" }, "cat": "todo", "label_en": "Free up disk space" },
-    { "id": "downloads", "emoji": "🗑", "label": "다운로드 폴더 파일 5개 지우기", "launch": { "path": "~/Downloads" }, "cat": "todo", "label_en": "Delete 5 files in Downloads" },
-    { "id": "blocks", "emoji": "🧱", "label": "블록 쌓기", "open": "/games/blocks", "cat": "game", "label_en": "Block stacking" },
-    { "id": "2048", "emoji": "🔢", "label": "2048 한 판", "open": "/games/2048", "cat": "game", "label_en": "A game of 2048" },
-    { "id": "mines", "emoji": "💣", "label": "지뢰찾기", "open": "/games/mines", "cat": "game", "label_en": "Minesweeper" },
-    { "id": "memory", "emoji": "🃏", "label": "카드 짝 맞추기", "open": "/games/memory", "cat": "game", "label_en": "Memory match" },
-    { "id": "snake", "emoji": "🐍", "label": "스네이크", "open": "/games/snake", "cat": "game", "label_en": "Snake" },
-    { "id": "typing", "emoji": "⌨️", "label": "타자 연습", "open": "/games/typing", "cat": "game", "label_en": "Typing practice" },
-    { "id": "playlist", "emoji": "🎧", "label": "플레이리스트 정리하기", "launch": { "app": "Music" }, "cat": "todo", "label_en": "Tidy up a playlist" }
+    {
+      "id": "sudoku",
+      "emoji": "🧩",
+      "label": "스도쿠 한 판",
+      "open": "/games/sudoku",
+      "cat": "game"
+    },
+    {
+      "id": "threads",
+      "emoji": "💬",
+      "label": "Threads 댓글 확인",
+      "launch": {
+        "url": "https://www.threads.com"
+      },
+      "cat": "todo"
+    },
+    {
+      "id": "rest",
+      "emoji": "🛋",
+      "label": "그냥 쉬기",
+      "cat": "rest"
+    },
+    {
+      "id": "kakao",
+      "emoji": "💛",
+      "label": "밀린 카톡 답장하기",
+      "launch": {
+        "app": "KakaoTalk"
+      },
+      "cat": "todo"
+    },
+    {
+      "id": "shopping",
+      "emoji": "🛒",
+      "label": "장보기 목록 쓰기",
+      "open": "/games/shopping",
+      "cat": "todo"
+    },
+    {
+      "id": "storage",
+      "emoji": "💽",
+      "label": "하드 용량 정리하기",
+      "launch": {
+        "url": "x-apple.systempreferences:com.apple.settings.Storage"
+      },
+      "cat": "todo"
+    },
+    {
+      "id": "downloads",
+      "emoji": "🗑",
+      "label": "다운로드 폴더 파일 5개 지우기",
+      "launch": {
+        "path": "~/Downloads"
+      },
+      "cat": "todo"
+    },
+    {
+      "id": "blocks",
+      "emoji": "🧱",
+      "label": "블록 쌓기",
+      "open": "/games/blocks",
+      "cat": "game"
+    },
+    {
+      "id": "2048",
+      "emoji": "🔢",
+      "label": "2048 한 판",
+      "open": "/games/2048",
+      "cat": "game"
+    },
+    {
+      "id": "mines",
+      "emoji": "💣",
+      "label": "지뢰찾기",
+      "open": "/games/mines",
+      "cat": "game"
+    },
+    {
+      "id": "memory",
+      "emoji": "🃏",
+      "label": "카드 짝 맞추기",
+      "open": "/games/memory",
+      "cat": "game"
+    },
+    {
+      "id": "snake",
+      "emoji": "🐍",
+      "label": "스네이크",
+      "open": "/games/snake",
+      "cat": "game"
+    },
+    {
+      "id": "typing",
+      "emoji": "⌨️",
+      "label": "타자 연습",
+      "open": "/games/typing",
+      "cat": "game"
+    },
+    {
+      "id": "playlist",
+      "emoji": "🎧",
+      "label": "플레이리스트 정리하기",
+      "launch": {
+        "app": "Music"
+      },
+      "cat": "todo"
+    }
   ],
   "LONG": [
-    { "id": "benchmark", "emoji": "🔎", "label": "경쟁 앱 하나 벤치마킹", "launch": { "app": "App Store" }, "cat": "todo", "label_en": "Check out a rival app" }
+    {
+      "id": "benchmark",
+      "emoji": "🔎",
+      "label": "경쟁 앱 하나 벤치마킹",
+      "launch": {
+        "app": "App Store"
+      },
+      "cat": "todo"
+    }
   ]
 }

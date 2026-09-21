@@ -28,11 +28,11 @@
 </head>
 <body>
 <div class="card" data-tauri-drag-region>
-  <div class="top" data-tauri-drag-region><a href="/quest" data-en="← Quests">← 퀘스트</a><span class="title" data-tauri-drag-region data-en="📊 Wait Report">📊 기다림 리포트</span><a href="/__close" title="닫기" data-en-title="Close">✕</a></div>
+  <div class="top" data-tauri-drag-region><a href="/quest" data-i18n>← 퀘스트</a><span class="title" data-tauri-drag-region data-i18n>📊 기다림 리포트</span><a href="/__close" title="닫기" data-i18n-title>✕</a></div>
   <div class="day"><button id="prev">◀</button><span id="dayLabel"></span><button id="next">▶</button></div>
-  <div class="hero"><div class="label" data-en="Time spent waiting on AI">AI를 기다린 시간</div><div class="big" id="wait">-</div></div>
+  <div class="hero"><div class="label" data-i18n>AI를 기다린 시간</div><div class="big" id="wait">-</div></div>
   <div class="rows" id="rows"></div>
-  <button class="btn save" id="save" data-en="📸 Save as image">📸 이미지로 저장</button>
+  <button class="btn save" id="save" data-i18n>📸 이미지로 저장</button>
   <div class="note" id="note"></div>
 </div>
 <script src="/games/mascot-look.js"></script>
@@ -76,14 +76,14 @@
   // 화면과 이미지가 같이 쓰는 줄 목록
   function lines(s) {
     const out = [];
-    out.push([T('30초 넘은 작업', 'Tasks over 30s'), s.longTurns + T('번', '') + (s.longTurns ? ' (Claude ' + s.tools.claude + ' · Codex ' + s.tools.codex + ')' : '')]);
-    if (s.longestMs) out.push([T('제일 오래 기다린 작업', 'Longest wait'), dur(s.longestMs)]);
+    out.push([T('30초 넘은 작업'), s.longTurns + T('번') + (s.longTurns ? ' (Claude ' + s.tools.claude + ' · Codex ' + s.tools.codex + ')' : '')]);
+    if (s.longestMs) out.push([T('제일 오래 기다린 작업'), dur(s.longestMs)]);
     const t = s.tokens, total = t.claude.total + t.codex.total;
-    if (total) out.push([T('태운 토큰', 'Tokens burned'), tok(total) + ' (Claude ' + tok(t.claude.total) + ' · Codex ' + tok(t.codex.total) + ')']);
-    const top = s.games.slice(0, 3).map((g) => g.emoji + ' ' + (L === 'en' ? (g.label_en || g.label).replace(/^(A game of|A|Take a) /, '') : g.label.replace(/ 한 판| 한 줄| 한 문제| 한 번 고르기/, '')) + ' ' + dur(g.seconds * 1000));
-    out.push([T('기다리면서 한 것', 'While waiting'), top.length ? top.join(' · ') : T('아직 없어요', 'Nothing yet')]);
-    out.push([T('고른 퀘스트', 'Quests picked'), s.quests + T('개', '')]);
-    out.push([T('마스코트', 'Buddy'), 'Lv.' + s.mascot.level]);
+    if (total) out.push([T('태운 토큰'), tok(total) + ' (Claude ' + tok(t.claude.total) + ' · Codex ' + tok(t.codex.total) + ')']);
+    const top = s.games.slice(0, 3).map((g) => g.emoji + ' ' + T(g.label).replace(/^(A game of|A|Take a) /, '').replace(/ 한 판| 한 줄| 한 문제| 한 번 고르기/, '') + ' ' + dur(g.seconds * 1000));
+    out.push([T('기다리면서 한 것'), top.length ? top.join(' · ') : T('아직 없어요')]);
+    out.push([T('고른 퀘스트'), s.quests + T('개')]);
+    out.push([T('마스코트'), 'Lv.' + s.mascot.level]);
     return out;
   }
   async function load() {
@@ -91,7 +91,7 @@
     document.getElementById('next').disabled = day >= today;
     document.getElementById('note').textContent = '';
     data = await (await fetch('/stats?day=' + day)).json();
-    document.getElementById('wait').textContent = data.waitMs ? dur(data.waitMs) : T('0분', '0m');
+    document.getElementById('wait').textContent = data.waitMs ? dur(data.waitMs) : T('0분');
     document.getElementById('rows').innerHTML = lines(data)
       .map(([k, v]) => '<div class="row"><span>' + k + '</span><span>' + v + '</span></div>')
       .join('');
@@ -118,7 +118,7 @@
     g.font = '600 38px ' + F; g.globalAlpha = 0.85;
     g.fillText(dayLabel(day).replace(/ · (오늘|Today)$/, ''), W / 2, 120);
     g.globalAlpha = 1; g.font = '800 64px ' + F;
-    g.fillText(T('오늘의 기다림 리포트', "Today's Wait Report"), W / 2, 205);
+    g.fillText(T('오늘의 기다림 리포트'), W / 2, 205);
 
     // 마스코트 (입힌 색·모자·얼굴 그대로)
     const equip = IdleMascot.equip();
@@ -137,12 +137,12 @@
     g.fillStyle = '#fff'; g.font = '800 26px ' + F; g.fillText('Lv.' + data.mascot.level, mx + size + 18, my + size + 1);
 
     g.font = '600 36px ' + F; g.globalAlpha = 0.85;
-    g.fillText(T('AI를 기다린 시간', 'Time spent waiting on AI'), W / 2, 540);
+    g.fillText(T('AI를 기다린 시간'), W / 2, 540);
     g.globalAlpha = 1; g.font = '800 120px ' + F;
-    g.fillText(data.waitMs ? dur(data.waitMs) : T('0분', '0m'), W / 2, 670);
+    g.fillText(data.waitMs ? dur(data.waitMs) : T('0분'), W / 2, 670);
 
     // 줄 목록 (마스코트 줄은 위에 그렸으니 뺀다)
-    const rows = lines(data).filter(([k]) => k !== T('마스코트', 'Buddy'));
+    const rows = lines(data).filter(([k]) => k !== T('마스코트'));
     g.fillStyle = 'rgba(255,255,255,0.12)';
     g.beginPath(); g.roundRect(80, 730, W - 160, 90 * rows.length + 40, 36); g.fill();
     rows.forEach(([k, v], i) => {
@@ -162,15 +162,15 @@
   document.getElementById('save').addEventListener('click', async () => {
     if (!data) return;
     const note = document.getElementById('note');
-    note.textContent = T('저장 중…', 'Saving…');
+    note.textContent = T('저장 중…');
     try {
       const r = await (await fetch('/report/save', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ png: drawCard(), day }),
       })).json();
-      note.textContent = r.ok ? T('다운로드 폴더에 저장했어요 · ', 'Saved to Downloads · ') + r.file : T('저장하지 못했어요', "Couldn't save");
+      note.textContent = r.ok ? T('다운로드 폴더에 저장했어요 · ') + r.file : T('저장하지 못했어요');
     } catch (e) {
-      note.textContent = T('저장하지 못했어요', "Couldn't save");
+      note.textContent = T('저장하지 못했어요');
     }
   });
   load();
