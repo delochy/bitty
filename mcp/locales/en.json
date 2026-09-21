@@ -1,7 +1,7 @@
 {
-  " · AI 작업 1분·놀기 1분 = 1, 퀘스트 고르기 = 3": " · 1 per minute of AI work or play, 3 per quest",
   " · Lv.{level}에 {item}": " · {item} at Lv.{level}",
   " · 눌러서 다시": " · click to retry",
+  " · 위젯에서 논 1분 = 1, 퀘스트 고르기 = 3": " · 1 per minute of play, 3 per quest",
   " · 🐣 마스코트 꾸미기에서 입혀보세요": " · try it on in 🐣 Dress up",
   " 작업 {n}개": " ×{n}",
   " 작업 중": " working",
@@ -19,7 +19,6 @@
   "{n}번 만에 다 맞췄어요": "Cleared in {n} moves",
   "{speed}타 · 정확도 {acc}%": "{speed} WPM · accuracy {acc}%",
   "{w}승 {d}무 {l}패": "{w}W {d}D {l}L",
-  "· AI 작업 1분·놀기 1분 = 1, 퀘스트 고르기 = 3": "· 1 per minute of AI work or play, 3 per quest",
   "· 눌러서 다시": "· click to retry",
   "· 🐣 마스코트 꾸미기에서 입혀보세요": "· try it on in 🐣 Dress up",
   "← 퀘스트": "← Quests",

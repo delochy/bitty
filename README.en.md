@@ -15,7 +15,7 @@ When a task runs longer than 30 seconds, Idle Buddy pops a small mascot into the
 - 😂 **Fun**: 69 dev jokes and 50 riddles (no repeats until you've seen them all)
 - 🧘 **Chill**: a campfire 🔥 and an ocean view 🌊 (with optional ambient sound), breathing exercise, stretching
 - 📋 **To-do**: shopping list, tidy your Desktop or Downloads, free up disk space… (tapping opens the right app)
-- 🐣 **Grow your buddy**: time spent waiting, time spent playing, and quests you pick all earn XP. Level up to unlock ribbons, glasses, hats, crowns and colors.
+- 🐣 **Grow your buddy**: time spent playing in the widget and quests you pick earn XP. Level up to unlock ribbons, glasses, hats, crowns and colors.
 - 📊 **Today's wait report**: how long you waited on AI today, tasks over 30s, tokens burned (Claude and Codex), what you did while waiting. Save it as a 1080×1350 image to share.
 - 🔁 **Pick up where you left off**: if the widget closes mid-game, it reopens that game next time.
 - 🖐 **Put it anywhere**: drag the card to move it; it remembers the spot.

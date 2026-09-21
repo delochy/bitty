@@ -64,7 +64,7 @@
     document.getElementById('how').textContent =
       T('경험치 ') + info.levelXp + ' / ' + info.levelNeed +
       (next ? T(' · Lv.{level}에 {item}', { level: next.level, item: T(next.label) }) : '') +
-      T(' · AI 작업 1분·놀기 1분 = 1, 퀘스트 고르기 = 3');
+      T(' · 위젯에서 논 1분 = 1, 퀘스트 고르기 = 3');
     const box = document.getElementById('slots');
     box.innerHTML = '';
     for (const [slot, name] of SLOTS) {
