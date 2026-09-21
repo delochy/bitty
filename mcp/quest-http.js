@@ -36,6 +36,25 @@ const stats = require('../lib/stats');
 const PORT = process.env.SIDE_QUEST_PORT ? Number(process.env.SIDE_QUEST_PORT) : 4317;
 const HOST = '127.0.0.1';
 
+// 19차: 위젯 앱 번들에는 한국어 로컬라이즈가 들어있지 않아서, 맥이 한국어로 설정돼
+// 있어도 웹뷰의 navigator.language가 늘 en-US로 나온다 (그래서 한국어 사용자한테도
+// 영어로 떴다). 데몬이 맥 시스템 언어를 직접 읽어서 i18n.js 앞에 붙여준다.
+let sysLang = null;
+function systemLang() {
+  if (sysLang) return sysLang;
+  sysLang = 'en';
+  let first = '';
+  try {
+    first = (require('child_process')
+      .execFileSync('defaults', ['read', '-g', 'AppleLanguages'], { encoding: 'utf8' })
+      .match(/"([^"]+)"/) || [])[1] || '';
+  } catch (e) {
+    first = process.env.LANG || '';
+  }
+  if (/^ko\b/i.test(first.replace('_', '-'))) sysLang = 'ko';
+  return sysLang;
+}
+
 function pageShell(bodyHtml) {
   return `<!doctype html>
 <html lang="ko">
@@ -697,8 +716,13 @@ function start() {
         const TYPES = { '.html': 'text/html', '.css': 'text/css', '.json': 'application/json', '.js': 'text/javascript' };
         const file = path.join(__dirname, 'games', game[1] + ext);
         if (fs.existsSync(file)) {
+          let body = fs.readFileSync(file);
+          // i18n.js 맨 앞에 맥 시스템 언어를 붙여둔다 (위 systemLang() 설명 참고).
+          if (game[1] === 'i18n' && ext === '.js') {
+            body = Buffer.concat([Buffer.from(`window.__idleSysLang=${JSON.stringify(systemLang())};\n`), body]);
+          }
           res.writeHead(200, { 'Content-Type': TYPES[ext] + '; charset=utf-8' });
-          res.end(fs.readFileSync(file));
+          res.end(body);
           return;
         }
       }
