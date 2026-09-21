@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://delochy.github.io/idle-buddy/sitemap.xml
