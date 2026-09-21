@@ -49,6 +49,63 @@
   gtag('config', 'G-5EVS427BRZ');
 </script>
 
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Idle Buddy가 뭔가요?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Claude Code나 Codex 작업이 30초 넘게 걸리면 화면 오른쪽 아래에 마스코트를 띄우는 macOS 위젯이에요. 기다리는 동안 게임·유머·휴식·할 일을 추천하고, 작업이 끝나면 알림음과 함께 사라집니다. 무료이고 MIT 라이선스예요."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "윈도우나 리눅스에서도 되나요?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "지금은 macOS만 지원해요. 애플 실리콘과 인텔 모두 됩니다. 훅과 추천 페이지는 다른 OS에서도 돌지만 마스코트 창은 macOS 전용이에요."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Claude Code 없이 Codex만 써도 되나요?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "네. 둘 중 하나만 있어도 동작해요. 둘 다 쓰면 창 하나에서 누가 작업 중인지 구분해 보여줘요."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "설치는 어떻게 하나요?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "macOS와 Node.js 18 이상이 필요해요. 저장소를 클론하고 install.sh를 실행하면 Claude Code와 Codex에 훅과 MCP 서버를 등록하고 마스코트 앱을 ~/Applications에 설치해요. Rust는 선택이고, 없으면 Releases의 빌드된 앱을 받습니다."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "데이터가 외부로 전송되나요?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "아니요. 서버도 계정도 없어요. 기다린 시간, 경험치, 할 일 목록까지 전부 data/ 폴더에만 저장되고 어디로도 전송되지 않아요. 타이핑 감지는 마지막 키 입력 시각만 보기 때문에 입력 모니터링 권한도 필요 없어요."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "마스코트가 안 떠요.",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "설치 후에는 실행 중이던 Claude Code나 Codex 세션을 새로 열어야 적용돼요. Codex는 첫 실행에서 훅을 한 번 신뢰해야 하는데, 터미널에서 codex를 실행하면 나오는 Hooks need review 화면에서 Trust all and continue를 고르면 됩니다."
+      }
+    }
+  ]
+}
+</script>
+
 <style>
   :root {
     --bg: #fffaf7;
@@ -148,18 +205,30 @@ sh install.sh</code></pre>
 <p>서버도 계정도 없어요. 기다린 시간, 경험치, 할 일 목록까지 전부 내 맥 안에만 저장돼요.</p>
 
 <h2>자주 묻는 질문</h2>
+
+<h3>Idle Buddy가 뭔가요?</h3>
+<p>Claude Code나 Codex 작업이 30초 넘게 걸리면 화면 오른쪽 아래에 마스코트를 띄우는 macOS 위젯이에요. 기다리는 동안 게임·유머·휴식·할 일을 추천하고, 작업이 끝나면 알림음과 함께 사라집니다. 무료이고 MIT 라이선스예요.</p>
+
 <h3>윈도우나 리눅스에서도 되나요?</h3>
-<p>지금은 macOS만 지원해요. 애플 실리콘과 인텔 모두 됩니다.</p>
+<p>지금은 macOS만 지원해요. 애플 실리콘과 인텔 모두 됩니다. 훅과 추천 페이지는 다른 OS에서도 돌지만 마스코트 창은 macOS 전용이에요.</p>
+
 <h3>Claude Code 없이 Codex만 써도 되나요?</h3>
 <p>네. 둘 중 하나만 있어도 동작해요. 둘 다 쓰면 창 하나에서 누가 작업 중인지 구분해 보여줘요.</p>
+
+<h3>설치는 어떻게 하나요?</h3>
+<p>macOS와 Node.js 18 이상이 필요해요. 저장소를 클론하고 <code>install.sh</code>를 실행하면 Claude Code와 Codex에 훅과 MCP 서버를 등록하고 마스코트 앱을 <code>~/Applications</code>에 설치해요. Rust는 선택이고, 없으면 Releases의 빌드된 앱을 받습니다.</p>
+
+<h3>데이터가 외부로 전송되나요?</h3>
+<p>아니요. 서버도 계정도 없어요. 기다린 시간, 경험치, 할 일 목록까지 전부 <code>data/</code> 폴더에만 저장되고 어디로도 전송되지 않아요. 타이핑 감지는 마지막 키 입력 시각만 보기 때문에 입력 모니터링 권한도 필요 없어요.</p>
+
 <h3>마스코트가 안 떠요.</h3>
-<p>설치 후에는 실행 중이던 Claude Code나 Codex 세션을 새로 열어야 해요. Codex는 첫 실행에서 훅을 한 번 신뢰해야 동작해요.</p>
+<p>설치 후에는 실행 중이던 Claude Code나 Codex 세션을 새로 열어야 적용돼요. Codex는 첫 실행에서 훅을 한 번 신뢰해야 하는데, 터미널에서 <code>codex</code>를 실행하면 나오는 Hooks need review 화면에서 Trust all and continue를 고르면 됩니다.</p>
 
 <hr class="rule" />
 
 <footer>
   <p><a href="https://github.com/delochy/idle-buddy">github.com/delochy/idle-buddy</a> · MIT License</p>
-  <p><a href="https://github.com/delochy/idle-buddy/blob/main/README.en.md">English README</a></p>
+  <p><a href="https://github.com/delochy/idle-buddy/blob/main/README.en.md">English README</a> · <a href="llms.txt">llms.txt</a></p>
 </footer>
 
 </div>
