@@ -118,11 +118,25 @@
     --line: #e8e0d6;
     --accent: #ad7556;
     --brand: #5b7180;
+    /* CTA — 주 버튼 */
+    --cta-bg: #5b7180;
+    --cta-bg-hover: #4b5f6c;
+    --cta-bg-pressed: #3e4e59;
+    --cta-fg: #ffffff;
+    /* CTA — 보조 버튼 */
+    --cta2-border: #8a7c6e;
+    --cta2-border-hover: #6e6155;
+    --cta2-bg-hover: #f3ebe3;
+    --cta2-bg-pressed: #e9dfd5;
+    --cta-ring: #5b7180;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #17140f; --surface: #201c17; --text: #f4f1ea; --muted: #b3aca2;
       --line: #342d25; --accent: #cfaf9d; --brand: #95b0c2;
+      --cta-bg: #95b0c2; --cta-bg-hover: #abc3d3; --cta-bg-pressed: #809eb2; --cta-fg: #10161b;
+      --cta2-border: #7a6f63; --cta2-border-hover: #9a8e80; --cta2-bg-hover: #231e18; --cta2-bg-pressed: #2d2720;
+      --cta-ring: #95b0c2;
     }
   }
   * { box-sizing: border-box; }
@@ -138,9 +152,27 @@
   h1 { font-size: clamp(30px, 6vw, 46px); line-height: 1.25; margin: 0 0 14px; letter-spacing: -0.02em; }
   .lede { font-size: clamp(16px, 2.6vw, 19px); color: var(--muted); margin: 0 auto 28px; max-width: 620px; }
   .cta { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-  .btn { display: inline-block; padding: 12px 22px; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: 15px; }
-  .btn-primary { background: var(--brand); color: #fff; }
-  .btn-ghost { border: 1px solid var(--line); color: var(--text); }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 48px; padding: 0 24px; border-radius: 999px;
+    border: 1px solid transparent; text-decoration: none;
+    font-weight: 600; font-size: 15px; line-height: 1;
+    transition: background-color .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .btn:focus-visible { outline: 2px solid var(--cta-ring); outline-offset: 3px; }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--cta-bg); color: var(--cta-fg); }
+  .btn-primary:active { background: var(--cta-bg-pressed); }
+  .btn-ghost { background: transparent; color: var(--text); border-color: var(--cta2-border); }
+  .btn-ghost:active { background: var(--cta2-bg-pressed); }
+  @media (hover: hover) {
+    .btn-primary:hover { background: var(--cta-bg-hover); }
+    .btn-ghost:hover { background: var(--cta2-bg-hover); border-color: var(--cta2-border-hover); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn { transition: none; }
+    .btn:active { transform: none; }
+  }
   .shot { width: 100%; height: auto; border-radius: 16px; border: 1px solid var(--line); margin: 36px 0 8px; }
   h2 { font-size: clamp(22px, 4vw, 28px); margin: 56px 0 12px; letter-spacing: -0.01em; }
   h3 { font-size: 17px; margin: 28px 0 6px; }
