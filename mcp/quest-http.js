@@ -893,6 +893,22 @@ function start() {
     // else: another instance is already serving the page — that's fine.
   });
 
+  // 20차: 작업 도중에 Codex를 끄면 Stop 훅이 오지 않아서 "Codex 작업 중"이 2시간
+  // (STALE_WORKING_MS) 동안 남아 있었다. Codex는 작업하는 동안 반드시 `codex`
+  // 프로세스가 떠 있으니(ChatGPT 앱 안의 바이너리든 CLI든 이름이 같다), 그게 없으면
+  // Codex 세션을 끝난 것으로 정리한다. 포트를 잡은 프로세스 하나만 돈다.
+  server.on('listening', () => {
+    const SWEEP_MS = 15 * 1000;
+    setInterval(() => {
+      execFile('pgrep', ['-x', 'codex'], (err) => {
+        // pgrep: 0 = 있음, 1 = 없음, 그 밖 = pgrep 자체 실패 → 모르니 건드리지 않는다
+        if (!err || err.code !== 1) return;
+        const ended = state.endSessionsWhere((src) => src.startsWith('codex'), 'CodexClosed');
+        if (ended.length) console.error('[side-quest] Codex가 꺼져 있어 작업을 정리:', ended.join(', '));
+      });
+    }, SWEEP_MS).unref();
+  });
+
   server.listen(PORT, HOST);
 }
 
