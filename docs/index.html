@@ -6,7 +6,11 @@
 <title>Idle Buddy — Claude Code·Codex 기다리는 시간에 놀아주는 맥 마스코트 위젯</title>
 <meta name="description" content="Idle Buddy는 Claude Code나 Codex 작업이 30초 넘게 걸리면 화면 구석에 마스코트를 띄워 게임·유머·휴식·할 일을 추천하는 macOS 위젯입니다. 서버도 계정도 없이 내 맥에서만 동작합니다." />
 <link rel="canonical" href="https://delochy.github.io/idle-buddy/" />
+<link rel="alternate" hreflang="ko" href="https://delochy.github.io/idle-buddy/" />
+<link rel="alternate" hreflang="en" href="https://delochy.github.io/idle-buddy/en/" />
+<link rel="alternate" hreflang="x-default" href="https://delochy.github.io/idle-buddy/" />
 <meta name="author" content="delochy" />
+<meta name="google-site-verification" content="J-BfosZVjlPxU5k20HHT7TVzaHzCspKng3CnP8mj4-c" />
 <meta name="keywords" content="Idle Buddy, 아이들 버디, 클로드 코드, Claude Code, Codex, 맥 위젯, 마스코트, 대기 시간, macOS, MCP, 개발자 도구" />
 
 <meta property="og:type" content="website" />
@@ -40,6 +44,71 @@
 }
 </script>
 
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5EVS427BRZ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5EVS427BRZ');
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Idle Buddy가 뭔가요?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Claude Code나 Codex 작업이 30초 넘게 걸리면 화면 오른쪽 아래에 마스코트를 띄우는 macOS 위젯이에요. 기다리는 동안 게임·유머·휴식·할 일을 추천하고, 작업이 끝나면 알림음과 함께 사라집니다. 무료이고 MIT 라이선스예요."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "윈도우나 리눅스에서도 되나요?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "지금은 macOS만 지원해요. 애플 실리콘과 인텔 모두 됩니다. 훅과 추천 페이지는 다른 OS에서도 돌지만 마스코트 창은 macOS 전용이에요."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Claude Code 없이 Codex만 써도 되나요?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "네. 둘 중 하나만 있어도 동작해요. 둘 다 쓰면 창 하나에서 누가 작업 중인지 구분해 보여줘요."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "설치는 어떻게 하나요?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "macOS와 Node.js 18 이상이 필요해요. 저장소를 클론하고 install.sh를 실행하면 Claude Code와 Codex에 훅과 MCP 서버를 등록하고 마스코트 앱을 ~/Applications에 설치해요. Rust는 선택이고, 없으면 Releases의 빌드된 앱을 받습니다."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "데이터가 외부로 전송되나요?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "아니요. 서버도 계정도 없어요. 기다린 시간, 경험치, 할 일 목록까지 전부 data/ 폴더에만 저장되고 어디로도 전송되지 않아요. 타이핑 감지는 마지막 키 입력 시각만 보기 때문에 입력 모니터링 권한도 필요 없어요."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "마스코트가 안 떠요.",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "설치 후에는 실행 중이던 Claude Code나 Codex 세션을 새로 열어야 적용돼요. Codex는 첫 실행에서 훅을 한 번 신뢰해야 하는데, 터미널에서 codex를 실행하면 나오는 Hooks need review 화면에서 Trust all and continue를 고르면 됩니다."
+      }
+    }
+  ]
+}
+</script>
+
 <style>
   :root {
     --bg: #fffaf7;
@@ -49,11 +118,25 @@
     --line: #e8e0d6;
     --accent: #ad7556;
     --brand: #5b7180;
+    /* CTA — 주 버튼 */
+    --cta-bg: #5b7180;
+    --cta-bg-hover: #4b5f6c;
+    --cta-bg-pressed: #3e4e59;
+    --cta-fg: #ffffff;
+    /* CTA — 보조 버튼 */
+    --cta2-border: #8a7c6e;
+    --cta2-border-hover: #6e6155;
+    --cta2-bg-hover: #f3ebe3;
+    --cta2-bg-pressed: #e9dfd5;
+    --cta-ring: #5b7180;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #17140f; --surface: #201c17; --text: #f4f1ea; --muted: #b3aca2;
       --line: #342d25; --accent: #cfaf9d; --brand: #95b0c2;
+      --cta-bg: #95b0c2; --cta-bg-hover: #abc3d3; --cta-bg-pressed: #809eb2; --cta-fg: #10161b;
+      --cta2-border: #7a6f63; --cta2-border-hover: #9a8e80; --cta2-bg-hover: #231e18; --cta2-bg-pressed: #2d2720;
+      --cta-ring: #95b0c2;
     }
   }
   * { box-sizing: border-box; }
@@ -63,13 +146,33 @@
     line-height: 1.65; -webkit-font-smoothing: antialiased;
   }
   .wrap { max-width: 880px; margin: 0 auto; padding: 0 16px; }
-  header { padding: 72px 0 40px; text-align: center; }
+  .lang { padding: 22px 0 0; font-size: 14px; text-align: right; }
+  .lang a { color: var(--muted); text-decoration: none; }
+  header { padding: 40px 0; text-align: center; }
   h1 { font-size: clamp(30px, 6vw, 46px); line-height: 1.25; margin: 0 0 14px; letter-spacing: -0.02em; }
   .lede { font-size: clamp(16px, 2.6vw, 19px); color: var(--muted); margin: 0 auto 28px; max-width: 620px; }
   .cta { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-  .btn { display: inline-block; padding: 12px 22px; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: 15px; }
-  .btn-primary { background: var(--brand); color: #fff; }
-  .btn-ghost { border: 1px solid var(--line); color: var(--text); }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 48px; padding: 0 24px; border-radius: 999px;
+    border: 1px solid transparent; text-decoration: none;
+    font-weight: 600; font-size: 15px; line-height: 1;
+    transition: background-color .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .btn:focus-visible { outline: 2px solid var(--cta-ring); outline-offset: 3px; }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--cta-bg); color: var(--cta-fg); }
+  .btn-primary:active { background: var(--cta-bg-pressed); }
+  .btn-ghost { background: transparent; color: var(--text); border-color: var(--cta2-border); }
+  .btn-ghost:active { background: var(--cta2-bg-pressed); }
+  @media (hover: hover) {
+    .btn-primary:hover { background: var(--cta-bg-hover); }
+    .btn-ghost:hover { background: var(--cta2-bg-hover); border-color: var(--cta2-border-hover); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn { transition: none; }
+    .btn:active { transform: none; }
+  }
   .shot { width: 100%; height: auto; border-radius: 16px; border: 1px solid var(--line); margin: 36px 0 8px; }
   h2 { font-size: clamp(22px, 4vw, 28px); margin: 56px 0 12px; letter-spacing: -0.01em; }
   h3 { font-size: 17px; margin: 28px 0 6px; }
@@ -88,6 +191,8 @@
 </head>
 <body>
 <div class="wrap">
+
+<p class="lang"><strong>한국어</strong> · <a href="en/">English</a></p>
 
 <header>
   <p class="accent">macOS · Claude Code · Codex</p>
@@ -139,18 +244,35 @@ sh install.sh</code></pre>
 <p>서버도 계정도 없어요. 기다린 시간, 경험치, 할 일 목록까지 전부 내 맥 안에만 저장돼요.</p>
 
 <h2>자주 묻는 질문</h2>
+
+<h3>Idle Buddy가 뭔가요?</h3>
+<p>Claude Code나 Codex 작업이 30초 넘게 걸리면 화면 오른쪽 아래에 마스코트를 띄우는 macOS 위젯이에요. 기다리는 동안 게임·유머·휴식·할 일을 추천하고, 작업이 끝나면 알림음과 함께 사라집니다. 무료이고 MIT 라이선스예요.</p>
+
 <h3>윈도우나 리눅스에서도 되나요?</h3>
-<p>지금은 macOS만 지원해요. 애플 실리콘과 인텔 모두 됩니다.</p>
+<p>지금은 macOS만 지원해요. 애플 실리콘과 인텔 모두 됩니다. 훅과 추천 페이지는 다른 OS에서도 돌지만 마스코트 창은 macOS 전용이에요.</p>
+
 <h3>Claude Code 없이 Codex만 써도 되나요?</h3>
 <p>네. 둘 중 하나만 있어도 동작해요. 둘 다 쓰면 창 하나에서 누가 작업 중인지 구분해 보여줘요.</p>
+
+<h3>설치는 어떻게 하나요?</h3>
+<p>macOS와 Node.js 18 이상이 필요해요. 저장소를 클론하고 <code>install.sh</code>를 실행하면 Claude Code와 Codex에 훅과 MCP 서버를 등록하고 마스코트 앱을 <code>~/Applications</code>에 설치해요. Rust는 선택이고, 없으면 Releases의 빌드된 앱을 받습니다.</p>
+
+<h3>데이터가 외부로 전송되나요?</h3>
+<p>아니요. 서버도 계정도 없어요. 기다린 시간, 경험치, 할 일 목록까지 전부 <code>data/</code> 폴더에만 저장되고 어디로도 전송되지 않아요. 타이핑 감지는 마지막 키 입력 시각만 보기 때문에 입력 모니터링 권한도 필요 없어요.</p>
+
 <h3>마스코트가 안 떠요.</h3>
-<p>설치 후에는 실행 중이던 Claude Code나 Codex 세션을 새로 열어야 해요. Codex는 첫 실행에서 훅을 한 번 신뢰해야 동작해요.</p>
+<p>설치 후에는 실행 중이던 Claude Code나 Codex 세션을 새로 열어야 적용돼요. Codex는 첫 실행에서 훅을 한 번 신뢰해야 하는데, 터미널에서 <code>codex</code>를 실행하면 나오는 Hooks need review 화면에서 Trust all and continue를 고르면 됩니다.</p>
+
+<hr class="rule" />
+
+<h2>만든 이야기</h2>
+<p><a href="blog/claude-code-waiting-mascot/">Claude Code 기다리는 시간이 아까워서 맥 마스코트를 만들었다</a> — 타이핑 중엔 뜨지 않게 만든 방법, 남은 시간 숫자를 지운 이유, 자리를 뜨게 하는 추천을 뺀 이유.</p>
 
 <hr class="rule" />
 
 <footer>
   <p><a href="https://github.com/delochy/idle-buddy">github.com/delochy/idle-buddy</a> · MIT License</p>
-  <p><a href="https://github.com/delochy/idle-buddy/blob/main/README.en.md">English README</a></p>
+  <p><a href="en/">English page</a> · <a href="llms.txt">llms.txt</a></p>
 </footer>
 
 </div>

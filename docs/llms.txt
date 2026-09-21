@@ -1,0 +1,55 @@
+# Idle Buddy
+
+> A macOS desktop mascot widget that appears when a Claude Code or Codex task runs
+> longer than 30 seconds, suggests something to do while you wait, and disappears
+> when the task finishes. Free, MIT licensed, runs entirely on the local machine
+> with no server and no account. The user interface is in Korean.
+
+## What it is
+
+Idle Buddy watches Claude Code and Codex through their hook systems. When a task
+exceeds 30 seconds, a small mascot window appears in the bottom-right corner of the
+screen and offers a quest: a mini game, a joke, a breathing exercise, or a short
+chore. When the task completes, the mascot beeps and fades out. It never appears
+while the user is typing.
+
+- Platform: macOS only (Apple Silicon and Intel). Hooks run elsewhere, the mascot window does not.
+- Requirements: Node.js 18 or later, and Claude Code or Codex (either one is enough).
+- Rust is optional. Without it the installer downloads a prebuilt app from Releases.
+- Install: `git clone https://github.com/delochy/idle-buddy.git && cd idle-buddy && sh install.sh`
+- Uninstall: `node uninstall.js`
+- License: MIT. Author: delochy.
+
+## What you can do while waiting
+
+- Ten mini games in the widget window: block stacking, sudoku, 2048, minesweeper, snake, whack-a-mole, tic-tac-toe, memory match, reaction time, typing practice.
+- Around 100 developer jokes and 90 riddles, shown without repeats until the pool is exhausted.
+- Ambient rest modes: campfire, ocean with sound, guided breathing, stretching.
+- Chores that open the relevant app: shopping list, desktop and downloads cleanup, unanswered messages.
+
+## Progression and reporting
+
+- The mascot gains experience from time spent waiting and quests chosen. Levels unlock cosmetic items: ribbon, glasses, hat, crown.
+- A daily waiting report shows time waited, number of long tasks, tokens consumed by Claude Code and Codex, and what was done while waiting. It exports as a 1080x1350 share image.
+- Unfinished games and lists resume the next time the mascot appears.
+- Claude Code and Codex can run at the same time; one window shows which agent is working.
+
+## Privacy
+
+No server and no account. All data stays in the repository's `data/` folder and is
+never transmitted. Stored fields are task start and end times, the working
+directory, the first 200 characters of the prompt, and the quest chosen. Typing
+detection reads only the timestamp of the last keypress, never which key, so input
+monitoring permission is not required. Token counts are read from the usage numbers
+that Claude Code (`~/.claude/projects`) and Codex (`~/.codex/sessions`) already
+write themselves.
+
+## Links
+
+- Home (Korean): https://delochy.github.io/idle-buddy/
+- Home (English): https://delochy.github.io/idle-buddy/en/
+- Design notes (Korean): https://delochy.github.io/idle-buddy/blog/claude-code-waiting-mascot/
+- Repository: https://github.com/delochy/idle-buddy
+- Releases: https://github.com/delochy/idle-buddy/releases
+- README in Korean: https://github.com/delochy/idle-buddy/blob/main/README.md
+- README in English: https://github.com/delochy/idle-buddy/blob/main/README.en.md

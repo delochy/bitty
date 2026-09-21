@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Claude Code 기다리는 시간이 아까워서 맥 마스코트를 만들었다</title>
+<meta name="description" content="Claude Code와 Codex 작업이 길어질 때 뜨는 macOS 마스코트 위젯 Idle Buddy를 만든 이야기. 타이핑 중엔 뜨지 않게 만든 방법, 남은 시간 숫자를 지운 이유, 자리를 뜨게 하는 추천을 뺀 이유." />
+<link rel="canonical" href="https://delochy.github.io/idle-buddy/blog/claude-code-waiting-mascot/" />
+<meta name="author" content="delochy" />
+
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Idle Buddy" />
+<meta property="og:locale" content="ko_KR" />
+<meta property="og:title" content="Claude Code 기다리는 시간이 아까워서 맥 마스코트를 만들었다" />
+<meta property="og:description" content="타이핑 중엔 뜨지 않게 만든 방법, 남은 시간 숫자를 지운 이유, 자리를 뜨게 하는 추천을 뺀 이유." />
+<meta property="og:url" content="https://delochy.github.io/idle-buddy/blog/claude-code-waiting-mascot/" />
+<meta property="og:image" content="https://delochy.github.io/idle-buddy/widget.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Claude Code 기다리는 시간이 아까워서 맥 마스코트를 만들었다" />
+<meta name="twitter:description" content="AI가 일하는 동안 놀아주는 맥 마스코트를 만들면서 고민한 것들." />
+<meta name="twitter:image" content="https://delochy.github.io/idle-buddy/widget.png" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Claude Code 기다리는 시간이 아까워서 맥 마스코트를 만들었다",
+  "description": "Claude Code와 Codex 작업이 길어질 때 뜨는 macOS 마스코트 위젯 Idle Buddy를 만든 이야기.",
+  "image": "https://delochy.github.io/idle-buddy/widget.png",
+  "datePublished": "2026-09-21",
+  "dateModified": "2026-09-21",
+  "inLanguage": "ko",
+  "author": { "@type": "Person", "name": "delochy" },
+  "publisher": { "@type": "Person", "name": "delochy" },
+  "mainEntityOfPage": "https://delochy.github.io/idle-buddy/blog/claude-code-waiting-mascot/",
+  "about": { "@type": "SoftwareApplication", "name": "Idle Buddy", "operatingSystem": "macOS" }
+}
+</script>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5EVS427BRZ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5EVS427BRZ');
+</script>
+
+<style>
+  :root {
+    --bg: #fffaf7; --surface: #ffffff; --text: #141414; --muted: #5c5c5c;
+    --line: #e8e0d6; --accent: #ad7556; --brand: #5b7180;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17140f; --surface: #201c17; --text: #f4f1ea; --muted: #b3aca2;
+      --line: #342d25; --accent: #cfaf9d; --brand: #95b0c2;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Segoe UI", sans-serif;
+    line-height: 1.75; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 16px; }
+  .top { padding: 28px 0 0; font-size: 14px; }
+  .top a { color: var(--muted); text-decoration: none; }
+  header { padding: 32px 0 8px; }
+  h1 { font-size: clamp(27px, 5.5vw, 38px); line-height: 1.3; margin: 0 0 12px; letter-spacing: -0.02em; }
+  .byline { color: var(--muted); font-size: 14px; margin: 0 0 8px; }
+  h2 { font-size: clamp(20px, 3.6vw, 25px); margin: 52px 0 10px; letter-spacing: -0.01em; }
+  h3 { font-size: 18px; margin: 34px 0 6px; }
+  p { margin: 0 0 18px; }
+  ul { padding-left: 20px; margin: 0 0 20px; }
+  li { margin: 7px 0; }
+  img.shot { width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--line); margin: 26px 0 6px; }
+  pre { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; overflow-x: auto; font-size: 13.5px; line-height: 1.6; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.92em; }
+  p code, li code { background: var(--surface); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; }
+  .rule { height: 1px; background: var(--line); border: 0; margin: 52px 0; }
+  strong { font-weight: 650; }
+  footer { padding: 8px 0 72px; color: var(--muted); font-size: 14px; }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="top"><a href="../../">&lsaquo; Idle Buddy</a></p>
+
+<header>
+  <h1>Claude Code 기다리는 시간이 아까워서 맥 마스코트를 만들었다</h1>
+  <p class="byline">2026년 9월 21일 · delochy</p>
+</header>
+
+<p>Claude Code에 일을 시켜놓고 로딩 인디케이터만 쳐다본 적 있으신가요. 저는 있습니다. 매일.</p>
+
+<p>리팩터링 하나 시켜놓으면 2분, 테스트 붙여달라고 하면 5분. 그 시간에 뭘 하기도 애매하고 안 하기도 아까워요. 그래서 습관처럼 다른 탭을 엽니다. 트위터 보고, 슬랙 보고, 그러다 15분 지나 있고, 정작 작업은 3분 전에 끝나 있어요. 기다린 시간보다 <strong>돌아오는 데 걸린 시간</strong>이 더 길어지는 거죠.</p>
+
+<p>그래서 만들었습니다. <strong>Idle Buddy</strong> — AI가 일하는 동안 화면 구석에서 놀아주는 macOS 마스코트 위젯이에요.</p>
+
+<img class="shot" src="https://delochy.github.io/idle-buddy/widget.png" alt="Idle Buddy 위젯 라이트 모드와 다크 모드. 작업이 길어지고 있어요 문구와 추천 퀘스트 카드." />
+
+<p>작업이 30초 넘게 걸리면 오른쪽 아래에 조그맣게 뜹니다. 기다리는 동안 할 만한 걸 하나 추천해주고, 작업이 끝나면 "삐빅" 하고 스르륵 사라져요.</p>
+
+<p>추천하는 것들은 이래요.</p>
+
+<ul>
+  <li><strong>게임 10개</strong> — 블록 쌓기, 스도쿠, 2048, 지뢰찾기, 스네이크, 두더지 잡기, 틱택토, 짝 맞추기, 반응속도, 타자 연습</li>
+  <li><strong>웃음</strong> — 개발자 유머 100여 개, 넌센스 퀴즈 90여 개</li>
+  <li><strong>휴식</strong> — 불멍, 물멍(소리 있음), 숨 고르기, 스트레칭</li>
+  <li><strong>할 일</strong> — 장보기 목록, 바탕화면 정리, 밀린 답장</li>
+</ul>
+
+<p>전부 위젯 창 안에서 바로 돌아갑니다. 브라우저를 열지 않아요. 이게 중요했어요.</p>
+
+<hr class="rule" />
+
+<h2>만들면서 고민이 됐던 것 세 가지</h2>
+
+<h3>1. 타이핑 중엔 절대 안 뜨게</h3>
+
+<p>첫 버전은 30초가 지나면 무조건 떴습니다. 써보니 최악이더군요.</p>
+
+<p>Claude Code에 프롬프트를 길게 쓰는 중인데 옆에서 마스코트가 튀어나옵니다. 포커스를 뺏지는 않는데, 시야에 뭔가 움직이면 손이 멈춰요. 도와주려고 만든 게 방해를 하고 있었습니다.</p>
+
+<p>그래서 <strong>마지막으로 키가 눌린 지 4초가 안 지났으면 뜨지 않고 기다립니다.</strong> 손을 멈출 때까지 미뤘다가 조용히 떠요.</p>
+
+<p>문제는 "마지막 키 입력 시각"을 어떻게 아느냐였어요. 키로거처럼 보이는 걸 만들고 싶지 않았고, 손쉬운 사용 권한을 요구하는 것도 싫었거든요. 설치하자마자 권한 팝업 세 개 띄우는 앱은 저부터 안 씁니다.</p>
+
+<p>macOS에 이런 게 있더군요.</p>
+
+<pre><code>#[link(name = "CoreGraphics", kind = "framework")]
+extern "C" {
+    fn CGEventSourceSecondsSinceLastEventType(source_state: i32, event_type: u32) -&gt; f64;
+}
+
+/// 시스템 전체에서 마지막으로 키가 눌린 뒤 몇 초 지났는지.
+/// 어떤 키였는지는 알 수 없고 시각만 본다.
+fn seconds_since_last_key() -&gt; f64 {
+    unsafe {
+        // kCGEventSourceStateHIDSystemState = 1, kCGEventKeyDown = 10
+        CGEventSourceSecondsSinceLastEventType(1, 10)
+    }
+}</code></pre>
+
+<p><code>CGEventSourceSecondsSinceLastEventType</code>은 <strong>마지막 키다운으로부터 몇 초 지났는지 실수 하나만</strong> 돌려줍니다. 무슨 키였는지는 알 수 없어요. 알 수 없으니까 입력 모니터링 권한도 필요 없습니다. 딱 필요한 만큼만 아는 API였어요.</p>
+
+<h3>2. "3분 걸려요" 같은 숫자는 안 보여준다</h3>
+
+<p>처음엔 남은 시간을 예측해서 보여주려고 했어요. "약 3분 걸릴 것 같아요" 이런 식으로.</p>
+
+<p>며칠 써보고 지웠습니다. <strong>한 번 틀리면 그 다음부터 아무도 안 믿어요.</strong> 3분이라고 해놓고 30초 만에 끝나거나 10분씩 끌면, 그 숫자는 그냥 노이즈가 됩니다. 노이즈를 화면 한가운데 두는 건 최악이고요.</p>
+
+<p>지금은 세 단계 문구만 보여줍니다.</p>
+
+<pre><code>const HEADLINES = {
+  SHORT:  '금방 끝날 것 같아요',
+  MEDIUM: '좀 걸릴 것 같아요 ⏳',
+  LONG:   '꽤 오래 걸릴 것 같아요 ⏳',
+};</code></pre>
+
+<p>틀려도 별로 안 아픈 정도의 정보만 주는 거예요. 대신 이 단계에 따라 추천하는 퀘스트가 달라집니다. 금방 끝날 것 같으면 유머 한 줄, 오래 걸릴 것 같으면 스도쿠 한 판.</p>
+
+<h3>3. 규모는 두 신호 중 긴 쪽으로</h3>
+
+<p>작업이 얼마나 걸릴지는 두 군데서 알아냅니다.</p>
+
+<p>하나는 <strong>Claude가 직접 말해주는 것</strong>. MCP 서버를 하나 물려놔서, 작업 시작할 때 Claude가 "이거 SHORT/MEDIUM/LONG 중 하나야" 하고 보고합니다. 작업 내용을 아는 쪽이 판단하는 거라 초반 몇 초 동안은 이게 제일 정확해요.</p>
+
+<p>다른 하나는 <strong>그냥 흐른 시간</strong>. 3분 넘으면 최소 MEDIUM, 10분 넘으면 LONG.</p>
+
+<p>둘 중 <strong>더 긴 쪽</strong>을 씁니다.</p>
+
+<pre><code>const ELAPSED_LEVELS = [
+  { minMs: 10 * 60 * 1000, level: 'LONG' },
+  { minMs: 3  * 60 * 1000, level: 'MEDIUM' },
+];</code></pre>
+
+<p>Claude가 "금방 끝나요" 해놓고 8분째 돌고 있으면, 추천도 알아서 긴 걸로 바뀌어요. 예측이 틀리는 걸 전제로 깔고 설계한 셈입니다.</p>
+
+<hr class="rule" />
+
+<h2>일부러 안 만든 것</h2>
+
+<p><strong>자리를 뜨게 하는 추천은 안 넣었어요.</strong> 산책 다녀오세요, 커피 한 잔 하고 오세요 같은 거요.</p>
+
+<p>처음엔 넣었다가 뺐습니다. 목적이 반대거든요. 이건 <strong>자리에 앉은 채로 심심하지 않게</strong> 만드는 도구지, 자리를 뜨게 만드는 도구가 아니에요. 자리를 뜨면 작업이 끝나도 모르고, 돌아오는 데 또 시간이 걸립니다. 애초에 해결하려던 문제가 그거였고요.</p>
+
+<p>그래서 추천은 전부 <strong>30초에서 10분 사이에, 책상 앞에서, 위젯 창 안에서</strong> 끝나는 것들로만 채웠습니다. 장보기 목록 정리 같은 할 일도 마찬가지예요 — 누르면 해당 앱이 열리지만 어디 가라고는 안 합니다.</p>
+
+<p><strong>서버도 계정도 안 만들었습니다.</strong> 기다린 시간이든 경험치든 전부 로컬 <code>data/</code> 폴더에만 쌓여요. 저장되는 건 작업 시작·종료 시각, 작업 폴더, 프롬프트 앞 200자, 고른 퀘스트. 어디로도 안 보냅니다.</p>
+
+<hr class="rule" />
+
+<h2>덤으로 생긴 것들</h2>
+
+<p>만들다 보니 데이터가 쌓여서 <strong>오늘의 기다림 리포트</strong>가 생겼어요. 오늘 AI를 몇 분 기다렸는지, 긴 작업이 몇 번이었는지, 토큰을 얼마나 태웠는지, 기다리면서 뭘 했는지. 공유용 이미지로도 저장됩니다.</p>
+
+<p>토큰 수는 따로 계측하는 게 아니라 Claude Code(<code>~/.claude/projects</code>)랑 Codex(<code>~/.codex/sessions</code>)가 <strong>원래 남기는 기록에서 숫자만 읽어옵니다.</strong> 제가 뭘 더 수집하지 않아요.</p>
+
+<p>그리고 <strong>마스코트가 큽니다.</strong> 기다린 시간만큼 경험치가 쌓이고 레벨이 오르면 리본, 안경, 모자, 왕관이 열려요. 이건 솔직히 그냥 만들고 싶어서 만들었습니다.</p>
+
+<p>Claude Code랑 Codex를 같이 켜놔도 창은 하나입니다. 누가 작업 중인지 표시하고, 누가 끝났는지 알려줘요. 종료 소리도 서로 다릅니다.</p>
+
+<hr class="rule" />
+
+<h2>써보시려면</h2>
+
+<p>macOS, Node.js 18 이상, 그리고 Claude Code나 Codex 중 하나면 됩니다. Rust는 있으면 직접 빌드하고, 없으면 빌드된 앱을 받아요.</p>
+
+<pre><code>git clone https://github.com/delochy/idle-buddy.git
+cd idle-buddy
+sh install.sh</code></pre>
+
+<p>설치 스크립트가 Claude Code랑 Codex에 훅이랑 MCP 서버를 등록하고, 마스코트 앱을 <code>~/Applications</code>에 설치합니다. 건드리는 설정 파일은 전부 <code>.bak-&lt;시간&gt;</code>으로 백업해요. 지우는 건 <code>node uninstall.js</code> 한 줄입니다.</p>
+
+<p>설치 후엔 <strong>실행 중이던 Claude Code / Codex 세션을 새로 열어야</strong> 적용돼요. Codex 쓰시는 분은 터미널에서 <code>codex</code> 한 번 실행해서 "Hooks need review" 화면이 뜨면 <strong>Trust all and continue</strong>를 골라주셔야 훅이 돕니다. 안 그러면 조용히 무시돼요. (이거 때문에 한참 헤맸습니다.)</p>
+
+<p>아직 macOS만 됩니다. 훅이랑 추천 페이지는 다른 OS에서도 도는데 마스코트 창이 macOS 전용이에요.</p>
+
+<p>써보시고 이상한 거 있으면 이슈 남겨주세요. 어떤 퀘스트가 재밌었는지도 궁금합니다.</p>
+
+<hr class="rule" />
+
+<footer>
+  <p><a href="https://github.com/delochy/idle-buddy">github.com/delochy/idle-buddy</a> · MIT License</p>
+  <p><a href="../../">Idle Buddy 소개 페이지</a></p>
+</footer>
+
+</div>
+</body>
+</html>

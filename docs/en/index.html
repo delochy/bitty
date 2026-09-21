@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Idle Buddy — A Mac Mascot for the Time You Wait on Claude Code and Codex</title>
+<meta name="description" content="Idle Buddy is a free macOS widget that pops a small mascot into the corner of your screen when a Claude Code or Codex task runs longer than 30 seconds, suggesting mini games, jokes, ambient rest or a quick chore while you wait. No server, no account." />
+<link rel="canonical" href="https://delochy.github.io/idle-buddy/en/" />
+<link rel="alternate" hreflang="ko" href="https://delochy.github.io/idle-buddy/" />
+<link rel="alternate" hreflang="en" href="https://delochy.github.io/idle-buddy/en/" />
+<link rel="alternate" hreflang="x-default" href="https://delochy.github.io/idle-buddy/" />
+<meta name="author" content="delochy" />
+<meta name="google-site-verification" content="J-BfosZVjlPxU5k20HHT7TVzaHzCspKng3CnP8mj4-c" />
+<meta name="keywords" content="Idle Buddy, Claude Code, Codex, macOS widget, desktop mascot, developer tools, MCP server, waiting, idle timer" />
+
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Idle Buddy" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:locale:alternate" content="ko_KR" />
+<meta property="og:title" content="Idle Buddy — A Mac mascot for the time you wait on AI" />
+<meta property="og:description" content="When a Claude Code or Codex task runs long, a mascot appears with something to do. When the task finishes, it fades away." />
+<meta property="og:url" content="https://delochy.github.io/idle-buddy/en/" />
+<meta property="og:image" content="https://delochy.github.io/idle-buddy/widget.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Idle Buddy — A Mac mascot for the time you wait on AI" />
+<meta name="twitter:description" content="A macOS mascot widget that keeps you company while Claude Code and Codex work." />
+<meta name="twitter:image" content="https://delochy.github.io/idle-buddy/widget.png" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Idle Buddy",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "macOS",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "description": "A macOS widget that pops a mascot into the corner of the screen when a Claude Code or Codex task runs longer than 30 seconds, suggesting mini games, jokes, ambient rest or a quick chore while you wait.",
+  "url": "https://delochy.github.io/idle-buddy/en/",
+  "downloadUrl": "https://github.com/delochy/idle-buddy/releases",
+  "codeRepository": "https://github.com/delochy/idle-buddy",
+  "author": { "@type": "Person", "name": "delochy" },
+  "license": "https://github.com/delochy/idle-buddy/blob/main/LICENSE",
+  "inLanguage": "en"
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is Idle Buddy?",
+      "acceptedAnswer": { "@type": "Answer", "text": "A macOS widget that pops a small mascot into the bottom-right corner of your screen when a Claude Code or Codex task runs longer than 30 seconds. It suggests a mini game, a joke, an ambient rest mode or a short chore while you wait, then chimes and fades away when the task finishes. It is free and MIT licensed." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it work on Windows or Linux?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Not yet. The hooks and the quest page run anywhere, but the floating mascot window is macOS-only. Both Apple Silicon and Intel are supported." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I use it with only Codex, without Claude Code?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Either one is enough. If you run both, a single window shows which tool is working and which one finished, with a different sound for each." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I install it?",
+      "acceptedAnswer": { "@type": "Answer", "text": "You need macOS and Node.js 18 or later. Clone the repository and run install.sh. The installer adds hooks and registers an MCP server for Claude Code and Codex, then installs the widget into ~/Applications. Rust is optional; without it the installer downloads a prebuilt app from Releases." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is any data sent anywhere?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. There is no server and no account. Everything stays in the local data/ folder: task start and end times, the working folder, the first 200 characters of each prompt, and the quests you picked. Typing detection only reads when a key was last pressed, never which key, so no Input Monitoring permission is needed." }
+    },
+    {
+      "@type": "Question",
+      "name": "The mascot never appears.",
+      "acceptedAnswer": { "@type": "Answer", "text": "Restart any Claude Code or Codex session that was already running when you installed. Codex also requires you to trust new hooks once: run codex in a terminal and choose Trust all and continue on the Hooks need review screen, otherwise the hooks are silently skipped." }
+    }
+  ]
+}
+</script>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5EVS427BRZ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5EVS427BRZ');
+</script>
+
+<style>
+  :root {
+    --bg: #fffaf7; --surface: #ffffff; --text: #141414; --muted: #5c5c5c;
+    --line: #e8e0d6; --accent: #ad7556; --brand: #5b7180;
+    /* CTA — 주 버튼 */
+    --cta-bg: #5b7180;
+    --cta-bg-hover: #4b5f6c;
+    --cta-bg-pressed: #3e4e59;
+    --cta-fg: #ffffff;
+    /* CTA — 보조 버튼 */
+    --cta2-border: #8a7c6e;
+    --cta2-border-hover: #6e6155;
+    --cta2-bg-hover: #f3ebe3;
+    --cta2-bg-pressed: #e9dfd5;
+    --cta-ring: #5b7180;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17140f; --surface: #201c17; --text: #f4f1ea; --muted: #b3aca2;
+      --line: #342d25; --accent: #cfaf9d; --brand: #95b0c2;
+      --cta-bg: #95b0c2; --cta-bg-hover: #abc3d3; --cta-bg-pressed: #809eb2; --cta-fg: #10161b;
+      --cta2-border: #7a6f63; --cta2-border-hover: #9a8e80; --cta2-bg-hover: #231e18; --cta2-bg-pressed: #2d2720;
+      --cta-ring: #95b0c2;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Pretendard", sans-serif;
+    line-height: 1.65; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 16px; }
+  .lang { padding: 22px 0 0; font-size: 14px; text-align: right; }
+  .lang a { color: var(--muted); text-decoration: none; }
+  header { padding: 40px 0; text-align: center; }
+  h1 { font-size: clamp(30px, 6vw, 46px); line-height: 1.2; margin: 0 0 14px; letter-spacing: -0.02em; }
+  .lede { font-size: clamp(16px, 2.6vw, 19px); color: var(--muted); margin: 0 auto 28px; max-width: 620px; }
+  .cta { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 48px; padding: 0 24px; border-radius: 999px;
+    border: 1px solid transparent; text-decoration: none;
+    font-weight: 600; font-size: 15px; line-height: 1;
+    transition: background-color .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .btn:focus-visible { outline: 2px solid var(--cta-ring); outline-offset: 3px; }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--cta-bg); color: var(--cta-fg); }
+  .btn-primary:active { background: var(--cta-bg-pressed); }
+  .btn-ghost { background: transparent; color: var(--text); border-color: var(--cta2-border); }
+  .btn-ghost:active { background: var(--cta2-bg-pressed); }
+  @media (hover: hover) {
+    .btn-primary:hover { background: var(--cta-bg-hover); }
+    .btn-ghost:hover { background: var(--cta2-bg-hover); border-color: var(--cta2-border-hover); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn { transition: none; }
+    .btn:active { transform: none; }
+  }
+  .shot { width: 100%; height: auto; border-radius: 16px; border: 1px solid var(--line); margin: 36px 0 8px; }
+  h2 { font-size: clamp(22px, 4vw, 28px); margin: 56px 0 12px; letter-spacing: -0.01em; }
+  h3 { font-size: 17px; margin: 28px 0 6px; }
+  p { margin: 0 0 14px; }
+  ul { padding-left: 20px; margin: 0 0 18px; }
+  li { margin: 6px 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 18px 0 8px; }
+  .grid img { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--line); }
+  pre { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; overflow-x: auto; font-size: 14px; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .rule { height: 1px; background: var(--line); border: 0; margin: 48px 0; }
+  .accent { color: var(--accent); font-weight: 600; }
+  footer { padding: 40px 0 72px; color: var(--muted); font-size: 14px; text-align: center; }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="lang"><a href="../">한국어</a> · <strong>English</strong></p>
+
+<header>
+  <p class="accent">macOS · Claude Code · Codex</p>
+  <h1>A mascot for the time<br />your AI is working</h1>
+  <p class="lede">When a Claude Code or Codex task runs longer than 30 seconds, Idle Buddy pops a small mascot into the bottom-right corner of your screen and suggests something to do. When the task finishes, it chimes and fades away.</p>
+  <div class="cta">
+    <a class="btn btn-primary" href="https://github.com/delochy/idle-buddy">Get it on GitHub</a>
+    <a class="btn btn-ghost" href="https://github.com/delochy/idle-buddy/releases">Latest release</a>
+  </div>
+  <img class="shot" src="https://delochy.github.io/idle-buddy/widget.png" alt="The Idle Buddy widget in light and dark mode, showing a quest carousel while a task runs." />
+</header>
+
+<h2>Things to do while you wait</h2>
+<ul>
+  <li><strong>10 mini games</strong> — Block Stack, Sudoku, 2048, Minesweeper, Snake, Whack-a-mole, Tic-tac-toe, Memory Match, Reaction Test, Typing</li>
+  <li><strong>Fun</strong> — 69 dev jokes and 50 riddles, with no repeats until you have seen them all</li>
+  <li><strong>Chill</strong> — a campfire and an ocean view with optional ambient sound, a breathing exercise, stretching</li>
+  <li><strong>Chores</strong> — shopping list, tidy your Desktop or Downloads, free up disk space. Tapping one opens the right app.</li>
+</ul>
+<p>Everything runs inside the widget window. No browser tab to get lost in.</p>
+
+<h2>The waiting adds up</h2>
+<ul>
+  <li><strong>Grow your buddy</strong> — time waited and quests picked earn XP. Levels unlock ribbons, glasses, hats, crowns and colors.</li>
+  <li><strong>Today's wait report</strong> — how long you waited on AI, how many tasks ran over 30 seconds, tokens burned across Claude and Codex, and what you did meanwhile. Saves as a 1080×1350 image.</li>
+  <li><strong>Pick up where you left off</strong> — if the widget closes mid-game, it reopens that game next time.</li>
+  <li><strong>Claude and Codex together</strong> — one window shows which tool is working, tells you which finished, and uses a different sound for each.</li>
+</ul>
+
+<div class="grid">
+  <img src="https://delochy.github.io/idle-buddy/promo/01-recommend-dark.png" alt="Recommendations in dark mode" loading="lazy" />
+  <img src="https://delochy.github.io/idle-buddy/promo/02-fire.png" alt="Campfire screen" loading="lazy" />
+  <img src="https://delochy.github.io/idle-buddy/promo/04-sudoku.png" alt="Sudoku game" loading="lazy" />
+  <img src="https://delochy.github.io/idle-buddy/promo/08-pet.png" alt="Petting the mascot" loading="lazy" />
+</div>
+<p><small>The screenshots show the Korean UI. The widget switches to English automatically when your Mac is not set to Korean, and the globe button cycles languages.</small></p>
+
+<hr class="rule" />
+
+<h2>How it works</h2>
+<pre><code>Claude Code / Codex ──(hooks)──▶ data/state.json ◀──(polled every 2s)── mascot widget
+                                                            │
+                        local page http://127.0.0.1:4318/quest (games &amp; quests)</code></pre>
+<p>A hook records when a task starts. If it is still running after 30 seconds, the mascot appears — but only once you stop typing, and it never steals focus. Suggestions adapt to the task size: Claude reports a rough size over MCP, and they get longer if the task drags on. It never claims "this will take N minutes".</p>
+
+<h2>Install</h2>
+<p>You need macOS and Node.js 18 or later, plus Claude Code or Codex. Rust is optional — without it the installer downloads a prebuilt app from Releases.</p>
+<pre><code>git clone https://github.com/delochy/idle-buddy.git
+cd idle-buddy
+sh install.sh</code></pre>
+<p>The installer adds hooks and registers an MCP server for Claude Code and Codex, then installs the widget into <code>~/Applications</code> and launches it. Every config file it touches is backed up as <code>.bak-&lt;timestamp&gt;</code> first.</p>
+
+<h3>Update</h3>
+<pre><code>git pull &amp;&amp; sh install.sh</code></pre>
+
+<h3>Uninstall</h3>
+<pre><code>node uninstall.js</code></pre>
+<p>Removes the hooks, the MCP registration, the login item and the widget app. Your repo folder and <code>data/</code> history are left alone.</p>
+
+<h2>Privacy</h2>
+<p>No server and no account. Everything stays in the local <code>data/</code> folder: task start and end times, the working folder, the first 200 characters of each prompt, and the quests you picked.</p>
+<p>Token counts in the report are read from the usage numbers that Claude Code (<code>~/.claude/projects</code>) and Codex (<code>~/.codex/sessions</code>) already log. Typing detection only checks <em>when</em> a key was last pressed — it cannot see which key, so it needs no Input Monitoring permission.</p>
+
+<h2>Known limitations</h2>
+<ul>
+  <li>The widget is macOS-only. Hooks and the quest page run elsewhere, but the floating window does not.</li>
+  <li>Codex silently skips new hooks until you trust them once.</li>
+  <li>The app is not signed or notarized by Apple.</li>
+</ul>
+
+<h2>Frequently asked questions</h2>
+
+<h3>What is Idle Buddy?</h3>
+<p>A macOS widget that pops a small mascot into the bottom-right corner of your screen when a Claude Code or Codex task runs longer than 30 seconds. It suggests a mini game, a joke, an ambient rest mode or a short chore while you wait, then chimes and fades away when the task finishes. It is free and MIT licensed.</p>
+
+<h3>Does it work on Windows or Linux?</h3>
+<p>Not yet. The hooks and the quest page run anywhere, but the floating mascot window is macOS-only. Both Apple Silicon and Intel are supported.</p>
+
+<h3>Can I use it with only Codex, without Claude Code?</h3>
+<p>Yes. Either one is enough. If you run both, a single window shows which tool is working and which one finished, with a different sound for each.</p>
+
+<h3>How do I install it?</h3>
+<p>You need macOS and Node.js 18 or later. Clone the repository and run <code>install.sh</code>. The installer adds hooks and registers an MCP server for Claude Code and Codex, then installs the widget into <code>~/Applications</code>. Rust is optional; without it the installer downloads a prebuilt app from Releases.</p>
+
+<h3>Is any data sent anywhere?</h3>
+<p>No. There is no server and no account. Everything stays in the local <code>data/</code> folder: task start and end times, the working folder, the first 200 characters of each prompt, and the quests you picked. Typing detection only reads when a key was last pressed, never which key, so no Input Monitoring permission is needed.</p>
+
+<h3>The mascot never appears.</h3>
+<p>Restart any Claude Code or Codex session that was already running when you installed. Codex also requires you to trust new hooks once: run <code>codex</code> in a terminal and choose <strong>Trust all and continue</strong> on the "Hooks need review" screen, otherwise the hooks are silently skipped.</p>
+
+<hr class="rule" />
+
+<footer>
+  <p><a href="https://github.com/delochy/idle-buddy">github.com/delochy/idle-buddy</a> · MIT License</p>
+  <p><a href="../">한국어 페이지</a> · <a href="https://github.com/delochy/idle-buddy/blob/main/README.en.md">README</a> · <a href="../llms.txt">llms.txt</a></p>
+</footer>
+
+</div>
+</body>
+</html>
