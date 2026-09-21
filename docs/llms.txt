@@ -46,7 +46,8 @@ write themselves.
 
 ## Links
 
-- Home: https://delochy.github.io/idle-buddy/
+- Home (Korean): https://delochy.github.io/idle-buddy/
+- Home (English): https://delochy.github.io/idle-buddy/en/
 - Design notes (Korean): https://delochy.github.io/idle-buddy/blog/claude-code-waiting-mascot/
 - Repository: https://github.com/delochy/idle-buddy
 - Releases: https://github.com/delochy/idle-buddy/releases
