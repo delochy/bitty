@@ -1,0 +1,38 @@
+name: 💡 아이디어 / Feature request
+description: 이런 게 있으면 좋겠어요 / Suggest an idea
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Idle Buddy는 **AI를 기다리는 동안 심심하지 않게** 하는 앱이에요. 자리를 비우라고 하거나, 계정·외부 서버가 필요한 기능은 방향과 맞지 않아요.
+        Idle Buddy keeps you company **while you wait on AI**. Features that send you away from your desk or need accounts or external servers don't fit.
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: 어떤 걸 원하세요? / What would you like?
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: 왜 필요한가요? / Why?
+      description: 기다리는 동안 어떤 순간에 이게 있으면 좋을까요? / When would this help while you wait?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: 종류 / Kind
+      options:
+        - 새 미니 게임 / New mini game
+        - 새 퀘스트·할 일 / New quest
+        - 유머·퀴즈·타자 문장 / Jokes, riddles, typing lines
+        - 번역 / Translation
+        - 위젯 동작 / Widget behavior
+        - 그 밖에 / Other
+    validations:
+      required: false

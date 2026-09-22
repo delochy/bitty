@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 💬 질문·잡담 / Questions and chat
+    url: https://github.com/delochy/idle-buddy/discussions
+    about: 사용법 질문이나 가벼운 얘기는 토론에서 해요. / Ask how-to questions and chat in Discussions.
+  - name: 🔒 보안 문제 / Security issue
+    url: https://github.com/delochy/idle-buddy/security/advisories/new
+    about: 보안 문제는 공개 이슈 대신 비공개로 알려 주세요. / Report security problems privately, not as a public issue.
