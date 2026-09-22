@@ -11,6 +11,7 @@ When a task runs longer than 30 seconds, Idle Buddy pops a small mascot into the
 
 <p align="center"><img src="docs/promo/widget-typing.gif" width="300" alt="Typing one line in the widget and seeing the result"><br><sub>One line of typing practice while you wait</sub></p>
 
+- 🔥 **Watch the tokens burn**: open the widget and a live chart shows the tokens your current task is burning. The flame flickers faster the more it burned in the last minute. Tap a category to get something to do.
 - 🎮 **10 mini games right in the widget**: Block Stack, Sudoku, 2048, Minesweeper, Snake, Whack-a-mole, Tic-tac-toe, Memory Match, Reaction Test, Typing
 - 😂 **Fun**: 69 dev jokes and 50 riddles (no repeats until you've seen them all)
 - 🧘 **Chill**: a campfire 🔥 and an ocean view 🌊 (with optional ambient sound), breathing exercise, stretching

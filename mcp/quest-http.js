@@ -233,6 +233,27 @@ function pageShell(bodyHtml) {
   }
   .rail .count { font-size: 10px; color: var(--muted); writing-mode: horizontal-tb; }
 
+  /* 21차: 기본 화면 — 지금 작업이 태우는 토큰. 캐러셀 자리(132px)를 그대로 쓰고,
+     칸으로 감싸지 않고 글자 크기와 간격으로만 위계를 준다. */
+  #burn { height: 132px; display: flex; flex-direction: column; }
+  #burn .num {
+    display: flex; align-items: baseline; justify-content: center; gap: 6px;
+    font-size: 26px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.1; font-variant-numeric: tabular-nums;
+  }
+  #burn .flame { font-size: 18px; display: inline-block; transform-origin: 50% 90%; opacity: 0.3; filter: grayscale(0.6); transition: opacity 0.4s, filter 0.4s; }
+  #burn.hot .flame { opacity: 1; filter: none; animation: flicker var(--flick, 0.9s) ease-in-out infinite alternate; }
+  @keyframes flicker { from { transform: scale(0.9) rotate(-4deg); } to { transform: scale(1.14) rotate(4deg); } }
+  #burn .label { text-align: center; font-size: 11px; color: var(--muted); margin-top: 3px; }
+  #burn .chart { flex: 1; position: relative; margin-top: 10px; min-height: 0; }
+  #burn svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  #burn .idle { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; font-size: 11px; color: var(--muted); word-break: keep-all; padding: 0 12px; }
+  #burn.resting svg { display: none; }
+  #burn.resting .idle { display: flex; }
+  #burn .meta { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+  #burn .dot { animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: 0.35; } }
+  @media (prefers-reduced-motion: reduce) { #burn.hot .flame, #burn .dot { animation: none; } }
+
   /* 퀘스트를 고르면 보이는 화면 */
   #picked { display: none; text-align: center; }
   #picked .card {
@@ -555,6 +576,17 @@ ${bodyHtml}
       if (btn) onQuestClick(btn);
     });
 
+    // 21차: 토큰 화면이 있으면(기본 화면) 탭을 고를 때까지 캐러셀은 숨겨 둔다.
+    const burnEl = document.getElementById('burn');
+    const carouselEl = document.querySelector('.carousel');
+    const showBurn = (on) => {
+      if (!burnEl) return;
+      burnEl.style.display = on ? '' : 'none';
+      carouselEl.style.display = on ? 'none' : 'flex';
+      document.getElementById('picked').style.display = 'none';
+      if (on) window.dispatchEvent(new Event('burn:show'));
+    };
+
     // 카테고리 탭: 목록에 실제로 있는 카테고리만 보여준다.
     const cats = document.getElementById('cats');
     if (cats) {
@@ -564,13 +596,22 @@ ${bodyHtml}
       });
       cats.addEventListener('click', (e) => {
         const b = e.target.closest('button');
-        if (!b || b.classList.contains('on')) return;
+        if (!b) return;
+        if (b.classList.contains('on')) {
+          // 같은 탭을 다시 누르면 토큰 화면으로 돌아간다
+          if (!burnEl) return;
+          b.classList.remove('on');
+          showBurn(true);
+          return;
+        }
         cats.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+        questChosen = false;
+        showBurn(false);
         build(b.dataset.cat, true);
       });
     }
 
-    build('all', true);
+    if (!burnEl) build('all', true);
     setInterval(() => {
       if (!loop || reduced || questChosen || hovering || Date.now() < pausedUntil) return;
       normalize();
@@ -593,6 +634,97 @@ ${bodyHtml}
       { passive: false }
     );
   }
+
+  // 21차: 기본 화면 — 지금 작업이 태우는 토큰을 2초마다 새로 그린다.
+  // 작업이 없으면 오늘 합계만 보여준다. 불꽃은 최근 1분 동안 탄 양에 따라 빨리 흔들린다.
+  (function () {
+    const burn = document.getElementById('burn');
+    if (!burn) return;
+    const $ = (id) => document.getElementById(id);
+    const numEl = $('burnNum'), labelEl = $('burnLabel'), svg = $('burnChart');
+    const area = $('burnArea'), line = $('burnLine'), dot = $('burnDot');
+    const rateEl = $('burnRate'), todayEl = $('burnToday');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // 리포트(games/report.html)와 같은 표기: 3,251만 / 10.9억 · 영어는 32.5M
+    function tok(n) {
+      n = Math.round(n || 0);
+      if (L === 'en') {
+        if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\\.0$/, '') + 'B';
+        if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\\.0$/, '') + 'M';
+        if (n >= 1e3) return Math.round(n / 1e3) + 'K';
+        return String(n);
+      }
+      if (n >= 1e8) return (n / 1e8).toFixed(1).replace(/\\.0$/, '') + '억';
+      if (n >= 1e4) return Math.round(n / 1e4).toLocaleString('ko-KR') + '만';
+      return n.toLocaleString('ko-KR');
+    }
+
+    // 숫자는 올라가는 게 보이게 0.7초 동안 굴린다
+    let shown = null, anim = 0;
+    function countTo(v) {
+      if (reduced || shown === null) { shown = v; numEl.textContent = tok(v); return; }
+      const from = shown, t0 = performance.now(), my = ++anim;
+      const frame = (t) => {
+        if (my !== anim) return;
+        const k = Math.min(1, (t - t0) / 700);
+        shown = from + (v - from) * (1 - Math.pow(1 - k, 3));
+        numEl.textContent = tok(shown);
+        if (k < 1) requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+    }
+
+    function draw(series) {
+      const r = svg.getBoundingClientRect();
+      const W = Math.max(1, Math.round(r.width)), H = Math.max(1, Math.round(r.height));
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      if (series.length < 2) { line.setAttribute('d', ''); area.setAttribute('d', ''); dot.setAttribute('r', 0); return; }
+      const t0 = series[0][0], t1 = Math.max(series[series.length - 1][0], t0 + 1);
+      const max = Math.max(1, series[series.length - 1][1]);
+      const P = 4;
+      const pts = series.map(([t, v]) => [P + (t - t0) / (t1 - t0) * (W - 2 * P), H - P - v / max * (H - 2 * P)]);
+      const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+      const last = pts[pts.length - 1];
+      line.setAttribute('d', d);
+      area.setAttribute('d', d + ' L' + last[0].toFixed(1) + ' ' + H + ' L' + pts[0][0].toFixed(1) + ' ' + H + ' Z');
+      dot.setAttribute('r', 3);
+      dot.setAttribute('cx', last[0].toFixed(1));
+      dot.setAttribute('cy', last[1].toFixed(1));
+    }
+
+    function render(d) {
+      const live = d.live || {};
+      const t = d.today || { claude: { total: 0 }, codex: { total: 0 } };
+      const today = t.claude.total + t.codex.total;
+      const resting = !d.working;
+      burn.classList.toggle('resting', resting);
+      if (resting) {
+        labelEl.textContent = T('오늘 태운 토큰');
+        burn.classList.remove('hot');
+        countTo(today);
+        rateEl.textContent = t.claude.total ? 'Claude ' + tok(t.claude.total) : '';
+        todayEl.textContent = t.codex.total ? 'Codex ' + tok(t.codex.total) : '';
+        return;
+      }
+      labelEl.textContent = T('이번 작업에서 태운 토큰');
+      const rate = live.recent || 0;
+      burn.classList.toggle('hot', rate > 0);
+      burn.style.setProperty('--flick', rate > 2e6 ? '0.35s' : rate > 5e5 ? '0.55s' : '0.9s');
+      countTo(live.total || 0);
+      rateEl.textContent = T('분당 {n}', { n: tok(rate) });
+      todayEl.textContent = T('오늘 {n}', { n: tok(today) });
+      draw(live.series || []);
+    }
+
+    async function tick() {
+      if (window.__idleHidden || document.hidden || burn.style.display === 'none') return;
+      try { render(await (await fetch('/tokens/live')).json()); } catch (e) {}
+    }
+    tick();
+    setInterval(tick, 2000);
+    window.addEventListener('burn:show', tick);
+  })();
 </script>
 </body>
 </html>`;
@@ -623,16 +755,35 @@ function renderQuestList(quests) {
     .join('\n');
 }
 
-function renderCarousel(quests, listAttrs) {
+// 21차: tokenFirst면 탭 아래 기본 화면이 캐러셀이 아니라 "지금 태우는 토큰" 그래프다.
+// 카테고리 탭을 누르면 그때 캐러셀이 나오고, 같은 탭을 다시 누르면 그래프로 돌아온다.
+function renderCarousel(quests, listAttrs, opts = {}) {
+  const tokenFirst = Boolean(opts.tokenFirst);
   return `
   <div class="cats" id="cats">
-    <button class="on" data-cat="all" data-i18n>전체</button>
+    <button${tokenFirst ? '' : ' class="on"'} data-cat="all" data-i18n>전체</button>
     <button data-cat="game" data-i18n>🎮 게임</button>
     <button data-cat="fun" data-i18n>😂 웃음</button>
     <button data-cat="rest" data-i18n>🧘 휴식</button>
     <button data-cat="todo" data-i18n>📋 할 일</button>
-  </div>
-  <div class="carousel">
+  </div>${tokenFirst ? `
+  <div id="burn">
+    <div class="num"><span class="flame">🔥</span><span id="burnNum">-</span></div>
+    <div class="label" id="burnLabel" data-i18n>이번 작업에서 태운 토큰</div>
+    <div class="chart">
+      <svg id="burnChart" aria-hidden="true">
+        <defs><linearGradient id="burnFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#c96442" stop-opacity=".32"/><stop offset="1" stop-color="#c96442" stop-opacity="0"/>
+        </linearGradient></defs>
+        <path id="burnArea" fill="url(#burnFill)"/>
+        <path id="burnLine" fill="none" stroke="#c96442" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        <circle id="burnDot" class="dot" r="3" fill="#c96442"/>
+      </svg>
+      <div class="idle" id="burnIdle" data-i18n>작업이 시작되면 토큰이 타는 게 여기 보여요</div>
+    </div>
+    <div class="meta"><span id="burnRate"></span><span id="burnToday"></span></div>
+  </div>` : ''}
+  <div class="carousel"${tokenFirst ? ' style="display:none"' : ''}>
     <div id="quests" ${listAttrs}>
       <div class="track">
 ${renderQuestList(quests)}
@@ -674,7 +825,7 @@ function renderRecommendationPage() {
   return (
     mascotHeader(`      <h1 data-i18n>${headlineFor(info)}</h1>
       <p class="sub" data-i18n>${sub}</p>`) +
-    renderCarousel(quests, `data-level="${info ? info.level : ''}" data-escalated="${info && info.escalated ? 1 : 0}"`)
+    renderCarousel(quests, `data-level="${info ? info.level : ''}" data-escalated="${info && info.escalated ? 1 : 0}"`, { tokenFirst: true })
   );
 }
 
@@ -718,6 +869,8 @@ function readBody(req) {
     req.on('error', reject);
   });
 }
+
+let todayMemo = null; // /tokens/live 의 오늘 합계 캐시
 
 function start() {
   const server = http.createServer(async (req, res) => {
@@ -774,6 +927,20 @@ function start() {
         const day = /^\d{4}-\d{2}-\d{2}$/.test(url.searchParams.get('day') || '') ? url.searchParams.get('day') : stats.todayKey();
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(stats.dayStats(day)));
+        return;
+      }
+
+      // 21차: 추천 화면 기본 뷰 — 지금 작업이 태우는 토큰 (2초마다 불린다)
+      if (req.method === 'GET' && url.pathname === '/tokens/live') {
+        const now = Date.now();
+        const working = Object.entries(state.getState().sessions)
+          .filter(([, r]) => r && (r.state === 'WORKING' || r.state === 'NEEDS_INPUT') && r.startedAt &&
+            now - r.startedAt < 6 * 3600 * 1000)
+          .map(([id, r]) => ({ sessionId: id, tool: String(r.source).startsWith('codex') ? 'codex' : 'claude', startedAt: r.startedAt }));
+        // 오늘 합계는 디렉터리를 훑어야 해서 15초에 한 번만 새로 센다
+        if (!todayMemo || now - todayMemo.at > 15 * 1000) todayMemo = { at: now, value: stats.todayTokens() };
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ now, working: working.length, live: stats.liveTokens(working), today: todayMemo.value }));
         return;
       }
 
