@@ -439,6 +439,28 @@ fn main() {
 
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running AI Side Quest mascot app");
+        .build(tauri::generate_context!())
+        .expect("error while building AI Side Quest mascot app")
+        .run(|app, event| {
+            // 22차: 위젯은 작업이 30초 넘을 때만 저절로 떠서, 그 밖엔 손으로 띄울 방법이
+            // 없었다 ("꺼졌다"로 보였다). 이미 떠 있는 앱을 다시 실행하면(Spotlight, Finder,
+            // `open -a`) macOS가 Reopen을 보내니 그때 추천 화면을 띄운다.
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen { .. } = event {
+                if let Some(w) = app.get_webview_window("mascot") {
+                    manual_show(&w);
+                }
+            }
+            #[cfg(not(target_os = "macos"))]
+            let _ = (app, event);
+        });
+}
+
+/// 앱을 다시 실행했을 때 — 하던 게임으로 건너뛰지 않고 추천 화면(토큰 그래프)부터.
+fn manual_show(window: &tauri::WebviewWindow) {
+    if let Ok(url) = QUEST_URL.parse() {
+        let _ = window.navigate(url);
+    }
+    place_window(window);
+    let _ = window.show();
 }
