@@ -2,7 +2,7 @@
 
 # 기여하기
 
-Idle Buddy에 관심 가져주셔서 고마워요. 버그 제보, 아이디어, 번역, 코드 모두 환영해요.
+Bitty에 관심 가져주셔서 고마워요. 버그 제보, 아이디어, 번역, 코드 모두 환영해요.
 
 ## 이 프로젝트의 원칙
 
@@ -15,7 +15,7 @@ Idle Buddy에 관심 가져주셔서 고마워요. 버그 제보, 아이디어, 
 
 ## 버그 제보·아이디어
 
-[이슈](https://github.com/delochy/idle-buddy/issues/new/choose)에서 템플릿을 골라 써 주세요. 사용법 질문이나 가벼운 얘기는 [토론](https://github.com/delochy/idle-buddy/discussions)이 편해요.
+[이슈](https://github.com/delochy/bitty/issues/new/choose)에서 템플릿을 골라 써 주세요. 사용법 질문이나 가벼운 얘기는 [토론](https://github.com/delochy/bitty/discussions)이 편해요.
 
 버그 제보에 로그를 붙일 땐 `data/` 폴더의 파일을 **그대로 올리지 마세요.** `worklog.local.jsonl`에는 프롬프트 앞 200자가, `events.local.jsonl`에는 작업 폴더 경로가 들어 있어요. 필요한 줄만 골라서, 개인 정보는 지우고 붙여 주세요.
 
@@ -24,15 +24,15 @@ Idle Buddy에 관심 가져주셔서 고마워요. 버그 제보, 아이디어, 
 macOS, Node.js 18 이상이 필요해요. 위젯 앱(Rust/Tauri)을 고칠 때만 Rust가 있으면 돼요.
 
 ```bash
-git clone https://github.com/delochy/idle-buddy.git
-cd idle-buddy
+git clone https://github.com/delochy/bitty.git
+cd bitty
 sh install.sh
 ```
 
 **화면·데몬(`mcp/`, `lib/`)을 고쳤을 때** — 위젯 앱을 다시 켜면 데몬도 새 코드로 떠요.
 
 ```bash
-pkill -f "AI Side Quest Mascot"; open ~/Applications/"AI Side Quest Mascot.app"
+pkill -f "Bitty.app"; open ~/Applications/Bitty.app
 ```
 
 화면은 브라우저에서 `http://127.0.0.1:4318/quest`로 열어 봐도 돼요.
@@ -77,7 +77,7 @@ node setup/check-i18n.js                                    # 번역 빠진 문�
 
 # Contributing
 
-Thanks for your interest in Idle Buddy. Bug reports, ideas, translations and code are all welcome.
+Thanks for your interest in Bitty. Bug reports, ideas, translations and code are all welcome.
 
 ## Principles
 
@@ -90,7 +90,7 @@ Changes that go against these are hard to accept.
 
 ## Bugs and ideas
 
-Pick a template on [Issues](https://github.com/delochy/idle-buddy/issues/new/choose). For questions and casual chat, use [Discussions](https://github.com/delochy/idle-buddy/discussions).
+Pick a template on [Issues](https://github.com/delochy/bitty/issues/new/choose). For questions and casual chat, use [Discussions](https://github.com/delochy/bitty/discussions).
 
 Don't attach files from `data/` as-is: `worklog.local.jsonl` holds the first 200 characters of your prompts and `events.local.jsonl` holds working-folder paths. Paste only the lines you need, with personal details removed.
 
@@ -99,15 +99,15 @@ Don't attach files from `data/` as-is: `worklog.local.jsonl` holds the first 200
 You need macOS and Node.js 18+. Rust is only needed to change the widget app.
 
 ```bash
-git clone https://github.com/delochy/idle-buddy.git
-cd idle-buddy
+git clone https://github.com/delochy/bitty.git
+cd bitty
 sh install.sh
 ```
 
 After changing pages or the daemon (`mcp/`, `lib/`), relaunch the widget app to reload the daemon:
 
 ```bash
-pkill -f "AI Side Quest Mascot"; open ~/Applications/"AI Side Quest Mascot.app"
+pkill -f "Bitty.app"; open ~/Applications/Bitty.app
 ```
 
 You can also open `http://127.0.0.1:4318/quest` in a browser. After changing the widget app (`native-widget/`), run `sh setup/install-widget.sh`.

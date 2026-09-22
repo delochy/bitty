@@ -1,13 +1,13 @@
 [한국어](README.md) | **English**
 
-# Idle Buddy 🫧
+# Bitty 🫧
 
-**Idle Buddy — a tiny macOS companion for the time you spend waiting on Claude Code and Codex.**
+**Bitty — a tiny macOS companion for the time you spend waiting on Claude Code and Codex.**
 
 Ever kicked off a Claude Code or Codex task and then just stared at the spinner?
-When a task runs longer than 30 seconds, Idle Buddy pops a small mascot into the bottom-right corner of your screen and suggests something to do while you wait. When the task finishes, it chimes and fades away.
+When a task runs longer than 30 seconds, Bitty pops a small mascot into the bottom-right corner of your screen and suggests something to do while you wait. When the task finishes, it chimes and fades away.
 
-<p align="center"><img src="docs/widget.png" width="600" alt="Idle Buddy widget in light and dark mode: your AI is still working, category tabs and a quest carousel"></p>
+<p align="center"><img src="docs/widget.png" width="600" alt="Bitty widget in light and dark mode: your AI is still working, category tabs and a quest carousel"></p>
 
 <p align="center"><img src="docs/promo/widget-typing.gif" width="300" alt="Typing one line in the widget and seeing the result"><br><sub>One line of typing practice while you wait</sub></p>
 
@@ -23,6 +23,8 @@ When a task runs longer than 30 seconds, Idle Buddy pops a small mascot into the
 - 🤝 **Claude and Codex together, one widget**: it shows which tool is working (and how many tasks), tells you which one finished, and uses a different sound for each.
 
 No server, no account. Everything runs on your Mac.
+
+> Formerly called Idle Buddy — renamed because a cryptomining malware shares that name. Internal names in the code (such as the `ai-side-quest` MCP server) still use the original project name.
 
 ## Tour
 
@@ -51,13 +53,13 @@ Claude Code / Codex ──(hooks)──▶ data/state.json ◀──(polled ever
 - **macOS** (the widget is macOS-only for now; Apple Silicon and Intel)
 - **Node.js 18+**
 - **Claude Code** and/or **Codex**
-- Rust is **optional**: with Rust installed, the widget is built from source. Without it, the installer downloads the prebuilt app from [Releases](https://github.com/delochy/idle-buddy/releases).
+- Rust is **optional**: with Rust installed, the widget is built from source. Without it, the installer downloads the prebuilt app from [Releases](https://github.com/delochy/bitty/releases).
 
 ## Install
 
 ```bash
-git clone https://github.com/delochy/idle-buddy.git
-cd idle-buddy
+git clone https://github.com/delochy/bitty.git
+cd bitty
 sh install.sh
 ```
 
@@ -65,11 +67,11 @@ The installer:
 
 1. **Connects Claude Code**: adds hooks to `~/.claude/settings.json` and registers the MCP server.
 2. **Connects Codex** (if installed): adds hooks to `~/.codex/hooks.json` and registers the MCP server.
-3. **Installs the widget**: builds it (or downloads the prebuilt app) into `~/Applications/AI Side Quest Mascot.app` and launches it.
+3. **Installs the widget**: builds it (or downloads the prebuilt app) into `~/Applications/Bitty.app` and launches it.
 
 Every config file is backed up as `.bak-<timestamp>` before it's changed. **Restart any running Claude Code / Codex sessions** afterwards.
 
-**Launch at login**: the installer registers the widget as a login item, so it comes back after a reboot. It's a background app, so it doesn't appear in the menu bar or Dock. (macOS asks for automation permission to do this — if you decline, add `AI Side Quest Mascot` yourself in System Settings → General → Login Items.)
+**Launch at login**: the installer registers the widget as a login item, so it comes back after a reboot. It's a background app, so it doesn't appear in the menu bar or Dock. (macOS asks for automation permission to do this — if you decline, add `Bitty` yourself in System Settings → General → Login Items.)
 
 **In the terminal**: Claude Code's bottom line shows the task time and tokens burned, like `🐣 Working 54s · 🔥 14.1M`. If you already have a status line, it is left alone.
 

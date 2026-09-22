@@ -89,7 +89,7 @@ function pageShell(bodyHtml) {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Idle Buddy</title>
+<title>Bitty</title>
 <script src="/games/i18n.js"></script>
 <script src="/games/drag.js"></script>
 <style>
@@ -974,7 +974,7 @@ function start() {
           return;
         }
         const dir = path.join(os.homedir(), 'Downloads');
-        const file = path.join(dir, `idle-buddy-report-${day}.png`);
+        const file = path.join(dir, `bitty-report-${day}.png`);
         fs.mkdirSync(dir, { recursive: true });
         fs.writeFileSync(file, Buffer.from(m[1], 'base64'));
         if (os.platform() === 'darwin') execFile('open', ['-R', file], () => {});

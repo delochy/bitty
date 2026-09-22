@@ -1,16 +1,16 @@
 **한국어** | [English](README.en.md)
 
-# Idle Buddy 🫧
+# Bitty 🫧
 
-**Idle Buddy — a tiny macOS companion for the time you spend waiting on Claude Code and Codex.**
+**Bitty — a tiny macOS companion for the time you spend waiting on Claude Code and Codex.**
 
 **AI가 일하는 동안, 옆에서 놀아주는 마스코트.**
 
 Claude Code나 Codex에 일을 시켜놓고 멍하니 로딩만 보고 있던 적 있나요?
-Idle Buddy는 작업이 30초 넘게 걸리면 화면 오른쪽 아래에 작은 마스코트를 띄워서
+Bitty는 작업이 30초 넘게 걸리면 화면 오른쪽 아래에 작은 마스코트를 띄워서
 기다리는 동안 할 만한 걸 추천해줘요. 작업이 끝나면 "삐빅" 하고 스르륵 사라져요.
 
-<p align="center"><img src="docs/widget.png" width="600" alt="Idle Buddy 마스코트 위젯 (라이트·다크 모드): 작업이 길어지고 있어요, 카테고리 탭과 추천 퀘스트 캐러셀"></p>
+<p align="center"><img src="docs/widget.png" width="600" alt="Bitty 마스코트 위젯 (라이트·다크 모드): 작업이 길어지고 있어요, 카테고리 탭과 추천 퀘스트 캐러셀"></p>
 
 <p align="center"><img src="docs/promo/widget-typing.gif" width="300" alt="타자 연습 화면에서 문장을 치고 결과가 나오는 모습"><br><sub>기다리는 동안 타자 연습 한 문장</sub></p>
 
@@ -29,7 +29,7 @@ Idle Buddy는 작업이 30초 넘게 걸리면 화면 오른쪽 아래에 작은
 
 서버도 계정도 없어요. 전부 내 맥 안에서만 돌아가요.
 
-> 코드 안의 내부 이름(MCP 서버 `ai-side-quest`, 앱 `AI Side Quest Mascot`)은 처음 프로젝트 이름을 그대로 써요.
+> 예전 이름은 Idle Buddy였어요. 같은 이름의 악성 프로그램이 있어서 Bitty로 바꿨어요. 코드 안의 내부 이름(MCP 서버 `ai-side-quest` 등)은 처음 프로젝트 이름을 그대로 써요.
 
 ## 둘러보기
 
@@ -58,14 +58,14 @@ Claude Code / Codex ──(훅)──▶ data/state.json ◀──(2초마다 �
 
 - **macOS** (마스코트 위젯은 지금 macOS만 지원, 애플 실리콘·인텔 모두)
 - **Node.js 18+**
-- **Rust (선택)**: 있으면 마스코트 앱을 직접 빌드하고, 없으면 설치 스크립트가 [Releases](https://github.com/delochy/idle-buddy/releases)에 올려둔 빌드된 앱을 받아요.
+- **Rust (선택)**: 있으면 마스코트 앱을 직접 빌드하고, 없으면 설치 스크립트가 [Releases](https://github.com/delochy/bitty/releases)에 올려둔 빌드된 앱을 받아요.
 - **Claude Code**나 **Codex** 중 하나 이상
 
 ## 설치
 
 ```bash
-git clone https://github.com/delochy/idle-buddy.git
-cd idle-buddy
+git clone https://github.com/delochy/bitty.git
+cd bitty
 sh install.sh
 ```
 
@@ -73,11 +73,11 @@ sh install.sh
 
 1. **Claude Code 연결**: `~/.claude/settings.json`에 훅을 추가하고, MCP 서버를 등록해요.
 2. **Codex 연결** (설치돼 있으면): `~/.codex/hooks.json`에 훅을 추가하고, MCP 서버를 등록해요.
-3. **마스코트 앱**을 빌드(또는 빌드된 앱을 다운로드)해서 `~/Applications/AI Side Quest Mascot.app`에 설치하고 실행해요.
+3. **마스코트 앱**을 빌드(또는 빌드된 앱을 다운로드)해서 `~/Applications/Bitty.app`에 설치하고 실행해요.
 
 바꾸는 설정 파일은 모두 `.bak-<시간>` 파일로 먼저 백업해요. 설치 후에는 **실행 중인 Claude Code / Codex 세션을 새로 열어야** 적용돼요.
 
-**로그인할 때 자동 실행**: 설치할 때 로그인 항목으로 등록해서, 재부팅해도 알아서 켜져요. 앱은 메뉴바나 Dock에 안 보이는 백그라운드 앱이라 조용히 떠 있어요. (등록할 때 자동화 권한을 물어보는데, 거부했다면 시스템 설정 → 일반 → 로그인 항목에서 `AI Side Quest Mascot`을 직접 추가하세요.)
+**로그인할 때 자동 실행**: 설치할 때 로그인 항목으로 등록해서, 재부팅해도 알아서 켜져요. 앱은 메뉴바나 Dock에 안 보이는 백그라운드 앱이라 조용히 떠 있어요. (등록할 때 자동화 권한을 물어보는데, 거부했다면 시스템 설정 → 일반 → 로그인 항목에서 `Bitty`를 직접 추가하세요.)
 
 **터미널에서 쓸 때**: Claude Code 맨 아래 줄에 `🐣 작업 중 54초 · 🔥 1,407만`처럼 이번 작업에 걸린 시간과 태운 토큰이 떠요. 이미 쓰던 상태줄이 있으면 건드리지 않아요.
 
@@ -161,7 +161,7 @@ skill/SKILL.md                 (선택) Claude용 스킬 설명
 
 ## English (short)
 
-**Idle Buddy** is a tiny desktop mascot for macOS that pops up when a Claude Code or Codex task runs longer than 30 seconds. While you wait, it suggests something to do: 10 built-in mini games, dev jokes, riddles, a campfire or ocean to zone out to, or a quick chore that opens the right app. When the task finishes, it beeps and fades away. It never pops up while you're typing. Everything runs locally, with no server and no account.
+**Bitty** is a tiny desktop mascot for macOS that pops up when a Claude Code or Codex task runs longer than 30 seconds. While you wait, it suggests something to do: 10 built-in mini games, dev jokes, riddles, a campfire or ocean to zone out to, or a quick chore that opens the right app. When the task finishes, it beeps and fades away. It never pops up while you're typing. Everything runs locally, with no server and no account.
 
 Install with `sh install.sh` (you need macOS, Node 18+, and Rust). Uninstall with `node uninstall.js`. The UI text is in Korean for now.
 

@@ -1,4 +1,4 @@
-// Idle Buddy — 게임별 기록 (18차)
+// Bitty — 게임별 기록 (18차)
 //
 // 각 게임이 한 판 끝날 때 IdleScore.add()를 부르면, 판수·최고·평균·마지막 기록이
 // 이 창(localStorage)에 쌓인다. 🏆 게임 기록 화면(/games/stats)이 이걸 읽어서 보여준다.

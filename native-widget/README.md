@@ -1,6 +1,6 @@
 # 마스코트 위젯 (native-widget)
 
-Idle Buddy의 마스코트 창을 띄우는 macOS 앱이에요. [Tauri](https://tauri.app)로 만들었어요.
+Bitty의 마스코트 창을 띄우는 macOS 앱이에요. [Tauri](https://tauri.app)로 만들었어요.
 
 - 메뉴바·Dock·Cmd+Tab 어디에도 안 보이는 백그라운드 앱이에요.
 - `../data/state.json`을 2초마다 읽어요.

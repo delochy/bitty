@@ -2,7 +2,7 @@
 
 # 행동 강령
 
-Idle Buddy는 AI를 기다리는 시간을 조금 덜 심심하게 만들려고 만든 작은 프로젝트예요. 여기서 나누는 대화도 그런 분위기였으면 해요.
+Bitty는 AI를 기다리는 시간을 조금 덜 심심하게 만들려고 만든 작은 프로젝트예요. 여기서 나누는 대화도 그런 분위기였으면 해요.
 
 ## 이렇게 해 주세요
 
@@ -30,7 +30,7 @@ Idle Buddy는 AI를 기다리는 시간을 조금 덜 심심하게 만들려고 
 
 # Code of Conduct
 
-Idle Buddy is a small project meant to make waiting on AI a little less boring. We'd like conversations here to feel the same way.
+Bitty is a small project meant to make waiting on AI a little less boring. We'd like conversations here to feel the same way.
 
 ## Please do
 

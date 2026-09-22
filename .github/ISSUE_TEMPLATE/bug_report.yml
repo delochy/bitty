@@ -54,8 +54,8 @@ body:
     id: versions
     attributes:
       label: 버전 / Versions
-      description: macOS, Idle Buddy 릴리스, Claude Code(`claude --version`) 또는 Codex 버전 / macOS, Idle Buddy release, Claude Code or Codex version
-      placeholder: macOS 26.1 · Idle Buddy v1.1.1 · Claude Code 2.1.276
+      description: macOS, Bitty 릴리스, Claude Code(`claude --version`) 또는 Codex 버전 / macOS, Bitty release, Claude Code or Codex version
+      placeholder: macOS 26.1 · Bitty v1.1.1 · Claude Code 2.1.276
     validations:
       required: true
 

@@ -22,17 +22,21 @@ const WIDGET_HEIGHT: f64 = 360.0;
 /// 이제는 빌드한 위치(src-tauri/../..)를 컴파일 때 기억한다. 저장소를 옮겼으면
 /// 다시 빌드하거나, 실행 시 AI_SIDE_QUEST_HOME 환경변수로 덮어쓸 수 있다.
 /// 17차: 미리 빌드한 앱(GitHub Releases)을 받아 쓰는 경우엔 빌드 위치가 의미 없으니,
-/// install.sh가 ~/.config/idle-buddy/home 에 적어둔 저장소 경로를 먼저 본다.
+/// install.sh가 ~/.config/bitty/home 에 적어둔 저장소 경로를 먼저 본다.
+/// 23차: Idle Buddy → Bitty로 이름을 바꾸면서 위치도 옮겼다. 예전에 설치한 사람은
+/// ~/.config/idle-buddy/home 에만 적혀 있으니 거기도 본다.
 fn project_root() -> std::path::PathBuf {
     if let Ok(home) = std::env::var("AI_SIDE_QUEST_HOME") {
         return home.into();
     }
     if let Some(home) = std::env::var_os("HOME") {
-        let cfg = std::path::Path::new(&home).join(".config").join("idle-buddy").join("home");
-        if let Ok(p) = std::fs::read_to_string(cfg) {
-            let p = p.trim();
-            if !p.is_empty() && std::path::Path::new(p).join("bin").exists() {
-                return p.into();
+        for dir in ["bitty", "idle-buddy"] {
+            let cfg = std::path::Path::new(&home).join(".config").join(dir).join("home");
+            if let Ok(p) = std::fs::read_to_string(cfg) {
+                let p = p.trim();
+                if !p.is_empty() && std::path::Path::new(p).join("bin").exists() {
+                    return p.into();
+                }
             }
         }
     }

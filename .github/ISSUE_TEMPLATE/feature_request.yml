@@ -5,8 +5,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Idle Buddy는 **AI를 기다리는 동안 심심하지 않게** 하는 앱이에요. 자리를 비우라고 하거나, 계정·외부 서버가 필요한 기능은 방향과 맞지 않아요.
-        Idle Buddy keeps you company **while you wait on AI**. Features that send you away from your desk or need accounts or external servers don't fit.
+        Bitty는 **AI를 기다리는 동안 심심하지 않게** 하는 앱이에요. 자리를 비우라고 하거나, 계정·외부 서버가 필요한 기능은 방향과 맞지 않아요.
+        Bitty keeps you company **while you wait on AI**. Features that send you away from your desk or need accounts or external servers don't fit.
 
   - type: textarea
     id: idea

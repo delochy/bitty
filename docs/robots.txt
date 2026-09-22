@@ -29,4 +29,4 @@ Allow: /
 User-agent: CCBot
 Allow: /
 
-Sitemap: https://delochy.github.io/idle-buddy/sitemap.xml
+Sitemap: https://delochy.github.io/bitty/sitemap.xml

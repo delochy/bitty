@@ -1,4 +1,4 @@
-// Idle Buddy — 다국어 (19차)
+// Bitty — 다국어 (19차)
 //
 // 한국어 원문이 곧 키다 (gettext의 msgid와 같은 방식). 번역은 locales/<언어>.json 한 장에
 // 모여 있고, 데몬이 i18n.js 앞에 window.__idleDicts로 붙여준다. 언어를 늘리려면

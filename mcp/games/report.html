@@ -1,13 +1,13 @@
 <!doctype html>
 <!--
-  Idle Buddy — 오늘의 기다림 리포트 (16차).
+  Bitty — 오늘의 기다림 리포트 (16차).
   숫자는 /stats(lib/stats.js)가 로컬 기록으로 계산한다. "이미지로 저장"을 누르면 1080x1350
-  카드를 캔버스로 그려 ~/Downloads/idle-buddy-report-날짜.png 로 저장한다 (Threads 공유용).
+  카드를 캔버스로 그려 ~/Downloads/bitty-report-날짜.png 로 저장한다 (Threads 공유용).
 -->
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
-<title>Idle Buddy — 기다림 리포트</title>
+<title>Bitty — 기다림 리포트</title>
 <link rel="stylesheet" href="/games/common.css" />
 <script src="/games/i18n.js"></script>
 <script src="/games/drag.js"></script>
@@ -156,7 +156,7 @@
       g.fillText(v, W - 130, y);
     });
     g.textAlign = 'center'; g.fillStyle = 'rgba(255,255,255,0.8)'; g.font = '600 30px ' + F;
-    g.fillText('Idle Buddy  ·  github.com/delochy/idle-buddy', W / 2, H - 60);
+    g.fillText('Bitty  ·  github.com/delochy/bitty', W / 2, H - 60);
     return c.toDataURL('image/png');
   }
   document.getElementById('save').addEventListener('click', async () => {

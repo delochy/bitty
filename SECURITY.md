@@ -4,9 +4,9 @@
 
 ## 취약점 제보
 
-보안 문제는 **공개 이슈로 올리지 말고** 저장소의 [Security → Report a vulnerability](https://github.com/delochy/idle-buddy/security/advisories/new)로 비공개 제보해 주세요. 확인하는 대로 답하고, 고친 뒤 새 릴리스에 알려드릴게요.
+보안 문제는 **공개 이슈로 올리지 말고** 저장소의 [Security → Report a vulnerability](https://github.com/delochy/bitty/security/advisories/new)로 비공개 제보해 주세요. 확인하는 대로 답하고, 고친 뒤 새 릴리스에 알려드릴게요.
 
-지원하는 버전은 [최신 릴리스](https://github.com/delochy/idle-buddy/releases/latest)예요.
+지원하는 버전은 [최신 릴리스](https://github.com/delochy/bitty/releases/latest)예요.
 
 ## 이 앱이 건드리는 것
 
@@ -26,9 +26,9 @@
 
 ## Reporting a vulnerability
 
-Please **don't open a public issue** for security problems. Report them privately via [Security → Report a vulnerability](https://github.com/delochy/idle-buddy/security/advisories/new). You'll get a reply once it's been looked at, and the fix will be credited in the release notes.
+Please **don't open a public issue** for security problems. Report them privately via [Security → Report a vulnerability](https://github.com/delochy/bitty/security/advisories/new). You'll get a reply once it's been looked at, and the fix will be credited in the release notes.
 
-Only the [latest release](https://github.com/delochy/idle-buddy/releases/latest) is supported.
+Only the [latest release](https://github.com/delochy/bitty/releases/latest) is supported.
 
 ## What the app touches
 

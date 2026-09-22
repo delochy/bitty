@@ -1,4 +1,4 @@
-# Idle Buddy
+# Bitty
 
 > A macOS desktop mascot widget that appears when a Claude Code or Codex task runs
 > longer than 30 seconds, suggests something to do while you wait, and disappears
@@ -7,7 +7,7 @@
 
 ## What it is
 
-Idle Buddy watches Claude Code and Codex through their hook systems. When a task
+Bitty watches Claude Code and Codex through their hook systems. When a task
 exceeds 30 seconds, a small mascot window appears in the bottom-right corner of the
 screen and offers a quest: a mini game, a joke, a breathing exercise, or a short
 chore. When the task completes, the mascot beeps and fades out. It never appears
@@ -16,7 +16,7 @@ while the user is typing.
 - Platform: macOS only (Apple Silicon and Intel). Hooks run elsewhere, the mascot window does not.
 - Requirements: Node.js 18 or later, and Claude Code or Codex (either one is enough).
 - Rust is optional. Without it the installer downloads a prebuilt app from Releases.
-- Install: `git clone https://github.com/delochy/idle-buddy.git && cd idle-buddy && sh install.sh`
+- Install: `git clone https://github.com/delochy/bitty.git && cd bitty && sh install.sh`
 - Uninstall: `node uninstall.js`
 - License: MIT. Author: delochy.
 
@@ -46,10 +46,10 @@ write themselves.
 
 ## Links
 
-- Home (Korean): https://delochy.github.io/idle-buddy/
-- Home (English): https://delochy.github.io/idle-buddy/en/
-- Design notes (Korean): https://delochy.github.io/idle-buddy/blog/claude-code-waiting-mascot/
-- Repository: https://github.com/delochy/idle-buddy
-- Releases: https://github.com/delochy/idle-buddy/releases
-- README in Korean: https://github.com/delochy/idle-buddy/blob/main/README.md
-- README in English: https://github.com/delochy/idle-buddy/blob/main/README.en.md
+- Home (Korean): https://delochy.github.io/bitty/
+- Home (English): https://delochy.github.io/bitty/en/
+- Design notes (Korean): https://delochy.github.io/bitty/blog/claude-code-waiting-mascot/
+- Repository: https://github.com/delochy/bitty
+- Releases: https://github.com/delochy/bitty/releases
+- README in Korean: https://github.com/delochy/bitty/blob/main/README.md
+- README in English: https://github.com/delochy/bitty/blob/main/README.en.md

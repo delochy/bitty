@@ -1,5 +1,5 @@
 {
-  "name": "idle-buddy",
+  "name": "bitty",
   "version": "1.0.0",
   "private": true,
   "description": "AI(Claude Code/Codex)가 작업하는 동안 기다리는 사람에게 마스코트가 작은 퀘스트(게임·휴식·할 일)를 추천하는 로컬 도구. 서버·계정 불필요.",
@@ -17,6 +17,6 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/delochy/idle-buddy.git"
+    "url": "https://github.com/delochy/bitty.git"
   }
 }

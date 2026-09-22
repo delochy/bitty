@@ -99,18 +99,23 @@ if (fs.existsSync(tomlPath)) {
 }
 if (tryRun('codex', ['mcp', 'remove', SERVER_NAME])) console.log('✓ Codex MCP 서버 등록 해제');
 
-// 마스코트 위젯
-tryRun('pkill', ['-f', 'AI Side Quest Mascot.app']);
+// 마스코트 위젯 — 23차: 지금 이름(Bitty)과 예전 이름(AI Side Quest Mascot) 둘 다 치운다.
+const APP_NAMES = ['Bitty', 'AI Side Quest Mascot'];
+for (const name of APP_NAMES) tryRun('pkill', ['-f', `${name}.app/Contents/MacOS`]);
 tryRun('pkill', ['-f', 'side-quest-daemon.js']);
 // 설치할 때 넣은 로그인 항목도 뺀다 (권한이 없으면 조용히 넘어간다).
-if (tryRun('osascript', ['-e', 'tell application "System Events" to if login item "AI Side Quest Mascot" exists then delete login item "AI Side Quest Mascot"'])) {
-  console.log('✓ 로그인 항목에서 제거');
+for (const name of APP_NAMES) {
+  if (tryRun('osascript', ['-e', `tell application "System Events" to if login item "${name}" exists then delete login item "${name}"`])) {
+    console.log(`✓ 로그인 항목 정리 (${name})`);
+  }
 }
 const appDir = process.env.AI_SIDE_QUEST_APP_DIR || path.join(os.homedir(), 'Applications');
-const app = path.join(appDir, 'AI Side Quest Mascot.app');
-if (fs.existsSync(app)) {
-  fs.rmSync(app, { recursive: true, force: true });
-  console.log(`✓ ${app} 삭제`);
+for (const name of APP_NAMES) {
+  const app = path.join(appDir, `${name}.app`);
+  if (fs.existsSync(app)) {
+    fs.rmSync(app, { recursive: true, force: true });
+    console.log(`✓ ${app} 삭제`);
+  }
 }
 
 console.log('\n제거 완료. 실행 중인 Claude Code / Codex 세션을 새로 열면 적용돼요.');

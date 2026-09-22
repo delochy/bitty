@@ -4,36 +4,36 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Claude Code 기다리는 시간이 아까워서 맥 마스코트를 만들었다</title>
-<meta name="description" content="Claude Code와 Codex 작업이 길어질 때 뜨는 macOS 마스코트 위젯 Idle Buddy를 만든 이야기. 타이핑 중엔 뜨지 않게 만든 방법, 남은 시간 숫자를 지운 이유, 자리를 뜨게 하는 추천을 뺀 이유." />
-<link rel="canonical" href="https://delochy.github.io/idle-buddy/blog/claude-code-waiting-mascot/" />
+<meta name="description" content="Claude Code와 Codex 작업이 길어질 때 뜨는 macOS 마스코트 위젯 Bitty를 만든 이야기. 타이핑 중엔 뜨지 않게 만든 방법, 남은 시간 숫자를 지운 이유, 자리를 뜨게 하는 추천을 뺀 이유." />
+<link rel="canonical" href="https://delochy.github.io/bitty/blog/claude-code-waiting-mascot/" />
 <meta name="author" content="delochy" />
 
 <meta property="og:type" content="article" />
-<meta property="og:site_name" content="Idle Buddy" />
+<meta property="og:site_name" content="Bitty" />
 <meta property="og:locale" content="ko_KR" />
 <meta property="og:title" content="Claude Code 기다리는 시간이 아까워서 맥 마스코트를 만들었다" />
 <meta property="og:description" content="타이핑 중엔 뜨지 않게 만든 방법, 남은 시간 숫자를 지운 이유, 자리를 뜨게 하는 추천을 뺀 이유." />
-<meta property="og:url" content="https://delochy.github.io/idle-buddy/blog/claude-code-waiting-mascot/" />
-<meta property="og:image" content="https://delochy.github.io/idle-buddy/widget.png" />
+<meta property="og:url" content="https://delochy.github.io/bitty/blog/claude-code-waiting-mascot/" />
+<meta property="og:image" content="https://delochy.github.io/bitty/widget.png" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Claude Code 기다리는 시간이 아까워서 맥 마스코트를 만들었다" />
 <meta name="twitter:description" content="AI가 일하는 동안 놀아주는 맥 마스코트를 만들면서 고민한 것들." />
-<meta name="twitter:image" content="https://delochy.github.io/idle-buddy/widget.png" />
+<meta name="twitter:image" content="https://delochy.github.io/bitty/widget.png" />
 
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
   "headline": "Claude Code 기다리는 시간이 아까워서 맥 마스코트를 만들었다",
-  "description": "Claude Code와 Codex 작업이 길어질 때 뜨는 macOS 마스코트 위젯 Idle Buddy를 만든 이야기.",
-  "image": "https://delochy.github.io/idle-buddy/widget.png",
+  "description": "Claude Code와 Codex 작업이 길어질 때 뜨는 macOS 마스코트 위젯 Bitty를 만든 이야기.",
+  "image": "https://delochy.github.io/bitty/widget.png",
   "datePublished": "2026-09-21",
   "dateModified": "2026-09-21",
   "inLanguage": "ko",
   "author": { "@type": "Person", "name": "delochy" },
   "publisher": { "@type": "Person", "name": "delochy" },
-  "mainEntityOfPage": "https://delochy.github.io/idle-buddy/blog/claude-code-waiting-mascot/",
-  "about": { "@type": "SoftwareApplication", "name": "Idle Buddy", "operatingSystem": "macOS" }
+  "mainEntityOfPage": "https://delochy.github.io/bitty/blog/claude-code-waiting-mascot/",
+  "about": { "@type": "SoftwareApplication", "name": "Bitty", "operatingSystem": "macOS" }
 }
 </script>
 
@@ -86,7 +86,7 @@
 <body>
 <div class="wrap">
 
-<p class="top"><a href="../../">&lsaquo; Idle Buddy</a></p>
+<p class="top"><a href="../../">&lsaquo; Bitty</a></p>
 
 <header>
   <h1>Claude Code 기다리는 시간이 아까워서 맥 마스코트를 만들었다</h1>
@@ -97,9 +97,9 @@
 
 <p>리팩터링 하나 시켜놓으면 2분, 테스트 붙여달라고 하면 5분. 그 시간에 뭘 하기도 애매하고 안 하기도 아까워요. 그래서 습관처럼 다른 탭을 엽니다. 트위터 보고, 슬랙 보고, 그러다 15분 지나 있고, 정작 작업은 3분 전에 끝나 있어요. 기다린 시간보다 <strong>돌아오는 데 걸린 시간</strong>이 더 길어지는 거죠.</p>
 
-<p>그래서 만들었습니다. <strong>Idle Buddy</strong> — AI가 일하는 동안 화면 구석에서 놀아주는 macOS 마스코트 위젯이에요.</p>
+<p>그래서 만들었습니다. <strong>Bitty</strong> — AI가 일하는 동안 화면 구석에서 놀아주는 macOS 마스코트 위젯이에요.</p>
 
-<img class="shot" src="https://delochy.github.io/idle-buddy/widget.png" alt="Idle Buddy 위젯 라이트 모드와 다크 모드. 작업이 길어지고 있어요 문구와 추천 퀘스트 카드." />
+<img class="shot" src="https://delochy.github.io/bitty/widget.png" alt="Bitty 위젯 라이트 모드와 다크 모드. 작업이 길어지고 있어요 문구와 추천 퀘스트 카드." />
 
 <p>작업이 30초 넘게 걸리면 오른쪽 아래에 조그맣게 뜹니다. 기다리는 동안 할 만한 걸 하나 추천해주고, 작업이 끝나면 "삐빅" 하고 스르륵 사라져요.</p>
 
@@ -209,8 +209,8 @@ fn seconds_since_last_key() -&gt; f64 {
 
 <p>macOS, Node.js 18 이상, 그리고 Claude Code나 Codex 중 하나면 됩니다. Rust는 있으면 직접 빌드하고, 없으면 빌드된 앱을 받아요.</p>
 
-<pre><code>git clone https://github.com/delochy/idle-buddy.git
-cd idle-buddy
+<pre><code>git clone https://github.com/delochy/bitty.git
+cd bitty
 sh install.sh</code></pre>
 
 <p>설치 스크립트가 Claude Code랑 Codex에 훅이랑 MCP 서버를 등록하고, 마스코트 앱을 <code>~/Applications</code>에 설치합니다. 건드리는 설정 파일은 전부 <code>.bak-&lt;시간&gt;</code>으로 백업해요. 지우는 건 <code>node uninstall.js</code> 한 줄입니다.</p>
@@ -224,8 +224,8 @@ sh install.sh</code></pre>
 <hr class="rule" />
 
 <footer>
-  <p><a href="https://github.com/delochy/idle-buddy">github.com/delochy/idle-buddy</a> · MIT License</p>
-  <p><a href="../../">Idle Buddy 소개 페이지</a></p>
+  <p><a href="https://github.com/delochy/bitty">github.com/delochy/bitty</a> · MIT License</p>
+  <p><a href="../../">Bitty 소개 페이지</a></p>
 </footer>
 
 </div>
