@@ -933,14 +933,18 @@ function start() {
       // 21차: 추천 화면 기본 뷰 — 지금 작업이 태우는 토큰 (2초마다 불린다)
       if (req.method === 'GET' && url.pathname === '/tokens/live') {
         const now = Date.now();
+        // ?session=<id> — 22차: 터미널 상태줄(setup/statusline.js)이 자기 세션의 이번 작업
+        // 토큰만 묻는다. 끝난(DONE) 작업도 마지막 작업 분량을 돌려준다.
+        const only = url.searchParams.get('session');
         const working = Object.entries(state.getState().sessions)
-          .filter(([, r]) => r && (r.state === 'WORKING' || r.state === 'NEEDS_INPUT') && r.startedAt &&
-            now - r.startedAt < 6 * 3600 * 1000)
+          .filter(([id, r]) => r && r.startedAt && (only
+            ? id === only
+            : (r.state === 'WORKING' || r.state === 'NEEDS_INPUT') && now - r.startedAt < 6 * 3600 * 1000))
           .map(([id, r]) => ({ sessionId: id, tool: String(r.source).startsWith('codex') ? 'codex' : 'claude', startedAt: r.startedAt }));
         // 오늘 합계는 디렉터리를 훑어야 해서 15초에 한 번만 새로 센다
         if (!todayMemo || now - todayMemo.at > 15 * 1000) todayMemo = { at: now, value: stats.todayTokens() };
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ now, working: working.length, live: stats.liveTokens(working), today: todayMemo.value }));
+        res.end(JSON.stringify({ now, session: only || undefined, working: working.length, live: stats.liveTokens(working), today: todayMemo.value }));
         return;
       }
 

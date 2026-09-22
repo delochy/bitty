@@ -71,6 +71,8 @@ Every config file is backed up as `.bak-<timestamp>` before it's changed. **Rest
 
 **Launch at login**: the installer registers the widget as a login item, so it comes back after a reboot. It's a background app, so it doesn't appear in the menu bar or Dock. (macOS asks for automation permission to do this — if you decline, add `AI Side Quest Mascot` yourself in System Settings → General → Login Items.)
 
+**In the terminal**: Claude Code's bottom line shows the task time and tokens burned, like `🐣 Working 54s · 🔥 14.1M`. If you already have a status line, it is left alone.
+
 **Codex users**: Codex only runs a new hook after you **trust** it; until then, the hooks are silently skipped. After installing, run `codex` once in a terminal, from a folder you already trust, and pick **Trust all and continue** on the "Hooks need review" screen. You need this step even if you only use the Codex desktop app.
 
 ## Update

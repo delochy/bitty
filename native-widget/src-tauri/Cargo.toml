@@ -1,6 +1,6 @@
 [package]
 name = "ai-side-quest-mascot"
-version = "1.1.0"
+version = "1.1.1"
 description = "AI Side Quest floating mascot widget"
 edition = "2021"
 
