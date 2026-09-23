@@ -334,11 +334,16 @@ fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
                     }
                     alive
                 });
-                if let Some(&tool) = ended.last() {
-                    if window.is_visible().unwrap_or(false) {
-                        if showing.is_empty() {
-                            // 마지막 작업이 끝났다 — 누가 끝났는지 보여주고, 그 도구의
-                            // 소리 한 번, 잠깐 뒤 스르륵.
+                // 25차: Codex는 "끝났다"를 믿을 수 없다. 훅도, Codex 자체 기록도 긴 명령을
+                // 실행하거나 오래 생각하는 동안 똑같이 조용해져서(2분 동안 나란히 재봤을 때
+                // 한쪽만 살아 있던 경우가 0번), 로컬에서는 "오래 걸리는 작업"과 "끝난 작업"이
+                // 구별되지 않는다. 그래서 Codex가 조용해지면 창만 조용히 접고, 소리와
+                // "작업 끝났어요"는 끝 신호가 정확한 Claude에만 쓴다.
+                let announce = ended.iter().find(|t| **t != "Codex").copied();
+                if !ended.is_empty() && window.is_visible().unwrap_or(false) {
+                    match (showing.is_empty(), announce) {
+                        // 끝 신호가 정확한 도구(Claude)가 마지막으로 끝났다 — 알리고 스르륵.
+                        (true, Some(tool)) => {
                             show_toast(
                                 &window,
                                 &format!("✅ {tool} 작업 끝났어요"),
@@ -348,8 +353,11 @@ fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
                             beep(tool);
                             thread::sleep(Duration::from_millis(1600));
                             fade_out_and_hide(&window);
-                        } else {
-                            // 한쪽만 끝났다 — 창은 두고 알림만 (소리는 마지막에 한 번).
+                        }
+                        // Codex만 조용해졌다 — 끝났는지 알 수 없으니 알리지 않고 창만 접는다.
+                        (true, None) => fade_out_and_hide(&window),
+                        // 한쪽만 끝났고 다른 작업이 남았다 — 창은 두고 알림만 (Codex면 조용히).
+                        (false, Some(tool)) => {
                             let mut still: Vec<&str> = showing.values().copied().collect();
                             still.sort();
                             still.dedup();
@@ -360,6 +368,7 @@ fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
                                 tool,
                             );
                         }
+                        (false, None) => {}
                     }
                 }
             }

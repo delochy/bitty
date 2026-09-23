@@ -20,7 +20,7 @@ When a task runs longer than 30 seconds, Bitty pops a small mascot into the bott
 - 📊 **Today's wait report**: how long you waited on AI today, tasks over 30s, tokens burned (Claude and Codex), what you did while waiting. Save it as a 1080×1350 image to share.
 - 🔁 **Pick up where you left off**: if the widget closes mid-game, it reopens that game next time.
 - 🖐 **Put it anywhere**: drag the card to move it; it remembers the spot.
-- 🤝 **Claude and Codex together, one widget**: it shows which tool is working (and how many tasks), tells you which one finished, and uses a different sound for each.
+- 🤝 **Claude and Codex together, one widget**: it shows which tool is working and how many tasks. Claude gets a chime when it finishes; Codex just fades away quietly — locally there is no way to tell a long-running Codex task from a finished one, so it never claims one is done.
 
 No server, no account. Everything runs on your Mac.
 
