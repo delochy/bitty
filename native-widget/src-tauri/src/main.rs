@@ -150,7 +150,10 @@ fn read_working_turn(now: u64) -> (Option<String>, HashMap<String, &'static str>
             .and_then(|v| v.as_u64())
             .unwrap_or(0);
         let age = now.saturating_sub(started);
-        if age > STALE_WORKING_MS {
+        // 24차: "오래된 기록"은 작업이 오래 걸린다는 뜻이 아니라 신호가 끊겼다는 뜻이다.
+        // 예전엔 시작한 지 오래된 작업을 버렸는데, Codex의 여러 턴을 한 작업으로 묶은
+        // 뒤로는 멀쩡히 돌고 있는 긴 작업이 2시간 만에 사라져 버렸다. 마지막 신호 기준으로 본다.
+        if now.saturating_sub(updated) > STALE_WORKING_MS {
             continue;
         }
         let seq = rec.get("turnSeq").and_then(|v| v.as_u64()).unwrap_or(0);

@@ -1083,7 +1083,7 @@ function start() {
     // (lib/state.js settleCodexPending 설명 참고). 토큰은 작업 중이면 10~30초마다 오른다.
     setInterval(() => {
       for (const p of state.pendingCodexSessions()) {
-        state.settleCodexPending(p.sessionId, stats.codexTokensUsed(p.sessionId));
+        state.settleCodexPending(p.sessionId, stats.codexActivityMark(p.sessionId));
       }
     }, 10 * 1000).unref();
   });
