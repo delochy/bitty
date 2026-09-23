@@ -1078,6 +1078,14 @@ function start() {
         if (ended.length) console.error('[side-quest] Codex가 꺼져 있어 작업을 정리:', ended.join(', '));
       });
     }, SWEEP_MS).unref();
+
+    // 24차: Codex가 "끝났다"고 한 작업이 진짜 끝났는지 토큰이 더 오르는지 보고 판정한다
+    // (lib/state.js settleCodexPending 설명 참고). 토큰은 작업 중이면 10~30초마다 오른다.
+    setInterval(() => {
+      for (const p of state.pendingCodexSessions()) {
+        state.settleCodexPending(p.sessionId, stats.codexTokensUsed(p.sessionId));
+      }
+    }, 10 * 1000).unref();
   });
 
   server.listen(PORT, HOST);
