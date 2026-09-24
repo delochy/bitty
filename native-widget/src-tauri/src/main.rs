@@ -332,10 +332,8 @@ fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
         // 이미 한 번 띄운 turn들 — 그 turn 때문에 다시 튀어나오지 않게 (사용자가
         // 닫았거나, 다른 turn이 끝나 숨긴 뒤에도).
         let mut popped: HashSet<String> = HashSet::new();
-        // 마스코트를 띄운 뒤로 진행 중인 turn들. 14차: Claude와 Codex를 같이 쓰면
-        // 작업이 겹칠 수 있다 — 창은 하나만 두고, 겹친 작업 중 마지막 것이 끝날
-        // 때 한 번만 삐빅 울리고 숨긴다 (먼저 끝난 쪽이 창을 닫거나, 닫혔다 다시
-        // 뜨지 않게). 작업이 하나뿐이면 예전처럼 그 작업이 끝나면 바로 사라진다.
+        // 창이 떠 있는 동안 관찰해 온 turn들. 숨길지, 남은 작업 수를 뭘로 알릴지는
+        // 이 목록이 아니라 매 poll에서 읽은 전체 활성 세션(active)을 기준으로 판단한다.
         let mut showing: HashMap<String, &'static str> = HashMap::new();
         loop {
             thread::sleep(Duration::from_secs(2));
@@ -371,7 +369,7 @@ fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
                     announce.unwrap_or("Claude")
                 };
                 if !ended.is_empty() && window.is_visible().unwrap_or(false) {
-                    match (showing.is_empty(), announce) {
+                    match (active.is_empty(), announce) {
                         // 마지막 작업이 끝났다 — 알리고 스르륵.
                         (true, Some(tool)) => {
                             show_toast(
@@ -387,7 +385,7 @@ fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
                         // 한쪽만 끝났고 다른 작업이 남았다 — 창은 두고 알림만.
                         (false, Some(tool)) => {
                             let mut still_counts: HashMap<&'static str, usize> = HashMap::new();
-                            for active_tool in showing.values() {
+                            for active_tool in active.values() {
                                 *still_counts.entry(*active_tool).or_default() += 1;
                             }
                             let (still_ko, still_en) = describe_tool_counts(&still_counts, false);
@@ -418,9 +416,12 @@ fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
                     if !window.is_visible().unwrap_or(false) {
                         auto_show(&window);
                     }
-                    // 창이 떠 있는 동안 진행 중인 다른 작업도 같이 지켜본다.
-                    showing.extend(active.iter().map(|(k, v)| (k.clone(), *v)));
                 }
+            }
+            // 자동으로 띄운 turn뿐 아니라, 창이 떠 있는 동안 새로 시작한 병렬 세션도
+            // 다음 완료 판정부터 관찰 목록에 포함한다.
+            if window.is_visible().unwrap_or(false) {
+                showing.extend(active.iter().map(|(k, v)| (k.clone(), *v)));
             }
         }
     });
