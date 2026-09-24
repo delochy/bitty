@@ -107,8 +107,6 @@ const WIDGET_PORT: &str = "4318";
 const QUEST_URL: &str = "http://127.0.0.1:4318/quest";
 // 즉답으로 끝나는 프롬프트엔 안 뜨게 — lib/sidebar.js의 5차 규칙과 같은 값.
 const AUTO_SHOW_DELAY_MS: u64 = 30_000;
-// Codex의 턴 사이 Stop을 작업 종료로 보지 않고 기다리는 시간.
-const CODEX_GRACE_MS: u64 = 20_000;
 // Stop 훅 없이 죽은 세션이 영원히 WORKING으로 남는 걸 무시하기 위한 상한.
 const STALE_WORKING_MS: u64 = 2 * 60 * 60 * 1000;
 fn now_ms() -> u64 {
@@ -136,12 +134,10 @@ fn read_working_turn(now: u64) -> (Option<String>, HashMap<String, &'static str>
     let mut best: Option<(u64, String)> = None;
     for (id, rec) in sessions {
         let state = rec.get("state").and_then(|s| s.as_str()).unwrap_or("");
-        let is_codex = rec.get("source").and_then(|s| s.as_str()).map_or(false, |s| s.starts_with("codex"));
-        // 17차: Codex는 작업 중간에도 턴마다 Stop을 보낸다 — Stop 뒤 잠깐은 아직 진행 중으로 본다
-        // (곧 다시 일을 시작하면 lib/state.js가 같은 작업으로 이어 붙인다).
         let updated = rec.get("updatedAt").and_then(|v| v.as_u64()).unwrap_or(0);
-        let codex_grace = is_codex && state == "DONE" && now.saturating_sub(updated) < CODEX_GRACE_MS;
-        if state != "WORKING" && !codex_grace {
+        // Stop은 화면에서 즉시 완료로 보여 준다. 내부 기록은 통계 집계를 위해
+        // pendingDoneAt 동안 WORKING으로 유지하므로 위젯은 이 표시를 완료로 해석한다.
+        if state != "WORKING" || rec.get("pendingDoneAt").is_some() {
             continue;
         }
         let started = rec
@@ -308,6 +304,29 @@ fn show_toast(window: &tauri::WebviewWindow, ko: &str, en: &str, tool: &str) {
     ));
 }
 
+/// 완료/진행 중 turn을 도구별로 세어 토스트에 쓸 문구를 만든다.
+fn describe_tool_counts(counts: &HashMap<&'static str, usize>, completed: bool) -> (String, String) {
+    let mut ko = Vec::new();
+    let mut en = Vec::new();
+    for tool in ["Claude", "Codex"] {
+        let Some(count) = counts.get(tool).copied() else {
+            continue;
+        };
+        if completed {
+            ko.push(if count == 1 {
+                format!("{tool} 작업 완료")
+            } else {
+                format!("{tool} 작업 {count}개 완료")
+            });
+            en.push(format!("{count} {tool} task{} done", if count == 1 { "" } else { "s" }));
+        } else {
+            ko.push(format!("{tool} 작업 {count}개"));
+            en.push(format!("{count} {tool} task{}", if count == 1 { "" } else { "s" }));
+        }
+    }
+    (ko.join(" · "), en.join(" · "))
+}
+
 fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
     thread::spawn(move || {
         // 이미 한 번 띄운 turn들 — 그 turn 때문에 다시 튀어나오지 않게 (사용자가
@@ -334,40 +353,57 @@ fn spawn_auto_popup_watcher(app: tauri::AppHandle) {
                     }
                     alive
                 });
-                // 25차: Codex는 "끝났다"를 믿을 수 없다. 훅도, Codex 자체 기록도 긴 명령을
-                // 실행하거나 오래 생각하는 동안 똑같이 조용해져서(2분 동안 나란히 재봤을 때
-                // 한쪽만 살아 있던 경우가 0번), 로컬에서는 "오래 걸리는 작업"과 "끝난 작업"이
-                // 구별되지 않는다. 그래서 Codex가 조용해지면 창만 조용히 접고, 소리와
-                // "작업 끝났어요"는 끝 신호가 정확한 Claude에만 쓴다.
-                let announce = ended.iter().find(|t| **t != "Codex").copied();
+                let mut ended_counts: HashMap<&'static str, usize> = HashMap::new();
+                for tool in &ended {
+                    *ended_counts.entry(*tool).or_default() += 1;
+                }
+                let (completed_ko, completed_en) = describe_tool_counts(&ended_counts, true);
+                // Codex Stop도 선택된 완료 기준으로 바로 알린다. Codex가 이어서 재개하면
+                // 증가한 turnSeq가 새 작업으로 잡혀 같은 창을 다시 보여 준다.
+                let announce = ended
+                    .iter()
+                    .find(|t| **t == "Claude")
+                    .copied()
+                    .or_else(|| ended.first().copied());
+                let sound_tool = if ended_counts.contains_key("Codex") {
+                    "Codex"
+                } else {
+                    announce.unwrap_or("Claude")
+                };
                 if !ended.is_empty() && window.is_visible().unwrap_or(false) {
                     match (showing.is_empty(), announce) {
-                        // 끝 신호가 정확한 도구(Claude)가 마지막으로 끝났다 — 알리고 스르륵.
+                        // 마지막 작업이 끝났다 — 알리고 스르륵.
                         (true, Some(tool)) => {
                             show_toast(
                                 &window,
-                                &format!("✅ {tool} 작업 끝났어요"),
-                                &format!("✅ {tool} is done"),
+                                &format!("✅ {completed_ko}"),
+                                &format!("✅ {completed_en}"),
                                 tool,
                             );
-                            beep(tool);
+                            beep(sound_tool);
                             thread::sleep(Duration::from_millis(1600));
                             fade_out_and_hide(&window);
                         }
-                        // Codex만 조용해졌다 — 끝났는지 알 수 없으니 알리지 않고 창만 접는다.
-                        (true, None) => fade_out_and_hide(&window),
-                        // 한쪽만 끝났고 다른 작업이 남았다 — 창은 두고 알림만 (Codex면 조용히).
+                        // 한쪽만 끝났고 다른 작업이 남았다 — 창은 두고 알림만.
                         (false, Some(tool)) => {
-                            let mut still: Vec<&str> = showing.values().copied().collect();
-                            still.sort();
-                            still.dedup();
+                            let mut still_counts: HashMap<&'static str, usize> = HashMap::new();
+                            for active_tool in showing.values() {
+                                *still_counts.entry(*active_tool).or_default() += 1;
+                            }
+                            let (still_ko, still_en) = describe_tool_counts(&still_counts, false);
                             show_toast(
                                 &window,
-                                &format!("✅ {tool} 작업 끝났어요 · {}는 아직 작업 중", still.join("·")),
-                                &format!("✅ {tool} is done · {} still working", still.join(" & ")),
+                                &format!("✅ {completed_ko} · 아직 {still_ko} 진행 중"),
+                                &format!("✅ {completed_en} · still working: {still_en}"),
                                 tool,
                             );
+                            // Codex가 끝난 세션이 하나라도 있으면 진행 중인 다른 작업과
+                            // 상관없이 Hero 사운드로 완료를 알린다.
+                            if ended_counts.contains_key("Codex") {
+                                beep("Codex");
+                            }
                         }
+                        (true, None) => fade_out_and_hide(&window),
                         (false, None) => {}
                     }
                 }

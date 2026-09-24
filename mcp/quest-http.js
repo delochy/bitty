@@ -99,11 +99,13 @@ function pageShell(bodyHtml) {
     color-scheme: normal; /* 14차: light dark로 두면 WebKit이 창 바탕을 불투명하게 칠해서 투명 창이 네모로 보였다 */
     --card: #ffffff; --ink: #1f2937; --muted: #6b7280; --line: rgba(15,23,42,0.14);
     --soft: #f3f4f6; --soft-2: #e5e7eb; --accent: #6366f1; --focus-bg: #eef2ff;
+    --tool-claude: #c96442; --tool-codex: #4f46e5;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --card: #1c1f26; --ink: #e5e7eb; --muted: #9ca3af; --line: rgba(255,255,255,0.14);
       --soft: #262a33; --soft-2: #323744; --accent: #818cf8; --focus-bg: rgba(129,140,248,0.16);
+      --tool-claude: #f08a67; --tool-codex: #9ba7ff;
     }
   }
   * { box-sizing: border-box; }
@@ -173,7 +175,9 @@ function pageShell(bodyHtml) {
   .who span { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; color: #fff; }
   .who .claude { background: #c96442; }
   .who .codex { background: #111827; }
+  .who .pending { background: #e5e7eb; color: #4b5563; }
   @media (prefers-color-scheme: dark) { .who .codex { background: #e5e7eb; color: #111827; } }
+  @media (prefers-color-scheme: dark) { .who .pending { background: #374151; color: #e5e7eb; } }
   /* 14차: 하던 게임·장보기 이어서 하기 */
   .resume {
     display: inline-block; margin-top: 6px; padding: 5px 12px; border-radius: 999px; background: #6366f1;
@@ -246,10 +250,29 @@ function pageShell(bodyHtml) {
   #burn .label { text-align: center; font-size: 11px; color: var(--muted); margin-top: 3px; }
   #burn .chart { flex: 1; position: relative; margin-top: 10px; min-height: 0; }
   #burn svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-  #burn .idle { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; font-size: 11px; color: var(--muted); word-break: keep-all; padding: 0 12px; }
+  #burn .line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  #burn .line.claude, #burn .dot.claude { stroke: var(--tool-claude); }
+  #burn .dot.claude { fill: var(--tool-claude); }
+  #burn .line.codex, #burn .dot.codex { stroke: var(--tool-codex); }
+  #burn .dot.codex { fill: var(--tool-codex); }
+  #burn .idle { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: left; font-size: 10px; color: var(--muted); padding: 0 4px; }
+  #burn .day-chart { width: 100%; display: flex; flex-direction: column; gap: 9px; }
+  #burn .day-row { display: grid; grid-template-columns: 48px 1fr auto; align-items: center; gap: 7px; }
+  #burn .day-name { font-size: 10px; }
+  #burn .day-track { height: 7px; overflow: hidden; border-radius: 8px; background: var(--soft-2); }
+  #burn .day-bar { display: block; width: 0; height: 100%; border-radius: inherit; transition: width 0.35s ease; }
+  #burn .day-bar.claude { background: var(--tool-claude); }
+  #burn .day-bar.codex { background: var(--tool-codex); }
+  #burn .day-value { min-width: 35px; text-align: right; font-size: 10px; font-variant-numeric: tabular-nums; }
   #burn.resting svg { display: none; }
   #burn.resting .idle { display: flex; }
   #burn .meta { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+  #burn .legend { display: flex; justify-content: center; gap: 14px; margin-top: 4px; font-size: 9.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  #burn .legend span { display: inline-flex; align-items: center; gap: 4px; }
+  #burn .swatch { width: 7px; height: 7px; border-radius: 50%; }
+  #burn .swatch.claude { background: var(--tool-claude); }
+  #burn .swatch.codex { background: var(--tool-codex); }
+  #burn.resting .legend { display: none; }
   #burn .dot { animation: pulse 1.2s ease-in-out infinite; }
   @keyframes pulse { 50% { opacity: 0.35; } }
   @media (prefers-reduced-motion: reduce) { #burn.hot .flame, #burn .dot { animation: none; } }
@@ -290,8 +313,8 @@ ${bodyHtml}
       );
       const mascotEl = document.querySelector('.mascot');
       // 10차: 다른 세션이 끝났어도, 아직 작업 중인 세션이 있으면 배너를 안 띄운다.
-      const anyWorking = sessions.some((s) => s.state === 'WORKING');
-      const anyDone = sessions.some((s) => s.state === 'DONE' || s.state === 'NEEDS_INPUT');
+      const anyWorking = sessions.some((s) => s.state === 'WORKING' && !s.pendingDoneAt);
+      const anyDone = sessions.some((s) => s.state === 'DONE' || s.state === 'NEEDS_INPUT' || Boolean(s.pendingDoneAt));
       const finished = anyDone && !anyWorking;
       // 10차: "작업 끝났어요" 배너는 뺐다 — 끝난 건 삐빅 소리와 마스코트 색으로만 알린다.
       // 14차: 지금 작업 중인 도구(Claude / Codex)를 말풍선 위에 표시.
@@ -299,18 +322,23 @@ ${bodyHtml}
       if (who) {
         // 15차: 도구별로 몇 개가 돌고 있는지도 — 하나면 "작업 중", 여럿이면 "작업 N개".
         const counts = {};
+        const pending = {};
         Object.values(data.sessions || {}).forEach((x) => {
           const codex = String(x.source || '').startsWith('codex');
-          // Codex는 턴 사이 Stop 뒤 잠깐(20초)은 아직 작업 중으로 센다 (위젯 앱과 같은 기준)
-          const between = codex && x.state === 'DONE' && now - (x.updatedAt || 0) < 20 * 1000;
-          if ((x.state === 'WORKING' || between) && now - (x.startedAt || x.updatedAt || 0) < 2 * 60 * 60 * 1000) {
+          if ((x.state === 'WORKING' || x.state === 'DONE') && now - (x.startedAt || x.updatedAt || 0) < 2 * 60 * 60 * 1000) {
             const t = codex ? 'codex' : 'claude';
-            counts[t] = (counts[t] || 0) + 1;
+            if (codex && x.pendingDoneAt) pending[t] = (pending[t] || 0) + 1;
+            else if (x.state === 'WORKING') counts[t] = (counts[t] || 0) + 1;
           }
         });
-        who.innerHTML = Object.keys(counts).sort()
-          .map((t) => '<span class="' + t + '">' + (t === 'codex' ? 'Codex' : 'Claude') +
-            (counts[t] > 1 ? T(' 작업 {n}개', { n: counts[t] }) : T(' 작업 중')) + '</span>')
+        const tools = new Set([...Object.keys(counts), ...Object.keys(pending)]);
+        who.innerHTML = [...tools].sort()
+          .map((t) => {
+            const name = t === 'codex' ? 'Codex' : 'Claude';
+            if (counts[t]) return '<span class="' + t + '">' + name +
+              (counts[t] > 1 ? T(' 작업 {n}개', { n: counts[t] }) : T(' 작업 중')) + '</span>';
+            return '<span class="' + t + ' pending">' + name + T(' 완료') + '</span>';
+          })
           .join('');
       }
       if (mascotEl) {
@@ -642,7 +670,8 @@ ${bodyHtml}
     if (!burn) return;
     const $ = (id) => document.getElementById(id);
     const numEl = $('burnNum'), labelEl = $('burnLabel'), svg = $('burnChart');
-    const area = $('burnArea'), line = $('burnLine'), dot = $('burnDot');
+    const lineEls = { claude: $('burnClaudeLine'), codex: $('burnCodexLine') };
+    const dotEls = { claude: $('burnClaudeDot'), codex: $('burnCodexDot') };
     const rateEl = $('burnRate'), todayEl = $('burnToday');
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -675,22 +704,42 @@ ${bodyHtml}
       requestAnimationFrame(frame);
     }
 
-    function draw(series) {
+    function draw(seriesByTool, totals) {
       const r = svg.getBoundingClientRect();
       const W = Math.max(1, Math.round(r.width)), H = Math.max(1, Math.round(r.height));
       svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
-      if (series.length < 2) { line.setAttribute('d', ''); area.setAttribute('d', ''); dot.setAttribute('r', 0); return; }
-      const t0 = series[0][0], t1 = Math.max(series[series.length - 1][0], t0 + 1);
-      const max = Math.max(1, series[series.length - 1][1]);
+      const tools = ['claude', 'codex'];
+      const points = tools.flatMap((tool) => seriesByTool[tool] || []);
+      if (points.length < 2) {
+        for (const tool of tools) { lineEls[tool].setAttribute('d', ''); dotEls[tool].setAttribute('r', 0); }
+        return;
+      }
+      const t0 = Math.min(...points.map((p) => p[0]));
+      const t1 = Math.max(Math.max(...points.map((p) => p[0])), t0 + 1);
+      const max = Math.max(1, ...points.map((p) => p[1]));
       const P = 4;
-      const pts = series.map(([t, v]) => [P + (t - t0) / (t1 - t0) * (W - 2 * P), H - P - v / max * (H - 2 * P)]);
-      const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
-      const last = pts[pts.length - 1];
-      line.setAttribute('d', d);
-      area.setAttribute('d', d + ' L' + last[0].toFixed(1) + ' ' + H + ' L' + pts[0][0].toFixed(1) + ' ' + H + ' Z');
-      dot.setAttribute('r', 3);
-      dot.setAttribute('cx', last[0].toFixed(1));
-      dot.setAttribute('cy', last[1].toFixed(1));
+      for (const tool of tools) {
+        const series = seriesByTool[tool] || [];
+        if (series.length < 2 || !(totals[tool] > 0)) {
+          lineEls[tool].setAttribute('d', ''); dotEls[tool].setAttribute('r', 0); continue;
+        }
+        const pts = series.map(([t, v]) => [P + (t - t0) / (t1 - t0) * (W - 2 * P), H - P - v / max * (H - 2 * P)]);
+        const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+        const last = pts[pts.length - 1];
+        lineEls[tool].setAttribute('d', d);
+        dotEls[tool].setAttribute('r', 3);
+        dotEls[tool].setAttribute('cx', last[0].toFixed(1));
+        dotEls[tool].setAttribute('cy', last[1].toFixed(1));
+      }
+    }
+
+    function drawToday(t) {
+      const claude = t.claude.total || 0, codex = t.codex.total || 0;
+      const max = Math.max(1, claude, codex);
+      $('burnClaudeDayBar').style.width = (claude / max * 100) + '%';
+      $('burnCodexDayBar').style.width = (codex / max * 100) + '%';
+      $('burnClaudeDayValue').textContent = tok(claude);
+      $('burnCodexDayValue').textContent = tok(codex);
     }
 
     function render(d) {
@@ -703,8 +752,10 @@ ${bodyHtml}
         labelEl.textContent = T('오늘 태운 토큰');
         burn.classList.remove('hot');
         countTo(today);
-        rateEl.textContent = t.claude.total ? 'Claude ' + tok(t.claude.total) : '';
-        todayEl.textContent = t.codex.total ? 'Codex ' + tok(t.codex.total) : '';
+        rateEl.textContent = '';
+        todayEl.textContent = '';
+        $('burnIdle').setAttribute('aria-label', '오늘 Claude ' + tok(t.claude.total) + ', Codex ' + tok(t.codex.total));
+        drawToday(t);
         return;
       }
       labelEl.textContent = T('이번 작업에서 태운 토큰');
@@ -714,7 +765,13 @@ ${bodyHtml}
       countTo(live.total || 0);
       rateEl.textContent = T('분당 {n}', { n: tok(rate) });
       todayEl.textContent = T('오늘 {n}', { n: tok(today) });
-      draw(live.series || []);
+      const byTool = live.byTool || { claude: 0, codex: 0 };
+      $('burnClaude').textContent = tok(byTool.claude);
+      $('burnCodex').textContent = tok(byTool.codex);
+      $('burnChart').setAttribute('aria-label', '이번 작업 Claude ' + tok(byTool.claude) + ', Codex ' + tok(byTool.codex));
+      $('burnIdle').setAttribute('aria-label', '오늘 Claude ' + tok(t.claude.total) + ', Codex ' + tok(t.codex.total));
+      drawToday(t);
+      draw(live.byToolSeries || { claude: [], codex: [] }, byTool);
     }
 
     async function tick() {
@@ -771,17 +828,24 @@ function renderCarousel(quests, listAttrs, opts = {}) {
     <div class="num"><span class="flame">🔥</span><span id="burnNum">-</span></div>
     <div class="label" id="burnLabel" data-i18n>이번 작업에서 태운 토큰</div>
     <div class="chart">
-      <svg id="burnChart" aria-hidden="true">
-        <defs><linearGradient id="burnFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#c96442" stop-opacity=".32"/><stop offset="1" stop-color="#c96442" stop-opacity="0"/>
-        </linearGradient></defs>
-        <path id="burnArea" fill="url(#burnFill)"/>
-        <path id="burnLine" fill="none" stroke="#c96442" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-        <circle id="burnDot" class="dot" r="3" fill="#c96442"/>
+      <svg id="burnChart" role="img" aria-label="Claude와 Codex의 이번 작업 토큰 사용 그래프">
+        <path id="burnClaudeLine" class="line claude"/>
+        <circle id="burnClaudeDot" class="dot claude" r="0"/>
+        <path id="burnCodexLine" class="line codex"/>
+        <circle id="burnCodexDot" class="dot codex" r="0"/>
       </svg>
-      <div class="idle" id="burnIdle" data-i18n>작업이 시작되면 토큰이 타는 게 여기 보여요</div>
+      <div class="idle" id="burnIdle" aria-label="오늘의 도구별 토큰 사용량">
+        <div class="day-chart">
+          <div class="day-row"><span class="day-name">Claude</span><div class="day-track"><i class="day-bar claude" id="burnClaudeDayBar"></i></div><span class="day-value" id="burnClaudeDayValue">0</span></div>
+          <div class="day-row"><span class="day-name">Codex</span><div class="day-track"><i class="day-bar codex" id="burnCodexDayBar"></i></div><span class="day-value" id="burnCodexDayValue">0</span></div>
+        </div>
+      </div>
     </div>
     <div class="meta"><span id="burnRate"></span><span id="burnToday"></span></div>
+    <div class="legend" aria-label="도구별 이번 작업 사용량">
+      <span><i class="swatch claude"></i>Claude <b id="burnClaude">0</b></span>
+      <span><i class="swatch codex"></i>Codex <b id="burnCodex">0</b></span>
+    </div>
   </div>` : ''}
   <div class="carousel"${tokenFirst ? ' style="display:none"' : ''}>
     <div id="quests" ${listAttrs}>
@@ -939,7 +1003,7 @@ function start() {
         const working = Object.entries(state.getState().sessions)
           .filter(([id, r]) => r && r.startedAt && (only
             ? id === only
-            : (r.state === 'WORKING' || r.state === 'NEEDS_INPUT') && now - r.startedAt < 6 * 3600 * 1000))
+            : ((r.state === 'WORKING' && !r.pendingDoneAt) || r.state === 'NEEDS_INPUT') && now - r.startedAt < 6 * 3600 * 1000))
           .map(([id, r]) => ({ sessionId: id, tool: String(r.source).startsWith('codex') ? 'codex' : 'claude', startedAt: r.startedAt }));
         // 오늘 합계는 디렉터리를 훑어야 해서 15초에 한 번만 새로 센다
         if (!todayMemo || now - todayMemo.at > 15 * 1000) todayMemo = { at: now, value: stats.todayTokens() };
